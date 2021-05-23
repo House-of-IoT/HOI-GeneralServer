@@ -9,27 +9,33 @@ class Main:
         self.port = 50223
         self.clients = {}
         self.clients_type = {}
-        self.accepted_types = {"reed_switch" , 
-            "gas_smoke_fire_detector" , "ralph" , "home_watcher"}
+        self.accepted_types = {
+            "reed_switch" , 
+            "gas_smoke_fire_detector" , 
+            "ralph" , 
+            "home_watcher"}
         self.connected = 0
         self.clients_on_timer = {}
 
-    async def check_type(self):
-        pass
-    
-    async def disconnect(self):
-        pass
-
     def name_and_type(self, response):
-        data_dict = json.loads(response)
-        if "name" in data_dict and "type" in data_dict:
-            return (data_dict["name"] , data_dict["type"])
-        else:
-            return None
+        try:
+            data_dict = json.loads(response)
+            if "name" in data_dict and "type" in data_dict:
+                return (data_dict["name"] , data_dict["type"])
+            else:
+                return None
+        except: # json parsing 
+            return None 
 
     async def route_type(self,websocket,name,client_type):
-        pass
-
+        try:
+            if client_type in self.accepted_types:
+                await websocket.send("success")
+            else:
+                await websocket.send("error_invalid_type")
+        except:
+            pass
+    
     async def check_declaration(self,websocket , path):
         try:
             type_of_client = await asyncio.wait_for(websocket.recv(), 1)
@@ -37,11 +43,10 @@ class Main:
 
             # Name and type exists/there is no client with this name
             if name_and_type != None and name_and_type[0] not in self.clients:
-                self.route_type(websocket,name_and_type[0],name_and_type[1])     
+                await self.route_type(websocket,name_and_type[0],name_and_type[1])     
              
         except:
-            pass# connection goes out of scope
-
+            pass
 
     def start_server(self):
         loop = asyncio.get_event_loop()
