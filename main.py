@@ -2,18 +2,26 @@ import asyncio
 import json
 import websockets
 import time
-
+from type_capabilities import Capabilities
 class Main:
     def __init__(self):
         self.host = '127.0.0.1' 
         self.port = 50223
         self.clients = {}
         self.clients_type = {}
+        
         self.accepted_types = {
-            "reed_switch" , 
-            "gas_smoke_fire_detector" , 
-            "ralph" , 
-            "home_watcher"}
+            "reed_switch":Capabilities() , 
+            "gas_smoke_fire_detector" :Capabilities(), 
+            "ralph" : Capabilities(
+                has_audio_streaming=True, 
+                has_ground_movement=True) , 
+            "home_watcher" : Capabilities(
+                has_audio_streaming=True,
+                has_video_streaming=True,
+                has_pir=True),
+            "non-bot" :Capabilities()}
+
         self.connected = 0
         self.clients_on_timer = {}
 
@@ -30,6 +38,8 @@ class Main:
     async def route_type(self,websocket,name,client_type):
         try:
             if client_type in self.accepted_types:
+                self.clients[name] = websocket
+                self.clients_type[name] = client_type
                 await websocket.send("success")
             else:
                 await websocket.send("error_invalid_type")
