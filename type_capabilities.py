@@ -1,0 +1,2 @@
+class Capabilities:
+    pass
