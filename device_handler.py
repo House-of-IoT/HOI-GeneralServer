@@ -32,7 +32,7 @@ class DeviceHandler:
                 self.try_to_gather_data_from_bot(bot_websocket,name,data_holder)
             else:
                 pass
-        await self.send_passive_data(data_holder,client_name)
+        await self.send_passive_data_to_client(data_holder,client_name)
     
     async def perform_action(self,action,bot_name,client_websocket):
         pass #uses the new capabilities
