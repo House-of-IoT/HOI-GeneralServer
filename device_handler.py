@@ -6,12 +6,12 @@ class DeviceHandler:
     def __init__(self,parent):
         self.parent = parent
 
-    async def send_passive_data(self ,data_holder,client_name):
+    async def send_passive_data_to_client(self ,data_holder,name):
         json_string = json.dumps(data_holder)
         try:
-            await self.clients[client_name].send(json_string)
+            await self.devices[name].send(json_string)
         except:
-            del self.parent.clients[client_name]
+            del self.parent.devices[name]
 
     async def try_to_gather_data_from_bot(self,websocket,name,data_holder):
         try:
