@@ -7,9 +7,9 @@ class Main:
     def __init__(self):
         self.host = '127.0.0.1' 
         self.port = 50223
-        self.clients = {}
-        self.clients_type = {}
-        
+        self.devices = {}
+        self.devices_type = {}
+
         self.accepted_types = {
             "reed_switch":Capabilities() , 
             "gas_smoke_fire_detector" :Capabilities(), 
