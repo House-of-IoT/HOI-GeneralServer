@@ -3,24 +3,27 @@ import json
 import websockets
 import time
 from type_capabilities import Capabilities
+
 class Main:
     def __init__(self):
         self.host = '127.0.0.1' 
         self.port = 50223
         self.devices = {}
         self.devices_type = {}
+        self.failed_admin_attempts = {}
+        self.admin_password = ""
 
         self.accepted_types = {
             "reed_switch":Capabilities() , 
-            "gas_smoke_fire_detector" :Capabilities(), 
-            "ralph" : Capabilities(
+            "gas_smoke_fire_detector":Capabilities(), 
+            "ralph":Capabilities(
                 has_audio_streaming=True, 
                 has_ground_movement=True) , 
-            "home_watcher" : Capabilities(
+            "home_watcher":Capabilities(
                 has_audio_streaming=True,
                 has_video_streaming=True,
                 has_pir=True),
-            "non-bot" :Capabilities()}
+            "non-bot":Capabilities()}
 
         self.connected = 0
         self.clients_on_timer = {}
@@ -32,7 +35,7 @@ class Main:
                 return (data_dict["name"] , data_dict["type"])
             else:
                 return None
-        except: # json parsing 
+        except: 
             return None 
 
     async def route_type(self,websocket,name,client_type):
@@ -45,7 +48,7 @@ class Main:
                 await websocket.send("error_invalid_type")
         except:
             pass
-    
+
     async def check_declaration(self,websocket , path):
         try:
             type_of_client = await asyncio.wait_for(websocket.recv(), 1)
@@ -54,9 +57,23 @@ class Main:
             # Name and type exists/there is no client with this name
             if name_and_type != None and name_and_type[0] not in self.clients:
                 await self.route_type(websocket,name_and_type[0],name_and_type[1])     
-             
         except:
             pass
+
+    def is_admin(self,password,websocket):
+        if password == self.admin_password:
+            return True
+        else:
+            ip = str(websocket.remote_address[0])
+            if ip in self.failed_admin_attempts:
+                self.failed_admin_attempts[ip] +=1
+            else:
+                self.failed_admin_attempts[ip] = 1
+            return False
+
+    async def reset_attempts(self):
+        await asyncio.sleep(86400)# one day
+        self.failed_admin_attempts = {}
 
     def start_server(self):
         loop = asyncio.get_event_loop()
