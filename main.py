@@ -51,6 +51,8 @@ class Main:
 
     async def check_declaration(self,websocket , path):
         try:
+            if self.is_banned(str(websocket.remote_address[0])):
+                return
             type_of_client = await asyncio.wait_for(websocket.recv(), 1)
             name_and_type = self.name_and_type(type_of_client)
 
@@ -59,6 +61,14 @@ class Main:
                 await self.route_type(websocket,name_and_type[0],name_and_type[1])     
         except:
             pass
+
+    def is_banned(self,ip):
+        if ip in self.failed_admin_attempts:
+            if self.failed_admin_attempts[ip] > 3:
+                return True
+            else:
+                return False
+        return False
 
     def is_admin(self,password,websocket):
         if password == self.admin_password:
