@@ -1,10 +1,10 @@
 import asyncio
 import json
 import websockets
-import time
 from type_capabilities import Capabilities
 
 class Main:
+
     def __init__(self):
         self.host = '127.0.0.1' 
         self.port = 50223
@@ -24,9 +24,7 @@ class Main:
                 has_video_streaming=True,
                 has_pir=True),
             "non-bot":Capabilities()}
-
         self.connected = 0
-        self.clients_on_timer = {}
 
     def name_and_type(self, response):
         try:
@@ -38,12 +36,25 @@ class Main:
         except: 
             return None 
 
-    async def route_type(self,websocket,name,client_type):
+    def handle_client():
+        pass
+
+    def handle_bot():
+        pass
+
+    def next_steps(self,client_type, name,websocket):
+        if client_type == "non-bot":
+            pass
+        else:
+            pass
+
+    async def handle_type(self,websocket,name,client_type):
         try:
             if client_type in self.accepted_types:
                 self.clients[name] = websocket
                 self.clients_type[name] = client_type
                 await websocket.send("success")
+                self.next_steps(client_type,name,websocket)
             else:
                 await websocket.send("error_invalid_type")
         except:
@@ -58,7 +69,7 @@ class Main:
 
             # Name and type exists/there is no client with this name
             if name_and_type != None and name_and_type[0] not in self.clients:
-                await self.route_type(websocket,name_and_type[0],name_and_type[1])     
+                await self.handle_type(websocket,name_and_type[0],name_and_type[1])     
         except:
             pass
 
