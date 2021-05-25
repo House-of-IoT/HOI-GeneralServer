@@ -35,6 +35,16 @@ class DeviceHandler:
         await self.send_passive_data_to_client(data_holder,client_name)
     
     async def perform_action(self,action,bot_name,client_websocket):
-        pass #uses the new capabilities
-
+        if action == "video_stream":
+            if self.parent.devices[bot_name].has_video_streaming:
+                pass
+            else:
+                pass
+        elif action == "audio_stream":
+            if self.parent.devices[bot_name].has_audio_streaming:
+                pass
+            else:
+                pass
+        else:
+            pass
 
