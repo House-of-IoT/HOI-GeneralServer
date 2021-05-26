@@ -16,4 +16,13 @@ class BotHandler:
         elif capabilities.has_ground_movement:
             pass
     
+    async def check_should_start_streaming(self):
+        print("checking")
+        sent_status = self.parent.stream_request_already_sent[self.name]
+        available_status = self.parent.available_status[self.name]
+        if  available_status == False and  sent_status == False:
+            await self.websocket.send("stream")
+            self.parent.stream_request_already_sent[self.name] = True
+            print("sending.. stream_request")
+    
 
