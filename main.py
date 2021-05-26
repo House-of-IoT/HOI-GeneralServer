@@ -3,6 +3,7 @@ import json
 import websockets
 from type_capabilities import Capabilities
 from bot_handler import BotHandler
+from client_handler import ClientHandler
 
 class Main:
 
@@ -13,7 +14,8 @@ class Main:
         self.devices_type = {}
         self.failed_admin_attempts = {}
         self.should_disable = {}
-        self.stream_request_already_sent = {}
+        self.video_stream_request_already_sent = {}
+        self.audio_stream_request_already_sent = {}
         self.available_status = {}
         self.stream_mode_status= {}
         self.admin_password = ""
@@ -41,9 +43,19 @@ class Main:
         except: 
             return None 
 
-    def handle_client():
-        pass
-
+    async def handle_client(self,websocket,name):
+        while True:
+            await asyncio.sleep(1)
+            try:
+                handler = ClientHandler(self,name,websocket)
+                handler.gather_request()
+                
+            except Exception as e:
+                print(e)
+                del self.devices[name]
+                del self.devices_type[name]
+                break      
+    
     def handle_bot():
         pass
 
