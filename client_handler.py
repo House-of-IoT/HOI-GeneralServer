@@ -25,16 +25,31 @@ class ClientHandler:
         except:
             pass
 
+
+    async def check_for_stop(self,bot_name):
+        try:
+            message = asyncio.wait_for(self.websocket.recv() , 0.1)
+            if message == "finished_streaming":
+                self.stream_mode_status[self.name] = False
+                self.available_status[bot_name] = True
+                await self.devices[bot_name].send("stop_streaming")
+                return True
+            else:
+                return False
+        except:
+            pass
+
     def begin_capability(self,bot_name,action):
         if action == "video_stream" or action == "audio_steam" and  self.parent.available_status[bot_name] == True :
             self.parent.available_status[bot_name] = False
             self.parent.stream_mode_status[self.name] = True
             self.stream(bot_name)
-            
+
     async def stream (self,bot_name):
         while  self.parent.stream_mode_status[self.name] == True:
             try:
-                 # bot data exists
+                if await self.check_for_stop() == True:
+                    break
                 if bot_name in self.parent.stream_data and len(self.parent.stream_data[bot_name]) > 0:
                     data = self.parent.stream_data[bot_name].pop(0)
                     await self.websocket.send(data)
@@ -43,7 +58,6 @@ class ClientHandler:
             except:
                 self.stream_mode_status[self.name] = False
                 self.available_status[bot_name] = True
-                    
 
     def bot_type_has_capability(self,bot_name,action)-> bool:
         try:
