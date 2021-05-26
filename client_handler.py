@@ -1,6 +1,7 @@
 
 import asyncio
 from device_handler import DeviceHandler
+
 class ClientHandler:
     def __init__(self,parent,name,websocket):
         self.parent = parent
@@ -25,12 +26,25 @@ class ClientHandler:
             pass
 
     def begin_capability(self,bot_name,action):
-        pass
-    def stream_video():
-        pass
-    def stream_audio():
-        pass
-    
+        if action == "video_stream" or action == "audio_steam" and  self.parent.available_status[bot_name] == True :
+            self.parent.available_status[bot_name] = False
+            self.parent.stream_mode_status[self.name] = True
+            self.stream(bot_name)
+            
+    async def stream (self,bot_name):
+        while  self.parent.stream_mode_status[self.name] == True:
+            try:
+                 # bot data exists
+                if bot_name in self.parent.stream_data and len(self.parent.stream_data[bot_name]) > 0:
+                    data = self.parent.stream_data[bot_name].pop(0)
+                    await self.websocket.send(data)
+                else:
+                    pass
+            except:
+                self.stream_mode_status[self.name] = False
+                self.available_status[bot_name] = True
+                    
+
     def bot_type_has_capability(self,bot_name,action)-> bool:
         try:
             device_type = self.parent.devices_type[bot_name]
