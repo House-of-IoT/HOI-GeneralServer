@@ -2,6 +2,7 @@ import asyncio
 import json
 import websockets
 from type_capabilities import Capabilities
+from bot_handler import BotHandler
 
 class Main:
 
@@ -11,6 +12,10 @@ class Main:
         self.devices = {}
         self.devices_type = {}
         self.failed_admin_attempts = {}
+        self.should_disable = {}
+        self.stream_request_already_sent = {}
+        self.available_status = {}
+        self.stream_mode_status= {}
         self.admin_password = ""
 
         self.accepted_types = {
