@@ -13,9 +13,6 @@ class Main:
         self.devices = {}
         self.devices_type = {}
         self.failed_admin_attempts = {}
-        self.should_disable = {}
-        self.video_stream_request_already_sent = {}
-        self.audio_stream_request_already_sent = {}
         self.available_status = {}
         self.stream_mode_status= {}
         self.admin_password = ""
