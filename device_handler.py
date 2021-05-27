@@ -38,6 +38,3 @@ class DeviceHandler:
             else:
                 pass
         await self.send_passive_data_to_client(data_holder,client_name)
-    
-
-
