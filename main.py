@@ -2,7 +2,6 @@ import asyncio
 import json
 import websockets
 from type_capabilities import Capabilities
-from bot_handler import BotHandler
 from client_handler import ClientHandler
 
 class Main:
@@ -15,7 +14,8 @@ class Main:
         self.failed_admin_attempts = {}
         self.available_status = {}
         self.stream_mode_status= {}
-        self.admin_password = ""
+        self.admin_password = ""#move to env
+        self.regular_password = ""#move to env
 
         self.accepted_types = {
             "reed_switch":Capabilities() , 
@@ -78,12 +78,13 @@ class Main:
         try:
             if self.is_banned(str(websocket.remote_address[0])):
                 return
-            type_of_client = await asyncio.wait_for(websocket.recv(), 1)
-            name_and_type = self.name_and_type(type_of_client)
+            if await self.is_authed():
+                type_of_client = await asyncio.wait_for(websocket.recv(), 1)
+                name_and_type = self.name_and_type(type_of_client)
 
-            # Name and type exists/there is no client with this name
-            if name_and_type != None and name_and_type[0] not in self.clients:
-                await self.handle_type(websocket,name_and_type[0],name_and_type[1])     
+                # Name and type exists/there is no client with this name
+                if name_and_type != None and name_and_type[0] not in self.clients:
+                    await self.handle_type(websocket,name_and_type[0],name_and_type[1])     
         except:
             pass
 
@@ -95,16 +96,30 @@ class Main:
                 return False
         return False
 
+    async def is_authed(self,websocket):
+        try:
+            password = await asyncio.wait_for(websocket.recv(),5)
+            if password == self.regular_password:
+                return True
+            else:
+                self.add_to_failed_attempts(websocket)
+                return False
+        except:
+            self.add_to_failed_attempts(websocket)
+        
     def is_admin(self,password,websocket):
         if password == self.admin_password:
             return True
         else:
-            ip = str(websocket.remote_address[0])
-            if ip in self.failed_admin_attempts:
-                self.failed_admin_attempts[ip] +=1
-            else:
-                self.failed_admin_attempts[ip] = 1
+            self.add_to_failed_attempts(websocket)
             return False
+
+    def add_to_failed_attempts(self,websocket):
+        ip = str(websocket.remote_address[0])
+        if ip in self.failed_admin_attempts:
+            self.failed_admin_attempts[ip] +=1
+        else:
+            self.failed_admin_attempts[ip] = 1
 
     async def reset_attempts(self):
         await asyncio.sleep(86400)# one day
