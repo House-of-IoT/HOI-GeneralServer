@@ -25,7 +25,6 @@ class ClientHandler:
         except:
             pass
 
-
     async def check_for_stop(self,bot_name):
         try:
             message = asyncio.wait_for(self.websocket.recv() , 0.1)
@@ -39,25 +38,44 @@ class ClientHandler:
         except:
             pass
 
-    def begin_capability(self,bot_name,action):
+    async def begin_capability(self,bot_name,action):
         if action == "video_stream" or action == "audio_steam" and  self.parent.available_status[bot_name] == True :
             self.parent.available_status[bot_name] = False
             self.parent.stream_mode_status[self.name] = True
-            self.stream(bot_name)
+            await self.stream(bot_name,action)
 
-    async def stream (self,bot_name):
-        while  self.parent.stream_mode_status[self.name] == True:
-            try:
-                if await self.check_for_stop() == True:
-                    break
-                if bot_name in self.parent.stream_data and len(self.parent.stream_data[bot_name]) > 0:
-                    data = self.parent.stream_data[bot_name].pop(0)
-                    await self.websocket.send(data)
-                else:
-                    pass
-            except:
-                self.stream_mode_status[self.name] = False
-                self.available_status[bot_name] = True
+    async def stream (self,bot_name,action):
+        if await self.bot_was_notified(bot_name,action):
+            while  self.parent.stream_mode_status[self.name] == True:
+                try:
+                    if await self.check_for_stop() == True:
+                        break    
+                    await self.gather_data_from_bot_and_forward(bot_name)
+
+                except:
+                    self.stream_mode_status[self.name] = False
+                    self.available_status[bot_name] = True
+                await asyncio.sleep(0.1)
+        
+        self.stream_mode_status[self.name] = False
+        self.available_status[bot_name] = True
+
+    async def gather_data_from_bot_and_forward(self,bot_name):
+        bot_websocket = self.parent.devices[bot_name]
+        data = await bot_websocket.recv()
+        await self.websocket.send(data)
+
+    async def  bot_was_notified(self,bot_name,action)-> bool:
+        try:
+            bot_websocket = self.parent.devices[bot_name]
+            await bot_websocket.send(action)
+            response = await bot_websocket.recv()
+            if response == "got_request":
+                return True
+            else:
+                return False
+        except:
+            return False
 
     def bot_type_has_capability(self,bot_name,action)-> bool:
         try:
