@@ -3,6 +3,7 @@ import json
 import websockets
 from type_capabilities import Capabilities
 from client_handler import ClientHandler
+from device_handler import DeviceHandler
 
 class Main:
 
@@ -16,6 +17,7 @@ class Main:
         self.stream_mode_status= {}
         self.admin_password = ""#move to env
         self.regular_password = ""#move to env
+        self.device_handler = DeviceHandler(self)
 
         self.accepted_types = {
             "reed_switch":Capabilities() , 
@@ -46,6 +48,7 @@ class Main:
             try:
                 handler = ClientHandler(self,name,websocket)
                 handler.gather_request()
+                self.device_handler.get_and_send_passive_data(name)
                 
             except Exception as e:
                 print(e)
@@ -53,22 +56,26 @@ class Main:
                 del self.devices_type[name]
                 break      
     
-    def handle_bot():
-        pass
+    async def handle_bot(self,websocket,name):
+        try:
+            pass
+        except:
+            del self.devices[name]
+            del self.devices_type[name]
 
-    def next_steps(self,client_type, name,websocket):
+    async def next_steps(self,client_type, name,websocket):
         if client_type == "non-bot":
-            pass
+            await self.handle_client(websocket,name)
         else:
-            pass
+            await self.handle_bot(websocket,name)
 
     async def handle_type(self,websocket,name,client_type):
         try:
             if client_type in self.accepted_types:
-                self.clients[name] = websocket
-                self.clients_type[name] = client_type
+                self.devices[name] = websocket
+                self.devices_type[name] = client_type
                 await websocket.send("success")
-                self.next_steps(client_type,name,websocket)
+                await self.next_steps(client_type,name,websocket)
             else:
                 await websocket.send("error_invalid_type")
         except:
@@ -83,7 +90,7 @@ class Main:
                 name_and_type = self.name_and_type(type_of_client)
 
                 # Name and type exists/there is no client with this name
-                if name_and_type != None and name_and_type[0] not in self.clients:
+                if name_and_type != None and name_and_type[0] not in self.devices:
                     await self.handle_type(websocket,name_and_type[0],name_and_type[1])     
         except:
             pass
