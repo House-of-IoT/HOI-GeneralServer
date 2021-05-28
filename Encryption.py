@@ -1,8 +1,8 @@
-import socket
+
 from cryptography.fernet import Fernet
 class EncryptionHandler:
 
-	def init_with_key():
+	def init_with_key(self):
 		with open("privatekey.txt" , "rb" ) as file:
 			self.key = file.read()
 			self.f= Fernet(self.key)
