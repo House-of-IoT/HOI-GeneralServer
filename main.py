@@ -57,11 +57,16 @@ class Main:
                 break      
     
     async def handle_bot(self,websocket,name):
-        try:
-            pass
-        except:
-            del self.devices[name]
-            del self.devices_type[name]
+        while True:
+            try:
+                await websocket.send("--heartbeat--")
+                await asyncio.sleep(60)
+            except Exception as e:
+                #issue sending to websocket
+                print(e)
+                del self.devices[name]
+                del self.devices_type[name]
+                break
 
     async def next_steps(self,client_type, name,websocket):
         if client_type == "non-bot":
@@ -134,5 +139,6 @@ class Main:
 
     def start_server(self):
         loop = asyncio.get_event_loop()
-        loop.run_until_complete(websockets.serve(self.check_declaration,self.host,self.port,ping_interval=None))
+        loop.run_until_complete(
+            websockets.serve(self.check_declaration,self.host,self.port,ping_interval=None))
         loop.run_forever()
