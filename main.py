@@ -47,8 +47,8 @@ class Main:
             await asyncio.sleep(1)
             try:
                 handler = ClientHandler(self,name,websocket)
-                handler.gather_request()
-                self.device_handler.get_and_send_passive_data(name)
+                await handler.gather_request()
+                await self.device_handler.get_and_send_passive_data(name)
                 
             except Exception as e:
                 print(e)
@@ -88,17 +88,23 @@ class Main:
 
     async def check_declaration(self,websocket , path):
         try:
+        
             if self.is_banned(str(websocket.remote_address[0])):
                 return
-            if await self.is_authed():
+            if await self.is_authed(websocket):
+                print("here")
                 type_of_client = await asyncio.wait_for(websocket.recv(), 1)
                 name_and_type = self.name_and_type(type_of_client)
 
                 # Name and type exists/there is no client with this name
                 if name_and_type != None and name_and_type[0] not in self.devices:
-                    await self.handle_type(websocket,name_and_type[0],name_and_type[1])     
-        except:
-            pass
+                    await self.handle_type(websocket,name_and_type[0],name_and_type[1]) 
+                else:
+                    await websocket.send("issue")
+            else:
+                await websocket.send("issue")    
+        except Exception as e:
+            print(e)
 
     def is_banned(self,ip):
         if ip in self.failed_admin_attempts:
@@ -142,3 +148,5 @@ class Main:
         loop.run_until_complete(
             websockets.serve(self.check_declaration,self.host,self.port,ping_interval=None))
         loop.run_forever()
+
+Main().start_server()
