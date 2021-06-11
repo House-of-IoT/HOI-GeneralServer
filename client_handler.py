@@ -10,8 +10,8 @@ class ClientHandler:
 
     async def gather_request(self):
         try:
-            action = asyncio.wait_for( self.websocket.recv(),1)
-            bot_name = asyncio.wait_for( await self.websocket.recv(),1)
+            action = await  asyncio.wait_for( self.websocket.recv(),1)
+            bot_name = await asyncio.wait_for( await self.websocket.recv(),1)
 
             if bot_name in self.parent.devices:
                 if self.bot_type_has_capability(bot_name,action):
