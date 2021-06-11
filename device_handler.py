@@ -14,7 +14,7 @@ class DeviceHandler:
     async def send_passive_data_to_client(self ,data_holder,name):
         json_string = json.dumps(data_holder)
         try:
-            await self.devices[name].send(json_string)
+            await self.parent.devices[name].send(json_string)
         except:
             del self.parent.devices[name]
 
@@ -32,9 +32,9 @@ class DeviceHandler:
         data_holder = {}
 
         for name in device_names:
-            if self.devices_type[name] != "non-bot":
-                bot_websocket = self.devices[name]
-                self.try_to_gather_data_from_bot(bot_websocket,name,data_holder)
+            if self.parent.devices_type[name] != "non-bot":
+                bot_websocket = self.parent.devices[name]
+                await self.try_to_gather_data_from_bot(bot_websocket,name,data_holder)
             else:
                 pass
         await self.send_passive_data_to_client(data_holder,client_name)
