@@ -47,8 +47,11 @@ class Main:
             await asyncio.sleep(1)
             try:
                 handler = ClientHandler(self,name,websocket)
-                await handler.gather_request()
-                await self.device_handler.get_and_send_passive_data(name)
+                request = await websocket.recv()
+                if request == "bot_control":
+                    await handler.gather_request_for_bot()
+                else:
+                    await self.device_handler.get_and_send_passive_data(name)
                 
             except Exception as e:
                 print(e)

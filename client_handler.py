@@ -8,7 +8,8 @@ class ClientHandler:
         self.name = name
         self.websocket = websocket
 
-    async def gather_request(self):
+
+    async def gather_request_for_bot(self):
         try:
             action = await  asyncio.wait_for( self.websocket.recv(),1)
             bot_name = await asyncio.wait_for( await self.websocket.recv(),1)
