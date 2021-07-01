@@ -4,11 +4,13 @@ import asyncio
 import websockets
 import json
 
+
 '''
 1.Send password for general server
 2.Send name and type(json serialized)
-3.check server response
-4.begin general sequence
+3.Send your naming of the server
+4.check server response
+5.begin general sequence
 '''
 
 
@@ -18,6 +20,8 @@ class Test:
         websocket = await websockets.connect('ws://localhost:50223'  ,  ping_interval= None  , max_size = 20000000)
         await websocket.send("")
         await websocket.send(self.name_and_type())
+        await websocket.send("server_test")
+
         connection_response = await websocket.recv()
         if connection_response != "success":
             print("auth_test_failed")

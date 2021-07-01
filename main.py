@@ -15,6 +15,7 @@ class Main:
         self.failed_admin_attempts = {}
         self.available_status = {}
         self.stream_mode_status= {}
+        self.outside_names = {}
         self.admin_password = ""#move to env
         self.regular_password = ""#move to env
         self.device_handler = DeviceHandler(self)
@@ -98,9 +99,11 @@ class Main:
                 print("here")
                 type_of_client = await asyncio.wait_for(websocket.recv(), 1)
                 name_and_type = self.name_and_type(type_of_client)
+                outside_name = await asyncio.wait_for(websocket.recv(),1)
 
                 # Name and type exists/there is no client with this name
                 if name_and_type != None and name_and_type[0] not in self.devices:
+                    self.outside_names[name_and_type[0]] = outside_name
                     await self.handle_type(websocket,name_and_type[0],name_and_type[1]) 
                 else:
                     await websocket.send("issue")

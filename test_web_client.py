@@ -24,18 +24,7 @@ class Test:
             print(f"expected success , got:{connection_response}")
         else:
             print("auth_passed")
-            await self.test_gather_periodic_data(websocket)
 
-    async def test_gather_periodic_data(self,websocket):
-        while True:
-            try:
-                #general data
-                message = await asyncio.wait_for(websocket.recv(),5)
-                print(message)
-            except Exception as e: 
-                print(e)
-                #handle socket closed
-                #break
 
     def name_and_type(self):
         data = {"name":"test1" , "type":"non-bot"}
