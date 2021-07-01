@@ -12,21 +12,19 @@ import json
 5.begin general sequence
 '''
 
-
 class Test:
     
     async def test_connect(self):
         websocket = await websockets.connect('ws://localhost:50223'  ,  ping_interval= None  , max_size = 20000000)
         await websocket.send("")
         await websocket.send(self.name_and_type())
-        await.
+        await websocket.send("test_name")
         connection_response = await websocket.recv()
         if connection_response != "success":
             print("auth_test_failed")
             print(f"expected success , got:{connection_response}")
         else:
             print("auth_passed")
-
 
     def name_and_type(self):
         data = {"name":"test1" , "type":"non-bot"}
