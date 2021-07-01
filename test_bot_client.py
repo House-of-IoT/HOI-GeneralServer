@@ -4,7 +4,6 @@ import asyncio
 import websockets
 import json
 
-
 '''
 1.Send password for general server
 2.Send name and type(json serialized)
@@ -12,7 +11,6 @@ import json
 4.check server response
 5.begin general sequence
 '''
-
 
 class Test:
     
