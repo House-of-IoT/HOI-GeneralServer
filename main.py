@@ -14,6 +14,7 @@ class Main:
         self.devices_type = {}
         self.failed_admin_attempts = {}
         self.available_status = {}
+        self.deactivated_bots = set()
         self.stream_mode_status= {}
         self.outside_names = {}
         self.admin_password = ""#move to env
@@ -63,6 +64,8 @@ class Main:
     async def handle_bot(self,websocket,name):
         while True:
             try:
+                if name not in self.devices:
+                    break
                 await websocket.send("--heartbeat--")
                 await asyncio.sleep(60)
             except Exception as e:

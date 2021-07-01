@@ -14,6 +14,9 @@ import json
 
 class Test:
     
+    def __init__(self):
+        self.active = True
+
     async def test_connect(self):
         websocket = await websockets.connect('ws://localhost:50223'  ,  ping_interval= None  , max_size = 20000000)
         await websocket.send("")
@@ -35,6 +38,7 @@ class Test:
                 if message == "basic_data":
                     # simulating the basic data
                     await websocket.send("") 
+                elif message == "deactivate"
                 print(message)
             except Exception as e: 
                 print(e)
