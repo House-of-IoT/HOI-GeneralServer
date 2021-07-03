@@ -56,22 +56,22 @@ class ClientHandler:
             await self.stream(bot_name,action)
 
     async def activate_deactivate_or_disconnect_bot(self,bot_name,action):
+        server_name = self.parent.outside_names[self.name]
+        basic_response = BasicResponse(server_name)
+        basic_response.action = action
+        basic_response.bot_name = bot_name
         try:
-            server_name = self.parent.outside_names[self.name]
-            #basic response setup
-            basic_response = BasicResponse(server_name)
-            basic_response.action = action
-            basic_response.bot_name = bot_name
             #send bot the basic request
             bot_connection  = self.parent.devices[bot_name]
             await bot_connection.send(action)
             status = await asyncio.wait_for(bot_connection.recv(),1);
+            print(status)
             basic_response.status = status
             #send client the result
             await self.websocket.send(basic_response.string_version())
             self.handle_activate_deactivate_or_disconnect_cleanup(bot_name,action,status)
         except:
-            pass
+            await self.notify_timeout(self,basic_response)
         
     def handle_activate_deactivate_or_disconnect_cleanup(self,bot_name,action,status):
         if status == "success":
@@ -128,3 +128,8 @@ class ClientHandler:
             return capabilties.functionality[action]
         except:
             return False
+
+    #on failure , the outer block will close the connection
+    async def notify_timeout(self,basic_response):
+            basic_response.status = "timeout"
+            await self.websocket.send(basic_response.string_version())

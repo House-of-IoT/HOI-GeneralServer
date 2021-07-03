@@ -39,7 +39,12 @@ class Test:
                     # simulating the basic data
                     await websocket.send("") 
                 elif message == "deactivate":
+                    print("deactivating.")
+                    await websocket.send("success")
                     await self.enter_deactivate_loop()
+                elif message == "disconnect":
+                    print("disconnecting.")
+                    break
                 print(message)
             except Exception as e: 
                 print(e)
@@ -54,6 +59,9 @@ class Test:
                     break
             except Exception as e:
                 print(e)
+                #handle socket closed
+                #break
+
     def name_and_type(self):
         data = {"name":"test" , "type":"reed_switch"}
         return json.dumps(data)
