@@ -38,13 +38,22 @@ class Test:
                 if message == "basic_data":
                     # simulating the basic data
                     await websocket.send("") 
-                elif message == "deactivate"
+                elif message == "deactivate":
+                    await self.enter_deactivate_loop()
                 print(message)
             except Exception as e: 
                 print(e)
                 #handle socket closed
                 #break
 
+    async def enter_deactivate_loop(self,websocket):
+        while True:
+            try:
+                message = await asyncio.wait_for(websocket.recv(),5)
+                if message == "activate":
+                    break
+            except Exception as e:
+                print(e)
     def name_and_type(self):
         data = {"name":"test" , "type":"reed_switch"}
         return json.dumps(data)

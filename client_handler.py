@@ -17,7 +17,7 @@ class ClientHandler:
             bot_name = await asyncio.wait_for( await self.websocket.recv(),1)
 
             if bot_name in self.parent.devices and self.parent.available_status[bot_name] == True:
-                if (action == "activate" or action == "deactivate" or action == "disconnect"):
+                if action == "activate" or action == "deactivate" or action == "disconnect":
                     self.activate_deactivate_or_disconnect_bot(bot_name,action)
 
                 elif self.bot_type_has_capability(bot_name,action):
