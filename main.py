@@ -94,8 +94,7 @@ class Main:
             pass
 
     async def check_declaration(self,websocket , path):
-        try:
-        
+        try:     
             if self.is_banned(str(websocket.remote_address[0])):
                 return
             if await self.is_authed(websocket):

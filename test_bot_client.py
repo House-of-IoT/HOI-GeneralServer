@@ -1,5 +1,3 @@
-
-import unittest
 import asyncio
 import websockets
 import json
@@ -37,7 +35,7 @@ class Test:
                 message = await asyncio.wait_for(websocket.recv(),5)
                 if message == "basic_data":
                     # simulating the basic data
-                    await websocket.send("") 
+                    await websocket.send(json.dumps({})) 
                 elif message == "deactivate":
                     print("deactivating.")
                     await websocket.send("success")

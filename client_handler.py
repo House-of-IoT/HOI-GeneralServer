@@ -124,6 +124,7 @@ class ClientHandler:
 
         else:
             await self.websocket.send("issue")
+            
     def bot_type_has_capability(self,bot_name,action)-> bool:
         try:
             device_type = self.parent.devices_type[bot_name]
