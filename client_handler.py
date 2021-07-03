@@ -11,31 +11,21 @@ class ClientHandler:
         self.name = name
         self.websocket = websocket
 
+#PUBLIC
     async def gather_request_for_bot(self):
         try:
             action = await  asyncio.wait_for( self.websocket.recv(),1)
             bot_name = await asyncio.wait_for( await self.websocket.recv(),1)
 
             if bot_name in self.parent.devices and self.parent.available_status[bot_name] == True:
-                if action == "activate" or action == "deactivate" or action == "disconnect":
-                    self.activate_deactivate_or_disconnect_bot(bot_name,action)
-
-                elif self.bot_type_has_capability(bot_name,action):
-                    if bot_name in self.parent.deactivated_bots:
-                        self.websocket.send("bot is deactivated!!")
-                        return
-                    await self.websocket.send("success")
-                    self.begin_capability(bot_name,action)
-
-                else:
-                    await self.websocket.send("issue")
-
+                await self.handle_action(bot_name,action)
             else:
                 await self.websocket.send("no bot by this name")
 
         except:
             pass
 
+#PRIVATE
     async def check_for_stop(self,bot_name):
         try:
             message = asyncio.wait_for(self.websocket.recv() , 0.1)
@@ -84,7 +74,7 @@ class ClientHandler:
                 del self.parent.outside_names[bot_name]
                 del self.parent.devices_type[bot_name]
                 if bot_name in self.parent.deactivated_bots:
-                    del self.parent.deactivated_bots.remove(bot_name)
+                    self.parent.deactivated_bots.remove(bot_name)
                 if bot_name in self.parent.stream_mode_status:
                     del self.parent.stream_mode_status[bot_name]
                     
@@ -121,6 +111,19 @@ class ClientHandler:
         except:
             return False
 
+    async def handle_action(self,bot_name,action):
+        if action == "activate" or action == "deactivate" or action == "disconnect":
+            self.activate_deactivate_or_disconnect_bot(bot_name,action)
+
+        elif self.bot_type_has_capability(bot_name,action):
+            if bot_name in self.parent.deactivated_bots:
+                self.websocket.send("bot is deactivated!!")
+                return
+            await self.websocket.send("success")
+            self.begin_capability(bot_name,action)
+
+        else:
+            await self.websocket.send("issue")
     def bot_type_has_capability(self,bot_name,action)-> bool:
         try:
             device_type = self.parent.devices_type[bot_name]
