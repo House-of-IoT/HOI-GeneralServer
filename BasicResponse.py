@@ -11,9 +11,8 @@ class BasicResponse:
         data_dict = {
             "server_name" : self.server_name,
             "action" : self.action,
-            "response" : self.response,
             "status" : self.status,
             "bot_name" : self.bot_name
         }
 
-        return json.loads(data_dict)
+        return json.dumps(data_dict)

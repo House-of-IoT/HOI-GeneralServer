@@ -62,6 +62,7 @@ class Main:
                 break      
     
     async def handle_bot(self,websocket,name):
+        self.available_status[name] = True
         while True:
             try:
                 if name not in self.devices:

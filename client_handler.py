@@ -15,15 +15,15 @@ class ClientHandler:
     async def gather_request_for_bot(self):
         try:
             action = await  asyncio.wait_for( self.websocket.recv(),1)
-            bot_name = await asyncio.wait_for( await self.websocket.recv(),1)
+            bot_name = await asyncio.wait_for(  self.websocket.recv(),1)
 
             if bot_name in self.parent.devices and self.parent.available_status[bot_name] == True:
                 await self.handle_action(bot_name,action)
             else:
                 await self.websocket.send("no bot by this name")
 
-        except:
-            pass
+        except Exception as e:
+            print(e)
 
 #PRIVATE
     async def check_for_stop(self,bot_name):
@@ -61,7 +61,7 @@ class ClientHandler:
             await self.websocket.send(basic_response.string_version())
             self.handle_activate_deactivate_or_disconnect_cleanup(bot_name,action,status)
         except:
-            await self.notify_timeout(self,basic_response)
+            await self.notify_timeout(basic_response)
         
     def handle_activate_deactivate_or_disconnect_cleanup(self,bot_name,action,status):
         if status == "success":
@@ -113,7 +113,7 @@ class ClientHandler:
 
     async def handle_action(self,bot_name,action):
         if action == "activate" or action == "deactivate" or action == "disconnect":
-            self.activate_deactivate_or_disconnect_bot(bot_name,action)
+            await self.activate_deactivate_or_disconnect_bot(bot_name,action)
 
         elif self.bot_type_has_capability(bot_name,action):
             if bot_name in self.parent.deactivated_bots:
@@ -124,7 +124,7 @@ class ClientHandler:
 
         else:
             await self.websocket.send("issue")
-            
+
     def bot_type_has_capability(self,bot_name,action)-> bool:
         try:
             device_type = self.parent.devices_type[bot_name]

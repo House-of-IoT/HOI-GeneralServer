@@ -37,13 +37,13 @@ class Test:
                     # simulating the basic data
                     await websocket.send(json.dumps({})) 
                 elif message == "deactivate":
-                    print("deactivating.")
                     await websocket.send("success")
-                    await self.enter_deactivate_loop()
+                    await self.enter_deactivate_loop(websocket)
                 elif message == "disconnect":
+                    await websocket.send("success")
                     print("disconnecting.")
                     break
-                print(message)
+         
             except Exception as e: 
                 print(e)
                 #handle socket closed
@@ -53,7 +53,9 @@ class Test:
         while True:
             try:
                 message = await asyncio.wait_for(websocket.recv(),5)
+                print(message)
                 if message == "activate":
+                    await websocket.send("success")
                     break
             except Exception as e:
                 print(e)
