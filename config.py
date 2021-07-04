@@ -1,4 +1,5 @@
 import json
+from os import name
 
 class ConfigHandler:
     def __init__(self):
@@ -23,13 +24,33 @@ class ConfigMaker:
     def welcome(self):
         print("Welcome to HOI-GeneralServer config maker!\n")
         print("Fill out the below information to generate a configuration file for server settings\n")
-
+        print("Note:You could just change the settings from one of the clients, but this is just for initialization")
 
     def make_config(self):
         disconnecting = input("Disconnecting bots(smart devices) requires admin authentication[Y,N]:")
         activating = input("activating bots(smart devices) requires admin authentication[Y,N]:")
         deactivating = input("deactivating bots(smart devices) requires admin authentication[Y,N]:")
         viewing = input("viewing all devices connected to the server requires admin authentication[Y,N]:")
+        data_dict = {}
+        data_dict["disconnecting"] = self.route_bool(disconnecting)
+        data_dict["activating"] = self.route_bool(activating)
+        data_dict["deactivating"] = self.route_bool(deactivating)
+        data_dict["viewing"] = self.route_bool(viewing)
+        self.write_config(data_dict)
 
-            
+    def write_config(self,data_dict):
+        with open("config.json" , "w") as File:
+            data_to_write =json.dumps(data_dict)
+            File.write(data_to_write)
+
+    def route_bool(self,value):
+        if (value == "Y" or value == "y"):
+            return True
+        else:
+            return False
+
+if __name__ == "__main__":
+    maker = ConfigMaker()
+    maker.welcome()
+    maker.make_config()
             
