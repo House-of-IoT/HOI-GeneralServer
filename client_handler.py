@@ -1,5 +1,6 @@
 
 import asyncio
+import json
 
 import websockets
 from device_handler import DeviceHandler
@@ -135,5 +136,9 @@ class ClientHandler:
 
     #on failure , the outer block will close the connection
     async def notify_timeout(self,basic_response):
-            basic_response.status = "timeout"
-            await self.websocket.send(basic_response.string_version())
+        basic_response.status = "timeout"
+        await self.websocket.send(basic_response.string_version())
+
+    async def gather_deactivated_bots(self):
+        bots = list(self.parent.deactivated_bots)
+        return json.dumps(bots)
