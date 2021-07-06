@@ -25,7 +25,7 @@ class ClientHandler:
                 await asyncio.wait_for(self.websocket.send("no bot by this name"),10)
 
         except Exception as e:
-            self.websocket.send("timeout")
+            await self.websocket.send("timeout")
             print(e)
 
     async def send_table_state(self,table,name,target,keys_or_values):
