@@ -26,14 +26,14 @@ class DeviceHandler:
     async def send_passive_data_to_client(self ,data_holder,name):
         json_string = json.dumps(data_holder)
         try:
-            await self.parent.devices[name].send(json_string)
+            await asyncio.wait_for(self.parent.devices[name].send(json_string),10)
         except:
             del self.parent.devices[name]
 
     async def try_to_gather_data_from_bot(self,websocket,name,data_holder):
         try:
-            await asyncio.wait_for( websocket.send("basic_data") , 0.4)
-            data = await asyncio.wait_for(websocket.recv(), 0.4)
+            await asyncio.wait_for( websocket.send("basic_data") , 10)
+            data = await asyncio.wait_for(websocket.recv(), 10)
             json_to_dict = json.loads(data)
             json_to_dict["type"] = self.parent.devices_type[name]
             data_holder["bots"].append(json_to_dict)

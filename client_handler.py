@@ -16,8 +16,8 @@ class ClientHandler:
 #PUBLIC
     async def gather_request_for_bot(self):
         try:
-            action = await  asyncio.wait_for( self.websocket.recv(),1)
-            bot_name = await asyncio.wait_for(  self.websocket.recv(),1)
+            action = await  asyncio.wait_for( self.websocket.recv(),10)
+            bot_name = await asyncio.wait_for(  self.websocket.recv(),10)
 
             if bot_name in self.parent.devices and self.parent.available_status[bot_name] == True:
                 await self.handle_action(bot_name,action)
@@ -31,19 +31,23 @@ class ClientHandler:
         state_response = ServerStateResponse()
         state_response.server_name = self.parent.outside_names[name]
         state_response.state_target = target
-        state_response.state_target = target
-        state_response.status = "success"
+        try:
+            state_response.state_target = target
+            state_response.status = "success"
+            if keys_or_values == "keys":
+                state_response.state_value = table.keys()
+            else:
+                state_response.state_value = table.values()
+            await asyncio.wait_for(self.websocket.send(state_response.string_version()),10)
+        except Exception as e:
+            print(e)
+            self.notify_timeout(state_response)
 
-        if keys_or_values == "keys":
-            state_response.state_value = table.keys()
-        else:
-            state_response.state_value = table.values()
-        await self.websocket.send(state_response.string_version())
 
 #PRIVATE
     async def check_for_stop(self,bot_name):
         try:
-            message = asyncio.wait_for(self.websocket.recv() , 0.1)
+            message = asyncio.wait_for(self.websocket.recv() , 10)
             if message == "finished_streaming":
                 self.stream_mode_status[self.name] = False
                 self.available_status[bot_name] = True
@@ -68,12 +72,12 @@ class ClientHandler:
         try:
             #send bot the basic request
             bot_connection  = self.parent.devices[bot_name]
-            await bot_connection.send(action)
-            status = await asyncio.wait_for(bot_connection.recv(),1);
+            await asyncio.wait_for(bot_connection.send(action),10)
+            status = await asyncio.wait_for(bot_connection.recv(),10);
             print(status)
             basic_response.status = status
             #send client the result
-            await self.websocket.send(basic_response.string_version())
+            await asyncio.wait_for(self.websocket.send(basic_response.string_version()),10)
             self.handle_activate_deactivate_or_disconnect_cleanup(bot_name,action,status)
         except:
             await self.notify_timeout(basic_response)
@@ -111,14 +115,14 @@ class ClientHandler:
 
     async def gather_data_from_bot_and_forward(self,bot_name):
         bot_websocket = self.parent.devices[bot_name]
-        data = await bot_websocket.recv()
-        await self.websocket.send(data)
+        data = await asyncio.wait_for(bot_websocket.recv(),10)
+        await asyncio.wait_for(self.websocket.send(data),10)
 
     async def  bot_was_notified(self,bot_name,action)-> bool:
         try:
             bot_websocket = self.parent.devices[bot_name]
-            await bot_websocket.send(action)
-            response = await bot_websocket.recv()
+            await asyncio.wait_for(bot_websocket.send(action),10)
+            response = await asyncio.wait_for(bot_websocket.recv(),10)
             if response == "got_request":
                 return True
             else:
@@ -132,13 +136,13 @@ class ClientHandler:
 
         elif self.bot_type_has_capability(bot_name,action):
             if bot_name in self.parent.deactivated_bots:
-                self.websocket.send("bot is deactivated!!")
+                await asyncio.wait_for(self.websocket.send("bot is deactivated!!"),10)
                 return
-            await self.websocket.send("success")
+            await asyncio.wait_for(self.websocket.send("success"),10)
             self.begin_capability(bot_name,action)
 
         else:
-            await self.websocket.send("issue")
+            await asyncio.wait_for(self.websocket.send("issue"),10)
 
     def bot_type_has_capability(self,bot_name,action)-> bool:
         try:
@@ -153,6 +157,6 @@ class ClientHandler:
         return json.dumps(bots)
 
     #on failure , the outer block will close the connection for notifies
-    async def notify_timeout(self,basic_response):
-        basic_response.status = "timeout"
-        await self.websocket.send(basic_response.string_version())
+    async def notify_timeout(self,response):
+        response.status = "timeout"
+        await asyncio.wait_for(self.websocket.send(response.string_version()),10)
