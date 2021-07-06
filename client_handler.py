@@ -1,7 +1,6 @@
 
 import asyncio
 import json
-
 import websockets
 from device_handler import DeviceHandler
 from BasicResponse import BasicResponse
@@ -22,9 +21,11 @@ class ClientHandler:
             if bot_name in self.parent.devices and self.parent.available_status[bot_name] == True:
                 await self.handle_action(bot_name,action)
             else:
+                self.parent.console_logger.log_generic_row(f"'{self.name}' has requested a ")
                 await asyncio.wait_for(self.websocket.send("no bot by this name"),10)
 
         except Exception as e:
+            print(f"Issue gathering bot action for {self.name}")
             await self.websocket.send("timeout")
             print(e)
 
@@ -42,6 +43,7 @@ class ClientHandler:
             await asyncio.wait_for(self.websocket.send(state_response.string_version()),10)
         except Exception as e:
             print(e)
+            print("Issue with sending server state!")
             self.notify_timeout(state_response)
 
 
@@ -75,7 +77,7 @@ class ClientHandler:
             bot_connection  = self.parent.devices[bot_name]
             await asyncio.wait_for(bot_connection.send(action),10)
             status = await asyncio.wait_for(bot_connection.recv(),10);
-            print(status)
+            self.parent.console_logger.log_generic_row(f"bot({bot_name}) responded with {status} to {self.name}'s action request:{action}\n","green")
             basic_response.status = status
             #send client the result
             await asyncio.wait_for(self.websocket.send(basic_response.string_version()),10)
@@ -97,6 +99,7 @@ class ClientHandler:
                     self.parent.deactivated_bots.remove(bot_name)
                 if bot_name in self.parent.stream_mode_status:
                     del self.parent.stream_mode_status[bot_name]
+                self.parent.console_logger.log_disconnect(bot_name)
                     
     async def stream (self,bot_name,action):
         if await self.bot_was_notified(bot_name,action):
@@ -160,4 +163,5 @@ class ClientHandler:
     #on failure , the outer block will close the connection for notifies
     async def notify_timeout(self,response):
         response.status = "timeout"
+        self.parent.console_logger.log_generic_row(f"A request that {self.name} made has timed out!","red")
         await asyncio.wait_for(self.websocket.send(response.string_version()),10)
