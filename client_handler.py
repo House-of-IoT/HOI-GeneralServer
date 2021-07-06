@@ -5,6 +5,7 @@ import json
 import websockets
 from device_handler import DeviceHandler
 from BasicResponse import BasicResponse
+from ServerStateResponse import ServerStateResponse
 
 class ClientHandler:
     def __init__(self,parent,name,websocket):
@@ -25,6 +26,19 @@ class ClientHandler:
 
         except Exception as e:
             print(e)
+
+    async def send_table_state(self,table,name,target,keys_or_values):
+        state_response = ServerStateResponse()
+        state_response.server_name = self.parent.outside_names[name]
+        state_response.state_target = target
+        state_response.state_target = target
+        state_response.status = "success"
+
+        if keys_or_values == "keys":
+            state_response.state_value = table.keys()
+        else:
+            state_response.state_value = table.values()
+        await self.websocket.send(state_response.string_version())
 
 #PRIVATE
     async def check_for_stop(self,bot_name):
@@ -134,11 +148,11 @@ class ClientHandler:
         except:
             return False
 
-    #on failure , the outer block will close the connection
-    async def notify_timeout(self,basic_response):
-        basic_response.status = "timeout"
-        await self.websocket.send(basic_response.string_version())
-
     async def gather_deactivated_bots(self):
         bots = list(self.parent.deactivated_bots)
         return json.dumps(bots)
+
+    #on failure , the outer block will close the connection for notifies
+    async def notify_timeout(self,basic_response):
+        basic_response.status = "timeout"
+        await self.websocket.send(basic_response.string_version())

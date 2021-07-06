@@ -24,13 +24,13 @@ class ConfigMaker:
     def welcome(self):
         print("Welcome to HOI-GeneralServer config maker!\n")
         print("Fill out the below information to generate a configuration file for server settings\n")
-        print("Note:You could just change the settings from one of the clients, but this is just for initialization")
+        print("Note:You could just change the settings from one of the clients, this is just for initialization")
 
     def make_config(self):
-        disconnecting = input("Disconnecting bots(smart devices) requires admin authentication[Y,N]:")
-        activating = input("activating bots(smart devices) requires admin authentication[Y,N]:")
-        deactivating = input("deactivating bots(smart devices) requires admin authentication[Y,N]:")
-        viewing = input("viewing all devices connected to the server requires admin authentication[Y,N]:")
+        disconnecting = input("\nDisconnecting bots(smart devices) requires admin authentication[Y,N]:")
+        activating = input("\nactivating bots(smart devices) requires admin authentication[Y,N]:")
+        deactivating = input("\ndeactivating bots(smart devices) requires admin authentication[Y,N]:")
+        viewing = input("\nviewing all devices connected to the server requires admin authentication[Y,N]:")
         data_dict = {}
         data_dict["disconnecting"] = self.route_bool(disconnecting)
         data_dict["activating"] = self.route_bool(activating)
@@ -46,7 +46,7 @@ class ConfigMaker:
     def route_bool(self,value):
         if (value == "Y" or value == "y"):
             return True
-        else:
+        else:   
             return False
 
 if __name__ == "__main__":

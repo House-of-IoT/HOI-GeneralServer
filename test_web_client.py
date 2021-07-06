@@ -25,6 +25,8 @@ class Test:
             print(f"expected success , got:{connection_response}")
         else:
             print("auth_passed")
+            while True:
+                pass
 
     def name_and_type(self):
         data = {"name":"test1" , "type":"non-bot"}
