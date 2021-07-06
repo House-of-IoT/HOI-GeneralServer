@@ -22,9 +22,10 @@ class ClientHandler:
             if bot_name in self.parent.devices and self.parent.available_status[bot_name] == True:
                 await self.handle_action(bot_name,action)
             else:
-                await self.websocket.send("no bot by this name")
+                await asyncio.wait_for(self.websocket.send("no bot by this name"),10)
 
         except Exception as e:
+            self.websocket.send("timeout")
             print(e)
 
     async def send_table_state(self,table,name,target,keys_or_values):
