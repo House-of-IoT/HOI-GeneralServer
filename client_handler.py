@@ -50,7 +50,7 @@ class ClientHandler:
 #PRIVATE
     async def check_for_stop(self,bot_name):
         try:
-            message = asyncio.wait_for(self.websocket.recv() , 10)
+            message = asyncio.wait_for(self.websocket.recv() , 0.1)
             if message == "finished_streaming":
                 self.stream_mode_status[self.name] = False
                 self.available_status[bot_name] = True
