@@ -66,7 +66,6 @@ class Main:
                     await self.device_handler.get_and_send_passive_data(name)
                 
             except Exception as e:
-                print(e)
                 del self.devices[name]
                 del self.devices_type[name]
                 self.console_logger.log_disconnect(name)
@@ -88,7 +87,7 @@ class Main:
                 break
 
     async def next_steps(self,client_type, name,websocket):
-        print(colored(f"[+] New Connection '{name}' with type : {client_type}\n","green"))
+        self.console_logger.log_new_connection(name,client_type)
         if client_type == "non-bot":
             await self.handle_client(websocket,name)
         else:

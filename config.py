@@ -7,6 +7,7 @@ class ConfigHandler:
         self.activating_requires_admin = False
         self.deactivating_requires_admin = False
         self.viewing_all_devices_requires_auth = False
+        self.resetting_password_allowed = False
 
     def grab_current_config(self):
         with open ("config.json",'r') as File:
@@ -17,6 +18,7 @@ class ConfigHandler:
                 self.activating_requires_admin = data_dict["activating"]
                 self.viewing_all_devices_requires_auth = data_dict["viewing"]
                 self.deactivating_requires_admin = data_dict["deactivating"]
+                self.resetting_password_allowed = data_dict["password"]
             except:
                 pass
 
@@ -31,11 +33,13 @@ class ConfigMaker:
         activating = input("\nactivating bots(smart devices) requires admin authentication[Y,N]:")
         deactivating = input("\ndeactivating bots(smart devices) requires admin authentication[Y,N]:")
         viewing = input("\nviewing all devices connected to the server requires admin authentication[Y,N]:")
+        password = input("\npassword resetting required(requires the special password in env)[Y,N]:")
         data_dict = {}
         data_dict["disconnecting"] = self.route_bool(disconnecting)
         data_dict["activating"] = self.route_bool(activating)
         data_dict["deactivating"] = self.route_bool(deactivating)
         data_dict["viewing"] = self.route_bool(viewing)
+        data_dict["password"] = self.route_bool(password)
         self.write_config(data_dict)
 
     def write_config(self,data_dict):
