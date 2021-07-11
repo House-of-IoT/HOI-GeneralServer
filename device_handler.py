@@ -15,7 +15,7 @@ class DeviceHandler:
         data_holder = {"server_name":self.parent.outside_names[client_name],"bots":[]}
 
         for name in device_names:
-            if self.parent.devices_type[name] != "non-bot":
+            if self.parent.devices_type[name] != "non-bot" and self.parent.available_status[name] == True:
                 bot_websocket = self.parent.devices[name]
                 await self.try_to_gather_data_from_bot(bot_websocket,name,data_holder)
             else:

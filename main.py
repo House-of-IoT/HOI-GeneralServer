@@ -10,8 +10,8 @@ from termcolor import colored
 from colorama import init
 from console_logging import ConsoleLogger
 from twillio_handler import TwillioHandler
-class Main:
 
+class Main:
     def __init__(self):
         init()#for windows
         self.host = 'localhost' 
@@ -83,6 +83,7 @@ class Main:
                 if name not in self.devices:
                     break
                 if self.alert_will_not_be_spam(name) and self.there_are_only_bots():
+                    self.available_status[name] = False
                     self.check_for_alert(websocket,name)
 
                 await asyncio.wait_for(websocket.send("--heartbeat--"),10)
@@ -184,13 +185,15 @@ class Main:
 
     async def check_for_alert(self,websocket,name):
         try:
-            await asyncio.wait_for(websocket.send("alert"),2)
-            result = asyncio.wait_for(websocket.recv(),2)
+            await asyncio.wait_for(websocket.send("alert"),5)
+            result = await asyncio.wait_for(websocket.recv(),5)
             data_dict = json.loads(result)
             if data_dict["status"] == "result_present":
                 self.twillio_handler.send_notification(data_dict["message"])
+            self.available_status[name] = True
 
         except Exception as e:
+            self.available_status[name] = True
             print(e)
 
     async def alert_will_not_be_spam(self,name):
