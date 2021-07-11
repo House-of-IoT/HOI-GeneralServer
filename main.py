@@ -9,7 +9,7 @@ from device_handler import DeviceHandler
 from termcolor import colored
 from colorama import init
 from console_logging import ConsoleLogger
-from twillio_handler import TwillioHandler
+from twillio_handler import TwilioHandler
 
 class Main:
     def __init__(self):
@@ -29,7 +29,8 @@ class Main:
         self.admins = {} #used to determine who is an admin , for UI disconnecting
         self.last_alert_sent = {}
         self.console_logger = ConsoleLogger(self)
-        self.twillio_handler = TwillioHandler()
+        self.twilio_handler = TwilioHandler()
+        self.alerts_enabled = True
 
         self.accepted_types = {
             "reed_switch":Capabilities() , 
@@ -82,7 +83,7 @@ class Main:
             try:
                 if name not in self.devices:
                     break
-                if self.alert_will_not_be_spam(name) and self.there_are_only_bots():
+                if self.alerts_enabled and self.alert_will_not_be_spam(name) and self.there_are_only_bots():
                     self.available_status[name] = False
                     self.check_for_alert(websocket,name)
 
@@ -188,7 +189,8 @@ class Main:
             await asyncio.wait_for(websocket.send("alert"),5)
             result = await asyncio.wait_for(websocket.recv(),5)
             data_dict = json.loads(result)
-            if data_dict["status"] == "result_present":
+            #the 
+            if data_dict["status"] == "alert_present":
                 self.twillio_handler.send_notification(data_dict["message"])
             self.available_status[name] = True
 

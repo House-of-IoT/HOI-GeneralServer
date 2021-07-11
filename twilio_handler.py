@@ -1,4 +1,4 @@
-class TwillioHandler:
+class TwilioHandler:
     def __init__(self):
         pass
 
