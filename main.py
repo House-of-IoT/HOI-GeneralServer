@@ -1,6 +1,7 @@
 import asyncio
 import json
 import websockets
+import datetime
 
 from type_capabilities import Capabilities
 from client_handler import ClientHandler
@@ -8,11 +9,12 @@ from device_handler import DeviceHandler
 from termcolor import colored
 from colorama import init
 from console_logging import ConsoleLogger
+from twillio_handler import TwillioHandler
 class Main:
 
     def __init__(self):
         init()#for windows
-        self.host = '127.0.0.1' 
+        self.host = 'localhost' 
         self.port = 50223
         self.devices = {}
         self.devices_type = {}
@@ -25,7 +27,9 @@ class Main:
         self.regular_password = ""#move to env
         self.device_handler = DeviceHandler(self)
         self.admins = {} #used to determine who is an admin , for UI disconnecting
+        self.last_alert_sent = {}
         self.console_logger = ConsoleLogger(self)
+        self.twillio_handler = TwillioHandler()
 
         self.accepted_types = {
             "reed_switch":Capabilities() , 
@@ -37,6 +41,7 @@ class Main:
                 has_audio_streaming=True,
                 has_video_streaming=True,
                 has_pir=True),
+            "infared":Capabilities(),
             "non-bot":Capabilities()}
         self.connected = 0
 
@@ -77,6 +82,9 @@ class Main:
             try:
                 if name not in self.devices:
                     break
+                if self.alert_will_not_be_spam(name) and self.there_are_only_bots():
+                    self.check_for_alert(websocket,name)
+
                 await asyncio.wait_for(websocket.send("--heartbeat--"),10)
                 await asyncio.sleep(5)
             except Exception as e:
@@ -98,6 +106,8 @@ class Main:
             if client_type in self.accepted_types:
                 self.devices[name] = websocket
                 self.devices_type[name] = client_type
+                self.last_alert_sent[name] = datetime.datetime.now()
+
                 await asyncio.wait_for(websocket.send("success"),10)
                 await self.next_steps(client_type,name,websocket)
             else:
@@ -164,6 +174,31 @@ class Main:
     async def reset_attempts(self):
         await asyncio.sleep(86400)# one day
         self.failed_admin_attempts = {}
+
+    def there_are_only_bots(self):
+        names = self.devices.keys()
+        for name in names:
+            if self.devices_type[name] == "non-bot":
+                return False
+        return True
+
+    async def check_for_alert(self,websocket,name):
+        try:
+            await asyncio.wait_for(websocket.send("alert"),2)
+            result = asyncio.wait_for(websocket.recv(),2)
+            data_dict = json.loads(result)
+            if data_dict["status"] == "result_present":
+                self.twillio_handler.send_notification(data_dict["message"])
+
+        except Exception as e:
+            print(e)
+
+    async def alert_will_not_be_spam(self,name):
+        #30 seconds passed
+        if (self.last_alert_sent[name] - datetime.datetime.now()).total_seconds() >= 30:
+            return True
+        else:
+            return False
 
     def start_server(self):
         self.console_logger.start_message()
