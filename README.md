@@ -24,4 +24,5 @@ are enabled per config settings.
 # Custom Clients?
 //Provide steps for communicating as a client for engineers
 
-
+# Setup Guide
+[here](https://github.com/House-of-IoT/Tutorials/blob/main/GeneralServer.md)
