@@ -9,7 +9,7 @@ from device_handler import DeviceHandler
 from termcolor import colored
 from colorama import init
 from console_logging import ConsoleLogger
-from twillio_handler import TwilioHandler
+from twilio_handler import TwilioHandler
 
 class Main:
     def __init__(self):
