@@ -26,6 +26,7 @@ Protocol
 
 
 class AsyncTests(unittest.IsolatedAsyncioTestCase):
+
     async def connect(self,need_websocket = False):
         websocket = await websockets.connect('ws://localhost:50223', ping_interval= None, max_size = 20000000)
         await websocket.send("")
@@ -37,27 +38,36 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         else:
             return connection_response
 
-    async def send_disconnect(self,websocket):
-        await websocket.send("bot_control")
-        await websocket.send("disconnect")
-        await websocket.send("test")
 
     async def test_connect(self):
         await asyncio.sleep(5)
         response = await self.connect()
         self.assertEqual("success",response)
-    
+
+    #assumes there is a bot connected by the name of test
+    async def test_activate_and_deactivate(self):
+        await asyncio.sleep(5)
+        websocket = await self.connect(need_websocket=True)
+
+        await self.send_bot_control(websocket,"deactivate")
+        response = await websocket.recv()
+        deactivate_data_dict = json.loads(response)
+        self.test_basic_response_success(deactivate_data_dict,"deactivate")
+
+        await asyncio.sleep(5)
+        await self.send_bot_control(websocket,"activate")
+        response = await websocket.recv()
+        activate_data_dict = json.loads(response)
+        self.test_basic_response_success(activate_data_dict,"activate")
+
     #assumes there is a bot connected by the name of "test"
     async def test_disconnect(self):
         await asyncio.sleep(5)
         websocket = await self.connect(need_websocket=True)
-        self.send_disconnect(websocket)
+        await self.send_bot_control(websocket,"disconnect")
         response = await websocket.recv()
         data_dict = json.loads(response)
-        self.assertEqual(data_dict["server_name"],"test_name")
-        self.assertEqual(data_dict["action"],"disconnect")
-        self.assertEqual(data_dict["status"],"success")
-        self.assertEqual(data_dict["bot_name","test"])
+        self.test_basic_response_success(data_dict,"disconnect")
 
     #assumes there are no bots connected(the above test worked)
     async def test_basic_data(self):
@@ -68,10 +78,22 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         data_dict = json.loads(response)
         self.assertEqual(data_dict["server_name"],"test_name")
         self.assertEqual(len(data_dict["bots"]),0)
-    
+        
+    async def send_bot_control(self,websocket,action):
+        await websocket.send("bot_control")
+        await websocket.send(action)
+        await websocket.send("test")
+
     def name_and_type(self):
         data = {"name":"test1" , "type":"non-bot"}
         return json.dumps(data)
+
+    def test_basic_response_success(self,data_dict,action):
+        self.assertEqual(data_dict["server_name"],"test_name")
+        self.assertEqual(data_dict["action"],action)
+        self.assertEqual(data_dict["status"],"success")
+        self.assertEqual(data_dict["bot_name","test"])
+
 
 
 if __name__ == "__main__":

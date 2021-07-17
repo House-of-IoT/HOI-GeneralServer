@@ -21,8 +21,9 @@ class ClientHandler:
             if bot_name in self.parent.devices and self.parent.available_status[bot_name] == True:
                 await self.handle_action(bot_name,action)
             else:
+                empty_response = BasicResponse(self.parent.outside_names[self.name]).string_version()
                 self.parent.console_logger.log_generic_row(f"'{self.name}' has requested a ")
-                await asyncio.wait_for(self.websocket.send("no bot by this name"),10)
+                await asyncio.wait_for(self.websocket.send(empty_response),10)
 
         except Exception as e:
             print(f"Issue gathering bot action for {self.name}")
