@@ -42,11 +42,11 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(connection_response,"success")
         return websocket
 
-    async def begin_broad_test(self):
+    async def test(self):
         websocket = await self.connect()
-        await self.test_send_periodic_data_and_listen(websocket)
+        await self.send_periodic_data_and_listen(websocket)
 
-    async def test_send_periodic_data_and_listen(self,websocket):
+    async def send_periodic_data_and_listen(self,websocket):
         while True:
             try:
                 message = await asyncio.wait_for(websocket.recv(),5)
