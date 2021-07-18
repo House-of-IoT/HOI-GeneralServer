@@ -13,7 +13,7 @@ from twilio_handler import TwilioHandler
 class Main:
     def __init__(self):
         init()#for windows
-        self.host = 'localhost' 
+        self.host = '192.168.1.109' 
         self.port = 50223
         self.devices = {}
         self.devices_type = {}
@@ -189,12 +189,10 @@ class Main:
             result = await asyncio.wait_for(websocket.recv(),5)
             data_dict = json.loads(result)
             print(data_dict)
-            #the 
             if data_dict["status"] == "alert_present":
                 self.console_logger.log_generic_row(f"Sending Alert for {name}","red")
-                self.twillio_handler.send_notification(data_dict["message"])
+                self.twilio_handler.send_notification(data_dict["message"])
             self.available_status[name] = True
-
         except Exception as e:
             self.available_status[name] = True
             print(e)

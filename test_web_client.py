@@ -27,7 +27,7 @@ Protocol
 class AsyncTests(unittest.IsolatedAsyncioTestCase):
 
     async def connect(self,need_websocket = False):
-        websocket = await websockets.connect('ws://localhost:50223', ping_interval= None, max_size = 20000000)
+        websocket = await websockets.connect('ws://192.168.1.109:50223', ping_interval= None, max_size = 20000000)
         await websocket.send("")
         await websocket.send(self.name_and_type())
         await websocket.send("test_name")
@@ -50,13 +50,13 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         await self.send_bot_control(websocket,"deactivate")
         response = await websocket.recv()
         deactivate_data_dict = json.loads(response)
-        self.test_basic_response_success(deactivate_data_dict,"deactivate")
+        self.assert_basic_response_success(deactivate_data_dict,"deactivate")
 
         await asyncio.sleep(5)
         await self.send_bot_control(websocket,"activate")
         response = await websocket.recv()
         activate_data_dict = json.loads(response)
-        self.test_basic_response_success(activate_data_dict,"activate")
+        self.assert_basic_response_success(activate_data_dict,"activate")
 
     #assumes there is a bot connected by the name of "test"
     async def test_disconnect(self):
@@ -65,7 +65,7 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         await self.send_bot_control(websocket,"disconnect")
         response = await websocket.recv()
         data_dict = json.loads(response)
-        self.test_basic_response_success(data_dict,"disconnect")
+        self.assert_basic_response_success(data_dict,"disconnect")
         await self.basic_data(websocket)
 
     #assumes there are no bots connected(included in test_disconnect)
@@ -87,7 +87,7 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         data = {"name":"test1" , "type":"non-bot"}
         return json.dumps(data)
 
-    def test_basic_response_success(self,data_dict,action):
+    def assert_basic_response_success(self,data_dict,action):
         self.assertEqual(data_dict["server_name"],"test_name")
         self.assertEqual(data_dict["action"],action)
         self.assertEqual(data_dict["status"],"success")
