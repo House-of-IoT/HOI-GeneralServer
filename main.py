@@ -85,8 +85,8 @@ class Main:
                 if self.alerts_enabled and self.alert_will_not_be_spam(name) and self.there_are_only_bots():
                     self.available_status[name] = False
                     await self.check_for_alert(websocket,name)
-
-                await asyncio.wait_for(websocket.send("--heartbeat--"),10)
+                if self.available_status[name] == True:
+                    await asyncio.wait_for(websocket.send("--heartbeat--"),10)
                 await asyncio.sleep(5)
             except Exception as e:
                 #issue sending to websocket

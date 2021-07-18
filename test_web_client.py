@@ -93,7 +93,5 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(data_dict["status"],"success")
         self.assertEqual(data_dict["bot_name"],"test")
 
-
-
 if __name__ == "__main__":
     unittest.main()
