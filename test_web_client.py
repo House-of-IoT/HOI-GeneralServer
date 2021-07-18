@@ -24,7 +24,6 @@ Protocol
 5.begin general sequence
 '''
 
-
 class AsyncTests(unittest.IsolatedAsyncioTestCase):
 
     async def connect(self,need_websocket = False):
