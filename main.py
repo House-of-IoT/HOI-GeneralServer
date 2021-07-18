@@ -85,7 +85,7 @@ class Main:
                     break
                 if self.alerts_enabled and self.alert_will_not_be_spam(name) and self.there_are_only_bots():
                     self.available_status[name] = False
-                    self.check_for_alert(websocket,name)
+                    await self.check_for_alert(websocket,name)
 
                 await asyncio.wait_for(websocket.send("--heartbeat--"),10)
                 await asyncio.sleep(5)
@@ -189,8 +189,10 @@ class Main:
             await asyncio.wait_for(websocket.send("alert"),5)
             result = await asyncio.wait_for(websocket.recv(),5)
             data_dict = json.loads(result)
+            print(data_dict)
             #the 
             if data_dict["status"] == "alert_present":
+                self.console_logger.log_generic_row(f"Sending Alert for {name}","red")
                 self.twillio_handler.send_notification(data_dict["message"])
             self.available_status[name] = True
 
@@ -198,9 +200,11 @@ class Main:
             self.available_status[name] = True
             print(e)
 
-    async def alert_will_not_be_spam(self,name):
-        #30 seconds passed
-        if (self.last_alert_sent[name] - datetime.datetime.now()).total_seconds() >= 30:
+    def alert_will_not_be_spam(self,name):
+        #30 seconds passed'
+        now = datetime.datetime.now()
+        if (now - self.last_alert_sent[name]).total_seconds() >= 30:
+            self.last_alert_sent[name] = now
             return True
         else:
             return False

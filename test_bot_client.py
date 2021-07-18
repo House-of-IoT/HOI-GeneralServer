@@ -59,7 +59,10 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
                     await websocket.send("success")
                     print("disconnecting.")
                     break
-         
+                elif message == "alert":
+                    data_dict = {"status":"alert_present", "message":"test"}
+                    await websocket.send(json.dumps(data_dict))
+                    
             except Exception as e: 
                 print(e)
 
