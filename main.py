@@ -2,7 +2,6 @@ import asyncio
 import json
 import websockets
 import datetime
-
 from type_capabilities import Capabilities
 from client_handler import ClientHandler
 from device_handler import DeviceHandler
