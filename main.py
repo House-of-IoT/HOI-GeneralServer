@@ -166,6 +166,7 @@ class Main:
             basic_response.action = action
             basic_response.server_name = self.outside_names[name]
             basic_response.status = "needs-admin-auth"
+            await asyncio.wait_for(websocket.send(basic_response.string_version()),40)
             if self.is_authed(websocket,self.admin_password):
                 return True
             else:
