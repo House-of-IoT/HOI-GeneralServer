@@ -1,3 +1,4 @@
+from BasicResponse import BasicResponse
 import asyncio
 import json
 import websockets
@@ -9,6 +10,7 @@ from termcolor import colored
 from colorama import init
 from console_logging import ConsoleLogger
 from twilio_handler import TwilioHandler
+from config import ConfigHandler
 
 class Main:
     def __init__(self):
@@ -30,6 +32,7 @@ class Main:
         self.console_logger = ConsoleLogger(self)
         self.twilio_handler = TwilioHandler()
         self.alerts_enabled = True
+        self.config = ConfigHandler() #causes exit if config isn't correct
 
         self.accepted_types = {
             "reed_switch":Capabilities() , 
@@ -43,7 +46,6 @@ class Main:
                 has_pir=True),
             "infared":Capabilities(),
             "non-bot":Capabilities()}
-        self.connected = 0
 
     def name_and_type(self, response):
         try:
@@ -120,7 +122,7 @@ class Main:
         try:     
             if self.is_banned(str(websocket.remote_address[0])):
                 return
-            if await self.is_authed(websocket):
+            if await self.is_authed(websocket,self.regular_password):
                 type_of_client = await asyncio.wait_for(websocket.recv(), 10)
                 name_and_type = self.name_and_type(type_of_client)
                 outside_name = await asyncio.wait_for(websocket.recv(),10)
@@ -146,10 +148,10 @@ class Main:
                 return False
         return False
 
-    async def is_authed(self,websocket):
+    async def is_authed(self,websocket,specific_password):
         try:
-            password = await asyncio.wait_for(websocket.recv(),10)
-            if password == self.regular_password:
+            password = await asyncio.wait_for(websocket.recv(),15)
+            if password == specific_password:
                 return True
             else:
                 self.add_to_failed_attempts(websocket)
@@ -158,6 +160,19 @@ class Main:
             print("failed authentication from:" + str(websocket.remote_address[0]))
             self.add_to_failed_attempts(websocket)
         
+    async def client_has_credentials(self,websocket,action,name,config_bool):
+        if config_bool:
+            basic_response = BasicResponse()
+            basic_response.action = action
+            basic_response.server_name = self.outside_names[name]
+            basic_response.status = "needs-admin-auth"
+            if self.is_authed(websocket,self.admin_password):
+                return True
+            else:
+                return False
+        else:
+            return True
+
     def is_admin(self,password,websocket):
         if password == self.admin_password:
             return True
