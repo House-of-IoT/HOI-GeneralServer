@@ -1,0 +1,2 @@
+class AddressBannedException(Exception):
+    pass
