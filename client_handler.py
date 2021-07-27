@@ -1,7 +1,6 @@
 
 import asyncio
 import json
-import websockets
 from device_handler import DeviceHandler
 from BasicResponse import BasicResponse
 from ServerStateResponse import ServerStateResponse
@@ -188,6 +187,8 @@ class ClientHandler:
             return self.parent.config.disconnecting_requires_admin
         elif action == "viewing":
             return self.parent.config.viewing_all_devices_requires_auth
+        else:
+            return True
 
     #on failure , the outer block will close the connection for notifies
     async def notify_timeout(self,response):
