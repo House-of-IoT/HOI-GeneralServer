@@ -3,6 +3,7 @@ import asyncio
 import json
 import websockets
 import datetime
+from errors import AddressBannedException
 from type_capabilities import Capabilities
 from client_handler import ClientHandler
 from device_handler import DeviceHandler
@@ -159,6 +160,8 @@ class Main:
         except:
             print("failed authentication from:" + str(websocket.remote_address[0]))
             self.add_to_failed_attempts(websocket)
+            if self.is_banned(websocket.remote_address[0]):
+                raise AddressBannedException("Address is banned!!")
             return False
 
     def is_admin(self,password,websocket):

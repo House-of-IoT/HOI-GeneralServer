@@ -1,6 +1,7 @@
 
 import asyncio
 import json
+from errors import AddressBannedException
 from device_handler import DeviceHandler
 from BasicResponse import BasicResponse
 from ServerStateResponse import ServerStateResponse
@@ -25,9 +26,12 @@ class ClientHandler:
                 await asyncio.wait_for(self.websocket.send(empty_response),10)
 
         except Exception as e:
-            print(f"Issue gathering bot action for {self.name}")
-            await self.websocket.send("timeout")
-            print(e)
+            if e is AddressBannedException:
+                raise e
+            else:
+                print(f"Issue gathering bot action for {self.name}")
+                await self.websocket.send("timeout")
+                print(e)
 
     async def send_table_state(self,table,name,target,keys_or_values):
         state_response = ServerStateResponse()
@@ -125,7 +129,7 @@ class ClientHandler:
         data = await asyncio.wait_for(bot_websocket.recv(),10)
         await asyncio.wait_for(self.websocket.send(data),10)
 
-    async def  bot_was_notified(self,bot_name,action)-> bool:
+    async def bot_was_notified(self,bot_name,action)-> bool:
         try:
             bot_websocket = self.parent.devices[bot_name]
             await asyncio.wait_for(bot_websocket.send(action),10)
@@ -163,6 +167,7 @@ class ClientHandler:
         bots = list(self.parent.deactivated_bots)
         return json.dumps(bots)
 
+    #Checks if an action requires admin auth and prompts for auth if needed.
     async def client_has_credentials(self,websocket,action,name):
         config_bool = self.route_action_to_config_bool(action)
         if config_bool:
@@ -178,6 +183,7 @@ class ClientHandler:
         else:
             return True
 
+    #returns the truth status for an action needing admin auth.
     def route_action_to_config_bool(self, action):
         if action == "activate":
             return self.parent.config.activating_requires_admin
