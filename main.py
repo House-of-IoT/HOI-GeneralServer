@@ -159,20 +159,7 @@ class Main:
         except:
             print("failed authentication from:" + str(websocket.remote_address[0]))
             self.add_to_failed_attempts(websocket)
-        
-    async def client_has_credentials(self,websocket,action,name,config_bool):
-        if config_bool:
-            basic_response = BasicResponse()
-            basic_response.action = action
-            basic_response.server_name = self.outside_names[name]
-            basic_response.status = "needs-admin-auth"
-            await asyncio.wait_for(websocket.send(basic_response.string_version()),40)
-            if self.is_authed(websocket,self.admin_password):
-                return True
-            else:
-                return False
-        else:
-            return True
+            return False
 
     def is_admin(self,password,websocket):
         if password == self.admin_password:

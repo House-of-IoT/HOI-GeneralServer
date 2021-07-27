@@ -47,7 +47,6 @@ class ClientHandler:
             print("Issue with sending server state!")
             self.notify_timeout(state_response)
 
-
 #PRIVATE
     async def check_for_stop(self,bot_name):
         try:
@@ -74,15 +73,19 @@ class ClientHandler:
         basic_response.action = action
         basic_response.bot_name = bot_name
         try:
-            #send bot the basic request
-            bot_connection  = self.parent.devices[bot_name]
-            await asyncio.wait_for(bot_connection.send(action),10)
-            status = await asyncio.wait_for(bot_connection.recv(),10);
-            self.parent.console_logger.log_generic_row(f"bot({bot_name}) responded with {status} to {self.name}'s action request:{action}\n","green")
-            basic_response.status = status
-            #send client the result
-            await asyncio.wait_for(self.websocket.send(basic_response.string_version()),10)
-            self.handle_activate_deactivate_or_disconnect_cleanup(bot_name,action,status)
+            if(self.client_has_credentials(self.websocket,action,self.name)):
+                #send bot the basic request
+                bot_connection  = self.parent.devices[bot_name]
+                await asyncio.wait_for(bot_connection.send(action),10)
+                status = await asyncio.wait_for(bot_connection.recv(),10);
+                self.parent.console_logger.log_generic_row(f"bot({bot_name}) responded with {status} to {self.name}'s action request:{action}\n","green")
+                basic_response.status = status
+                #send client the result
+                await asyncio.wait_for(self.websocket.send(basic_response.string_version()),10)
+                self.handle_activate_deactivate_or_disconnect_cleanup(bot_name,action,status)
+            else:
+                basic_response.status = "Failed Auth"
+                await asyncio.wait_for(self.websocket.send(basic_response.string_version()),10)
         except:
             await self.notify_timeout(basic_response)
         
@@ -160,6 +163,31 @@ class ClientHandler:
     async def gather_deactivated_bots(self):
         bots = list(self.parent.deactivated_bots)
         return json.dumps(bots)
+
+    async def client_has_credentials(self,websocket,action,name):
+        config_bool = self.route_action_to_config_bool(action)
+        if config_bool:
+            basic_response = BasicResponse()
+            basic_response.action = action
+            basic_response.server_name = self.parent.outside_names[name]
+            basic_response.status = "needs-admin-auth"
+            await asyncio.wait_for(websocket.send(basic_response.string_version()),40)
+            if self.parent.is_authed(websocket,self.admin_password):
+                return True
+            else:
+                return False
+        else:
+            return True
+
+    def route_action_to_config_bool(self, action):
+        if action == "activate":
+            return self.parent.config.activating_requires_admin
+        elif action == "deactivate":
+            return self.parent.config.deactivating_requires_adim
+        elif action == "disconnect":
+            return self.parent.config.disconnecting_requires_admin
+        elif action == "viewing":
+            return self.parent.config.viewing_all_devices_requires_auth
 
     #on failure , the outer block will close the connection for notifies
     async def notify_timeout(self,response):
