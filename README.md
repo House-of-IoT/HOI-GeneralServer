@@ -26,3 +26,5 @@ are enabled per config settings.
 
 # Setup Guide
 [here](https://github.com/House-of-IoT/Tutorials/blob/main/GeneralServer.md)
+
+# Long term goal
