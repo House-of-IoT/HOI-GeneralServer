@@ -1,6 +1,8 @@
 
 import asyncio
 import json
+
+import websockets
 from errors import AddressBannedException
 from device_handler import DeviceHandler
 from BasicResponse import BasicResponse
@@ -33,22 +35,26 @@ class ClientHandler:
                 await self.websocket.send("timeout")
                 print(e)
 
-    async def send_table_state(self,table,name,target,keys_or_values):
+    async def send_table_state(self,table,target,keys_or_values):
         state_response = ServerStateResponse()
-        state_response.server_name = self.parent.outside_names[name]
+        state_response.server_name = self.parent.outside_names[self.name]
         state_response.state_target = target
-        try:
-            state_response.state_target = target
-            state_response.status = "success"
-            if keys_or_values == "keys":
-                state_response.state_value = table.keys()
-            else:
-                state_response.state_value = table.values()
-            await asyncio.wait_for(self.websocket.send(state_response.string_version()),10)
-        except Exception as e:
-            print(e)
-            print("Issue with sending server state!")
-            self.notify_timeout(state_response)
+        if(self.client_has_viewing_credentials(self.websocket,target,self.name)):
+            try:
+                state_response.state_target = target
+                state_response.status = "success"
+                if keys_or_values == "keys":
+                    state_response.state_value = table.keys()
+                else:
+                    state_response.state_value = table.values()
+                await asyncio.wait_for(self.websocket.send(state_response.string_version()),10)
+            except Exception as e:
+                print(e)
+                print("Issue with sending server state!")
+                self.notify_timeout(state_response)
+        else:
+            state_response.status = "needs-admin-auth"
+            await asyncio.wait_for(self.websocket.send(),40)
 
 #PRIVATE
     async def check_for_stop(self,bot_name):
@@ -176,13 +182,30 @@ class ClientHandler:
             basic_response.server_name = self.parent.outside_names[name]
             basic_response.status = "needs-admin-auth"
             await asyncio.wait_for(websocket.send(basic_response.string_version()),40)
-            if self.parent.is_authed(websocket,self.admin_password):
+            if self.parent.is_authed(websocket,self.parent.admin_password):
                 return True
             else:
                 return False
         else:
             return True
 
+    #dry violation for readability ^
+    async def client_has_viewing_credentials(self,websocket,target,name):
+        config_bool = self.route_action_to_config_bool("viewing")
+        if config_bool:
+            server_response = ServerStateResponse()
+            server_response.state_value = "Authentication Required First"
+            server_response.action = target
+            server_response.server_name = self.parent.outside_names[name]
+            server_response.status = "needs-admin-auth"
+            await asyncio.wait_for(websocket.send(server_response.string_version()),40)
+            if self.parent.is_authed(websocket,self.parent.admin_password):
+                return True
+            else:
+                return False
+        else:
+            return True
+    
     #returns the truth status for an action needing admin auth.
     def route_action_to_config_bool(self, action):
         if action == "activate":
