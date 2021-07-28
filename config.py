@@ -7,7 +7,6 @@ class ConfigHandler:
         self.activating_requires_admin = False
         self.deactivating_requires_admin = False
         self.viewing_all_devices_requires_auth = False
-        self.grab_current_config()
 
     def grab_current_config(self):
         with open ("config.json",'r') as File:
