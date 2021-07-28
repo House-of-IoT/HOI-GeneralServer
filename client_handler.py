@@ -1,10 +1,6 @@
-
 import asyncio
 import json
-
-import websockets
 from errors import AddressBannedException
-from device_handler import DeviceHandler
 from BasicResponse import BasicResponse
 from ServerStateResponse import ServerStateResponse
 
