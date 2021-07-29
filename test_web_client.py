@@ -43,20 +43,24 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual("success",response)
 
     #assumes there is a bot connected by the name of test
+    #assumes the server's deactivate action requires admin authentication
     async def test_activate_and_deactivate(self):
         await asyncio.sleep(5)
         websocket = await self.connect(need_websocket=True)
 
+        #deactivate with authentication
         await self.send_bot_control(websocket,"deactivate")
         response = await websocket.recv()
         deactivate_data_dict = json.loads(response)
-        self.assert_basic_response_success(deactivate_data_dict,"deactivate")
-
+        self.assert_basic_response(deactivate_data_dict,"deactivate","needs-admin-auth")
+        self.send_auth(websocket,"deactivate")
         await asyncio.sleep(5)
+        
+        #activate without authetication
         await self.send_bot_control(websocket,"activate")
         response = await websocket.recv()
         activate_data_dict = json.loads(response)
-        self.assert_basic_response_success(activate_data_dict,"activate")
+        self.assert_basic_response(activate_data_dict,"activate","success")
         
         # test basic data after activate to make sure it is responding
         await self.basic_data(websocket,1)
@@ -68,8 +72,9 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         await self.send_bot_control(websocket,"disconnect")
         response = await websocket.recv()
         data_dict = json.loads(response)
-        self.assert_basic_response_success(data_dict,"disconnect")
+        self.assert_basic_response(data_dict,"disconnect","success")
         await self.basic_data(websocket,0)
+  
 
     #assumes there are 'bot_num' amount of bots connected
     async def basic_data(self,websocket,bot_num):
@@ -86,14 +91,20 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         await websocket.send(action)
         await websocket.send("test")
 
+    async def send_auth(self,websocket,action):
+        await websocket.send("")#default password
+        response = await websocket.recv()
+        response_data_dict = json.loads(response)
+        self.assert_basic_response(response_data_dict,action,"success")
+
     def name_and_type(self):
         data = {"name":"test1" , "type":"non-bot"}
         return json.dumps(data)
 
-    def assert_basic_response_success(self,data_dict,action):
+    def assert_basic_response(self,data_dict,action,expected):
         self.assertEqual(data_dict["server_name"],"test_name")
         self.assertEqual(data_dict["action"],action)
-        self.assertEqual(data_dict["status"],"success")
+        self.assertEqual(data_dict["status"],expected)
         self.assertEqual(data_dict["bot_name"],"test")
 
 if __name__ == "__main__":

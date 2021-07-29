@@ -196,7 +196,6 @@ class Main:
             await asyncio.wait_for(websocket.send("alert"),5)
             result = await asyncio.wait_for(websocket.recv(),5)
             data_dict = json.loads(result)
-            print(data_dict)
             if data_dict["status"] == "alert_present":
                 self.console_logger.log_generic_row(f"Sending Alert for {name}","red")
                 self.twilio_handler.send_notification(data_dict["message"])
