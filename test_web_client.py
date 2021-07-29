@@ -51,16 +51,16 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         #deactivate with authentication
         await self.send_bot_control(websocket,"deactivate")
         response = await websocket.recv()
+        print(response)
         deactivate_data_dict = json.loads(response)
-        self.assert_basic_response(deactivate_data_dict,"deactivate","needs-admin-auth")
-        self.send_auth(websocket,"deactivate")
-        await asyncio.sleep(5)
-        
+        self.assert_basic_response(deactivate_data_dict,"deactivate","needs-admin-auth",None)
+        await self.send_auth(websocket,"deactivate")
+
         #activate without authetication
         await self.send_bot_control(websocket,"activate")
         response = await websocket.recv()
         activate_data_dict = json.loads(response)
-        self.assert_basic_response(activate_data_dict,"activate","success")
+        self.assert_basic_response(activate_data_dict,"activate","success","test")
         
         # test basic data after activate to make sure it is responding
         await self.basic_data(websocket,1)
@@ -72,13 +72,11 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         await self.send_bot_control(websocket,"disconnect")
         response = await websocket.recv()
         data_dict = json.loads(response)
-        self.assert_basic_response(data_dict,"disconnect","success")
+        self.assert_basic_response(data_dict,"disconnect","success","test")
         await self.basic_data(websocket,0)
-  
 
     #assumes there are 'bot_num' amount of bots connected
     async def basic_data(self,websocket,bot_num):
-        await asyncio.sleep(5)
         await websocket.send("basic_data")
         response = await websocket.recv()
         data_dict = json.loads(response)
@@ -94,18 +92,21 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
     async def send_auth(self,websocket,action):
         await websocket.send("")#default password
         response = await websocket.recv()
+        print(response)
+        
         response_data_dict = json.loads(response)
-        self.assert_basic_response(response_data_dict,action,"success")
+        print(response_data_dict)
+        self.assert_basic_response(response_data_dict,action,"success","test")
 
     def name_and_type(self):
         data = {"name":"test1" , "type":"non-bot"}
         return json.dumps(data)
 
-    def assert_basic_response(self,data_dict,action,expected):
+    def assert_basic_response(self,data_dict,action,expected_status,expected_bot_name):
         self.assertEqual(data_dict["server_name"],"test_name")
         self.assertEqual(data_dict["action"],action)
-        self.assertEqual(data_dict["status"],expected)
-        self.assertEqual(data_dict["bot_name"],"test")
+        self.assertEqual(data_dict["status"],expected_status)
+        self.assertEqual(data_dict["bot_name"],expected_bot_name)
 
 if __name__ == "__main__":
     unittest.main()

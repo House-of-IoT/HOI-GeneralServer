@@ -153,13 +153,14 @@ class Main:
 
     async def is_authed(self,websocket,specific_password):
         try:
-            password = await asyncio.wait_for(websocket.recv(),15)
+            password = await asyncio.wait_for(websocket.recv(),35)
+            print(f"password: {password}")
             if password == specific_password:
                 return True
             else:
                 self.add_to_failed_attempts(websocket)
                 return False
-        except:
+        except :
             print("failed authentication from:" + str(websocket.remote_address[0]))
             self.add_to_failed_attempts(websocket)
             if self.is_banned(websocket.remote_address[0]):

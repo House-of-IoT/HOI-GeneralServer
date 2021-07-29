@@ -32,10 +32,9 @@ class ClientHandler:
                 print(e)
 
     async def send_table_state(self,table,target,keys_or_values):
-        state_response = BasicResponse()
-        state_response.server_name = self.parent.outside_names[self.name]
+        state_response = BasicResponse(self.parent.outside_names[self.name])
         state_response.target = target
-        if(self.client_has_credentials(self.websocket,"viewing",self.name)):
+        if(await self.client_has_credentials(self.websocket,"viewing",self.name)):
             try:
                 state_response.status = "success"
                 if keys_or_values == "keys":
@@ -77,7 +76,7 @@ class ClientHandler:
         basic_response.action = action
         basic_response.bot_name = bot_name
         try:
-            if(self.client_has_credentials(self.websocket,action,self.name)):
+            if(await self.client_has_credentials(self.websocket,action,self.name)):
                 #send bot the basic request
                 bot_connection  = self.parent.devices[bot_name]
                 await asyncio.wait_for(bot_connection.send(action),10)
@@ -90,7 +89,8 @@ class ClientHandler:
             else:
                 basic_response.status = "Failed Auth"
                 await asyncio.wait_for(self.websocket.send(basic_response.string_version()),10)
-        except:
+        except Exception as e:
+            print(e)
             await self.notify_timeout(basic_response)
         
     def handle_activate_deactivate_or_disconnect_cleanup(self,bot_name,action,status):
@@ -172,12 +172,12 @@ class ClientHandler:
     async def client_has_credentials(self,websocket,action,name):
         config_bool = self.route_action_to_config_bool(action)
         if config_bool:
-            basic_response = BasicResponse()
+            basic_response = BasicResponse(self.parent.outside_names[name])
             basic_response.action = action
-            basic_response.server_name = self.parent.outside_names[name]
             basic_response.status = "needs-admin-auth"
             await asyncio.wait_for(websocket.send(basic_response.string_version()),40)
-            if self.parent.is_authed(websocket,self.parent.admin_password):
+            print("sent")
+            if await self.parent.is_authed(websocket,self.parent.admin_password):
                 return True
             else:
                 return False
@@ -189,7 +189,7 @@ class ClientHandler:
         if action == "activate":
             return self.parent.config.activating_requires_admin
         elif action == "deactivate":
-            return self.parent.config.deactivating_requires_adim
+            return self.parent.config.deactivating_requires_admin
         elif action == "disconnect":
             return self.parent.config.disconnecting_requires_admin
         elif action == "viewing":
