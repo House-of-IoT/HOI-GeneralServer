@@ -124,7 +124,6 @@ class Main:
             if self.is_banned(str(websocket.remote_address[0])):
                 return
             if await self.is_authed(websocket,self.regular_password):
-                print("in")
                 type_of_client = await asyncio.wait_for(websocket.recv(), 10)
                 name_and_type = self.name_and_type(type_of_client)
                 outside_name = await asyncio.wait_for(websocket.recv(),10)
@@ -137,7 +136,6 @@ class Main:
                     self.console_logger.log_name_check_error(name_and_type[0])
                     await websocket.send("issue")
             else:
-                print("here")
                 await websocket.send("issue")    
         except Exception as e:
             print(e)
@@ -154,7 +152,6 @@ class Main:
     async def is_authed(self,websocket,specific_password):
         try:
             password = await asyncio.wait_for(websocket.recv(),35)
-            print(f"password: {password}")
             if password == specific_password:
                 return True
             else:

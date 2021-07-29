@@ -51,7 +51,6 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         #deactivate with authentication
         await self.send_bot_control(websocket,"deactivate")
         response = await websocket.recv()
-        print(response)
         deactivate_data_dict = json.loads(response)
         self.assert_basic_response(deactivate_data_dict,"deactivate","needs-admin-auth",None)
         await self.send_auth(websocket,"deactivate")
@@ -80,7 +79,6 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         await websocket.send("basic_data")
         response = await websocket.recv()
         data_dict = json.loads(response)
-        print(data_dict)
         self.assertEqual(data_dict["server_name"],"test_name")
         self.assertEqual(len(data_dict["bots"]),bot_num)
         
@@ -92,10 +90,8 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
     async def send_auth(self,websocket,action):
         await websocket.send("")#default password
         response = await websocket.recv()
-        print(response)
         
         response_data_dict = json.loads(response)
-        print(response_data_dict)
         self.assert_basic_response(response_data_dict,action,"success","test")
 
     def name_and_type(self):

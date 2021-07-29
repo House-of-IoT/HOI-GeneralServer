@@ -27,7 +27,6 @@ class ClientHandler:
             if e is AddressBannedException:
                 raise e
             else:
-                print(f"Issue gathering bot action for {self.name}")
                 await self.websocket.send("timeout")
                 print(e)
 
@@ -44,7 +43,6 @@ class ClientHandler:
                 await asyncio.wait_for(self.websocket.send(state_response.string_version()),10)
             except Exception as e:
                 print(e)
-                print("Issue with sending server state!")
                 self.notify_timeout(state_response)
         else:
             state_response.status = "failed-auth"
@@ -176,7 +174,6 @@ class ClientHandler:
             basic_response.action = action
             basic_response.status = "needs-admin-auth"
             await asyncio.wait_for(websocket.send(basic_response.string_version()),40)
-            print("sent")
             if await self.parent.is_authed(websocket,self.parent.admin_password):
                 return True
             else:
