@@ -4,9 +4,9 @@ from os import name
 class ConfigHandler:
     def __init__(self):
         self.disconnecting_requires_admin = False
-        self.activating_requires_admin = False
-        self.deactivating_requires_admin = True
-        self.viewing_all_devices_requires_auth = False
+        self.activating_requires_admin = True
+        self.deactivating_requires_admin = False
+        self.viewing_all_devices_requires_auth = True
 
     def grab_current_config(self):
         with open ("config.json",'r') as File:

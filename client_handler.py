@@ -30,16 +30,20 @@ class ClientHandler:
                 await self.websocket.send("timeout")
                 print(e)
 
-    async def send_table_state(self,table,target,keys_or_values):
+    async def send_table_state(self,table,target,keys_or_values_or_both):
         state_response = BasicResponse(self.parent.outside_names[self.name])
         state_response.target = target
+        state_response.action = "viewing"
         if(await self.client_has_credentials(self.websocket,"viewing",self.name)):
             try:
+                print("here")
                 state_response.status = "success"
-                if keys_or_values == "keys":
+                if keys_or_values_or_both == "keys":
                     state_response.target_value = table.keys()
-                else:
+                elif keys_or_values_or_both == "values":
                     state_response.target_value = table.values()
+                else:
+                     state_response.target_value = json.dumps(table)
                 await asyncio.wait_for(self.websocket.send(state_response.string_version()),10)
             except Exception as e:
                 print(e)

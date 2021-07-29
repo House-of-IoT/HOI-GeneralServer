@@ -64,16 +64,16 @@ class Main:
             try:
                 handler = ClientHandler(self,name,websocket)
                 request = await websocket.recv()
+                print(request)
                 if request == "bot_control":
                     await handler.gather_request_for_bot()
-                elif request == "devices_names":
-                    await handler.send_table_state(self.devices,name,"devices_names","keys")
-                elif request == "devices_values":
-                    await handler.send_table_state(self.devices,name,"devices_names","values")
+                elif request == "all_devices":
+                    await handler.send_table_state(self.devices_type,"all_devices","both")
                 else:
                     await self.device_handler.get_and_send_passive_data(name)
                 
             except Exception as e:
+                print(e)
                 del self.devices[name]
                 del self.devices_type[name]
                 self.console_logger.log_disconnect(name)
