@@ -2,7 +2,6 @@ import asyncio
 import json
 from errors import AddressBannedException
 from BasicResponse import BasicResponse
-from ServerStateResponse import ServerStateResponse
 
 class ClientHandler:
     def __init__(self,parent,name,websocket):
@@ -36,7 +35,6 @@ class ClientHandler:
         state_response.action = "viewing"
         if(await self.client_has_credentials(self.websocket,"viewing",self.name)):
             try:
-                print("here")
                 state_response.status = "success"
                 if keys_or_values_or_both == "keys":
                     state_response.target_value = table.keys()
