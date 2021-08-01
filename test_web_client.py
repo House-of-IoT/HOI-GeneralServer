@@ -109,7 +109,6 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
     async def deactivate_without_auth(self,websocket):
         await self.send_bot_control(websocket,"deactivate")
         response = await websocket.recv()
-        print(response)
         deactivate_data_dict = json.loads(response)
         self.assert_basic_response(deactivate_data_dict,"deactivate","success","test")
 
