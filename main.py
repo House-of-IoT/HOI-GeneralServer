@@ -67,8 +67,8 @@ class Main:
                 print(request)
                 if request == "bot_control":
                     await handler.gather_request_for_bot()
-                elif request == "all_devices":
-                    await handler.send_table_state(self.devices_type,"all_devices","both")
+                elif request == "servers_devices":
+                    await handler.send_table_state(self.devices_type,"servers_devices","both")
                 else:
                     await self.device_handler.get_and_send_passive_data(name)
                 
