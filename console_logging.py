@@ -38,7 +38,7 @@ class ConsoleLogger:
         self.log_info(f"Devices:{len(self.parent.devices)}\n")
 
     def log_undetected_bot(self,name):
-        self.log_generic_row(f"'{name}' has made a request for a bot that is not connected")
+        self.log_generic_row(f"'{name}' has made a request for a bot that is not connected","red")
         self.log_device_stats()
 
     def log_new_connection(self,name,client_type):

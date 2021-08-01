@@ -19,7 +19,7 @@ class ClientHandler:
                 await self.handle_action(bot_name,action)
             else:
                 empty_response = BasicResponse(self.parent.outside_names[self.name]).string_version()
-                self.parent.console_logger.log_generic_row(f"'{self.name}' has requested a ")
+                self.parent.console_logger.log_generic_row(f"'{self.name}' has requested an action from a non existing bot ","red")
                 await asyncio.wait_for(self.websocket.send(empty_response),10)
 
         except Exception as e:

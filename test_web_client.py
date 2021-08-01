@@ -12,6 +12,7 @@ This test assumes
 3.You will not run into any networking errors
 4.Your server is hosted locally on port 50223
 The intended way to run this test is to run the test_bot_client first.
+5.The server config settings match the hard coded default ones in config.py's 'ConfigHandler'
 '''
 
 '''
@@ -42,32 +43,27 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         response = await self.connect()
         self.assertEqual("success",response)
 
-    #assumes the server's deactivate action requires admin authentication and there is a bot connected by the name of test
+    #assumes that one bot named "test" is connected to the server
+    async def test_view_state_deactivated_bots(self):
+        await asyncio.sleep(5)
+        websocket = await self.connect(need_websocket=True)
+        await self.deactivate_without_auth(websocket)
+        viewing_data = await self.send_and_handle_viewing(websocket,"servers_deactivated_bots")
+        self.assertTrue("test" in json.loads(viewing_data["target_value"]))
+        await self.activate_with_auth(websocket)
+
+    #this test is repeating logic but ensures the bot is responding after re-activation via 'basic data'
     async def test_activate_and_deactivate_and_basic_data(self):
         await asyncio.sleep(5)
         websocket = await self.connect(need_websocket=True)
-
-        #deactivate without authentication
-        await self.send_bot_control(websocket,"deactivate")
-        response = await websocket.recv()
-        deactivate_data_dict = json.loads(response)
-        self.assert_basic_response(deactivate_data_dict,"deactivate","success","test")
-
-        #activate with authentication
-        await self.send_bot_control(websocket,"activate")
-        response = await websocket.recv()
-        activate_data_dict = json.loads(response)
-        self.assert_basic_response(activate_data_dict,"activate","needs-admin-auth",None)
-        await self.send_auth(websocket,"activate","test")
-    
-        # test basic data after activate to make sure it is responding
+        await self.deactivate_without_auth(websocket)
+        await self.activate_with_auth(websocket)
         await self.basic_data(websocket,1)
 
-    #assumes viewing requires authentication.
     async def test_viewing_connected_devices_and_disconnect(self):
         websocket = await self.connect(need_websocket=True)
-        viewing_data = await self.send_and_handle_viewing(websocket,"all_devices")
-        self.assertEqual(viewing_data["target"] ,"all_devices")
+        viewing_data = await self.send_and_handle_viewing(websocket,"servers_devices")
+        self.assertEqual(viewing_data["target"] ,"servers_devices")
         self.assertTrue("test1" in  json.loads(viewing_data["target_value"]))
         self.assertTrue( json.loads(viewing_data["target_value"])["test1"] == "non-bot")
 
@@ -110,6 +106,21 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         viewing_data = await self.send_auth(websocket,"viewing",None)
         return viewing_data 
 
+    async def deactivate_without_auth(self,websocket):
+        await self.send_bot_control(websocket,"deactivate")
+        response = await websocket.recv()
+        print(response)
+        deactivate_data_dict = json.loads(response)
+        self.assert_basic_response(deactivate_data_dict,"deactivate","success","test")
+
+    async def activate_with_auth(self,websocket):
+        #activate with authentication
+        await self.send_bot_control(websocket,"activate")
+        response = await websocket.recv()
+        activate_data_dict = json.loads(response)
+        self.assert_basic_response(activate_data_dict,"activate","needs-admin-auth",None)
+        await self.send_auth(websocket,"activate","test")
+    
     def name_and_type(self):
         data = {"name":"test1" , "type":"non-bot"}
         return json.dumps(data)
