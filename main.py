@@ -69,6 +69,8 @@ class Main:
                     await handler.gather_request_for_bot()
                 elif request == "servers_devices":
                     await handler.send_table_state(self.devices_type,"servers_devices","both")
+                elif request == "servers_deactivated_bots":
+                    await handler.send_table_state(self.deactivated_bots,"servers_deactivated_bots","values-set")
                 else:
                     await self.device_handler.get_and_send_passive_data(name)
                 

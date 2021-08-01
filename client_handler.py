@@ -29,7 +29,7 @@ class ClientHandler:
                 await self.websocket.send("timeout")
                 print(e)
 
-    async def send_table_state(self,table,target,keys_or_values_or_both):
+    async def send_table_state(self,table_or_set,target,keys_or_values_or_both):
         state_response = BasicResponse(self.parent.outside_names[self.name])
         state_response.target = target
         state_response.action = "viewing"
@@ -37,15 +37,17 @@ class ClientHandler:
             try:
                 state_response.status = "success"
                 if keys_or_values_or_both == "keys":
-                    state_response.target_value = table.keys()
+                    state_response.target_value = table_or_set.keys()
                 elif keys_or_values_or_both == "values":
-                    state_response.target_value = table.values()
+                    state_response.target_value = table_or_set.values()
+                elif keys_or_values_or_both == "values-set":
+                    state_response.target_value = list(table_or_set)
                 else:
-                     state_response.target_value = json.dumps(table)
+                     state_response.target_value = json.dumps(table_or_set)
                 await asyncio.wait_for(self.websocket.send(state_response.string_version()),10)
             except Exception as e:
                 print(e)
-                self.notify_timeout(state_response)
+                await self.notify_timeout(state_response)
         else:
             state_response.status = "failed-auth"
             await asyncio.wait_for(self.websocket.send(state_response.string_version()),40)
