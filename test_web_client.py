@@ -26,6 +26,17 @@ Protocol
 '''
 
 class AsyncTests(unittest.IsolatedAsyncioTestCase):
+    connected_viewing_done = False
+    
+    async def test(self):
+        websocket = await self.connect(need_websocket=True)
+        await self.view_state_deactivated_bots(websocket)
+        await asyncio.sleep(5)
+        await self.activate_and_deactivate_and_basic_data(websocket)
+        await asyncio.sleep(5)
+        await self.viewing_connected_devices(websocket)
+        await asyncio.sleep(5)
+        await self.disconnect_bot(websocket) 
 
     async def connect(self,need_websocket = False):
         websocket = await websockets.connect('ws://192.168.1.109:50223', ping_interval= None, max_size = 20000000)
@@ -37,40 +48,32 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
             return websocket
         else:
             return connection_response
-    
-    async def test_connect(self):
-        await asyncio.sleep(5)
-        response = await self.connect()
-        self.assertEqual("success",response)
 
     #assumes that one bot named "test" is connected to the server
-    async def test_view_state_deactivated_bots(self):
+    async def view_state_deactivated_bots(self,websocket):
         await asyncio.sleep(5)
-        websocket = await self.connect(need_websocket=True)
         await self.deactivate_without_auth(websocket)
         viewing_data = await self.send_and_handle_viewing(websocket,"servers_deactivated_bots")
-        self.assertTrue("test" in json.loads(viewing_data["target_value"]))
+        print(viewing_data)
+        self.assertTrue("test" in viewing_data["target_value"][0])
         await self.activate_with_auth(websocket)
 
     #this test is repeating logic but ensures the bot is responding after re-activation via 'basic data'
-    async def test_activate_and_deactivate_and_basic_data(self):
+    async def activate_and_deactivate_and_basic_data(self,websocket):
         await asyncio.sleep(5)
-        websocket = await self.connect(need_websocket=True)
         await self.deactivate_without_auth(websocket)
         await self.activate_with_auth(websocket)
         await self.basic_data(websocket,1)
 
-    async def test_viewing_connected_devices_and_disconnect(self):
-        websocket = await self.connect(need_websocket=True)
+    async def viewing_connected_devices(self,websocket):
         viewing_data = await self.send_and_handle_viewing(websocket,"servers_devices")
         self.assertEqual(viewing_data["target"] ,"servers_devices")
         self.assertTrue("test1" in  json.loads(viewing_data["target_value"]))
         self.assertTrue( json.loads(viewing_data["target_value"])["test1"] == "non-bot")
+        self.connected_viewing_done = True
 
     #assumes there is a bot connected by the name of "test"
-    async def test_disconnect_bot(self):
-        await asyncio.sleep(5)
-        websocket = await self.connect(need_websocket=True)
+    async def disconnect_bot(self,websocket):
         await self.send_bot_control(websocket,"disconnect")
         response = await websocket.recv()
         data_dict = json.loads(response)
