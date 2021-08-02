@@ -213,6 +213,7 @@ class Main:
     #handles the extensive/advanced requests
     def route_client_advanced_request(self,handler,request):
         if request == "change_config_viewing":
+            pass
 
 
 

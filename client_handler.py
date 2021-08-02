@@ -53,8 +53,11 @@ class ClientHandler:
             await asyncio.wait_for(self.websocket.send(state_response.string_version()),40)
 
     async def handle_config_request(self,request):
-        if self.parent.is_authed
-
+        new_boolean = bool(await asyncio.wait_for(self.websocket.recv(),40))      
+        successfully_authed_with_super_pass = self.send_need_admin_auth_and_check_response(self.parent.super_admin_password,"editing")
+        if successfully_authed_with_super_pass:
+            self.modify_matching_config_boolean(request,new_boolean)
+            
 #PRIVATE
     async def check_for_stop(self,bot_name):
         try:
@@ -80,23 +83,19 @@ class ClientHandler:
         basic_response = BasicResponse(server_name)
         basic_response.action = action
         basic_response.bot_name = bot_name
-        try:
-            if(await self.client_has_credentials(action)):
-                #send bot the basic request
-                bot_connection  = self.parent.devices[bot_name]
-                await asyncio.wait_for(bot_connection.send(action),10)
-                status = await asyncio.wait_for(bot_connection.recv(),10);
-                self.parent.console_logger.log_generic_row(f"bot({bot_name}) responded with {status} to {self.name}'s action request:{action}\n","green")
-                basic_response.status = status
-                #send client the result
-                await asyncio.wait_for(self.websocket.send(basic_response.string_version()),10)
-                self.handle_activate_deactivate_or_disconnect_cleanup(bot_name,action,status)
-            else:
-                basic_response.status = "Failed Auth"
-                await asyncio.wait_for(self.websocket.send(basic_response.string_version()),10)
-        except Exception as e:
-            print(e)
-            await self.notify_timeout(basic_response)
+        if(await self.client_has_credentials(action)):
+            #send bot the basic request
+            bot_connection  = self.parent.devices[bot_name]
+            await asyncio.wait_for(bot_connection.send(action),10)
+            status = await asyncio.wait_for(bot_connection.recv(),10);
+            self.parent.console_logger.log_generic_row(f"bot({bot_name}) responded with {status} to {self.name}'s action request:{action}\n","green")
+            basic_response.status = status
+            #send client the result
+            await asyncio.wait_for(self.websocket.send(basic_response.string_version()),10)
+            self.handle_activate_deactivate_or_disconnect_cleanup(bot_name,action,status)
+        else:
+            basic_response.status = "Failed Auth"
+            await asyncio.wait_for(self.websocket.send(basic_response.string_version()),10)
         
     def handle_activate_deactivate_or_disconnect_cleanup(self,bot_name,action,status):
         if status == "success":
@@ -177,14 +176,7 @@ class ClientHandler:
     async def client_has_credentials(self,action):
         config_bool = self.route_action_to_config_bool(action)
         if config_bool:
-            basic_response = BasicResponse(self.parent.outside_names[self.name])
-            basic_response.action = action
-            basic_response.status = "needs-admin-auth"
-            await asyncio.wait_for(self.websocket.send(basic_response.string_version()),40)
-            if await self.parent.is_authed(self.websocket,self.parent.admin_password):
-                return True
-            else:
-                return False
+            return await self.send_need_admin_auth_and_check_response(self.parent.admin_password,action)
         else:
             return True
     
@@ -201,12 +193,26 @@ class ClientHandler:
         else:
             return True
 
-    async def send_need_admin_auth(self):
+    async def modify_matching_config_boolean(self,request,new_boolean):
+        if request == "change_config_viewing":
+            self.parent.config.viewing_all_devices_requires_auth = new_boolean
+        elif request == "change_config_activating":
+            self.parent.config.activating_requires_admin = new_boolean
+        elif request == "change_config_deactivating":
+            self.parent.config.deactivating_requires_admin = new_boolean
+        else:
+            self.parent.config.disconnecting_requires_admin = new_boolean
+
+    async def send_need_admin_auth_and_check_response(self,password,action):
         basic_response = BasicResponse(self.parent.outside_names[self.name])
         basic_response.action = action
         basic_response.status = "needs-admin-auth"
         await asyncio.wait_for(self.websocket.send(basic_response.string_version()),40)
-        
+        if await self.parent.is_authed(self.websocket,password):
+            return True
+        else:
+            return False
+
     #on failure , the outer block will close the connection for notifies
     async def notify_timeout(self,response):
         response.status = "timeout"
