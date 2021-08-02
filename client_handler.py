@@ -33,7 +33,7 @@ class ClientHandler:
         state_response = BasicResponse(self.parent.outside_names[self.name])
         state_response.target = target
         state_response.action = "viewing"
-        if(await self.client_has_credentials(self.websocket,"viewing",self.name)):
+        if(await self.client_has_credentials("viewing")):
             try:
                 state_response.status = "success"
                 if keys_or_values_or_both == "keys":
@@ -51,6 +51,9 @@ class ClientHandler:
         else:
             state_response.status = "failed-auth"
             await asyncio.wait_for(self.websocket.send(state_response.string_version()),40)
+
+    async def handle_config_request(self,request):
+        if self.parent.is_authed
 
 #PRIVATE
     async def check_for_stop(self,bot_name):
@@ -78,7 +81,7 @@ class ClientHandler:
         basic_response.action = action
         basic_response.bot_name = bot_name
         try:
-            if(await self.client_has_credentials(self.websocket,action,self.name)):
+            if(await self.client_has_credentials(action)):
                 #send bot the basic request
                 bot_connection  = self.parent.devices[bot_name]
                 await asyncio.wait_for(bot_connection.send(action),10)
@@ -171,14 +174,14 @@ class ClientHandler:
         return json.dumps(bots)
 
     #Checks if an action requires admin auth and prompts for auth if needed.
-    async def client_has_credentials(self,websocket,action,name):
+    async def client_has_credentials(self,action):
         config_bool = self.route_action_to_config_bool(action)
         if config_bool:
-            basic_response = BasicResponse(self.parent.outside_names[name])
+            basic_response = BasicResponse(self.parent.outside_names[self.name])
             basic_response.action = action
             basic_response.status = "needs-admin-auth"
-            await asyncio.wait_for(websocket.send(basic_response.string_version()),40)
-            if await self.parent.is_authed(websocket,self.parent.admin_password):
+            await asyncio.wait_for(self.websocket.send(basic_response.string_version()),40)
+            if await self.parent.is_authed(self.websocket,self.parent.admin_password):
                 return True
             else:
                 return False
@@ -198,6 +201,12 @@ class ClientHandler:
         else:
             return True
 
+    async def send_need_admin_auth(self):
+        basic_response = BasicResponse(self.parent.outside_names[self.name])
+        basic_response.action = action
+        basic_response.status = "needs-admin-auth"
+        await asyncio.wait_for(self.websocket.send(basic_response.string_version()),40)
+        
     #on failure , the outer block will close the connection for notifies
     async def notify_timeout(self,response):
         response.status = "timeout"

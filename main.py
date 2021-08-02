@@ -27,6 +27,7 @@ class Main:
         self.outside_names = {}
         self.admin_password = ""#move to env
         self.regular_password = ""#move to env
+        self.super_admin_password = ""#move to env
         self.device_handler = DeviceHandler(self)
         self.admins = {} #used to determine who is an admin , for UI disconnecting
         self.last_alert_sent = {}
@@ -72,9 +73,12 @@ class Main:
                 elif request == "servers_deactivated_bots":
                     await handler.send_table_state(self.deactivated_bots,"servers_deactivated_bots","values-set")
                 elif request == "servers_banned_ips":
-                    await handler.send_table_state(self.)
-                else:
+                    await handler.send_table_state(self.banned_ips(),"servers_banned_ips","values-set")
+                elif request == "passive_data":
                     await self.device_handler.get_and_send_passive_data(name)
+                else:
+                    self.route_client_advanced_request(handler,request)
+                    
                 
             except Exception as e:
                 print(e)
@@ -206,6 +210,12 @@ class Main:
             self.available_status[name] = True
             print(e)
 
+    #handles the extensive/advanced requests
+    def route_client_advanced_request(self,handler,request):
+        if request == "change_config_viewing":
+
+
+
     def alert_will_not_be_spam(self,name):
         #30 seconds passed'
         now = datetime.datetime.now()
@@ -214,13 +224,13 @@ class Main:
             return True
         else:
             return False
-            
+
     def banned_ips(self):
         ips = self.failed_admin_attempts.keys()
-        banned_ips_holder = []
+        banned_ips_holder = set()
         for ip in ips :
             if self.failed_admin_attempts[ip] > 3:
-                banned_ips_holder.append(ip)
+                banned_ips_holder.add(ip)
         return banned_ips_holder
 
     def start_server(self):
