@@ -71,6 +71,8 @@ class Main:
                     await handler.send_table_state(self.devices_type,"servers_devices","both")
                 elif request == "servers_deactivated_bots":
                     await handler.send_table_state(self.deactivated_bots,"servers_deactivated_bots","values-set")
+                elif request == "servers_banned_ips":
+                    await handler.send_table_state(self.)
                 else:
                     await self.device_handler.get_and_send_passive_data(name)
                 
@@ -212,6 +214,14 @@ class Main:
             return True
         else:
             return False
+            
+    def banned_ips(self):
+        ips = self.failed_admin_attempts.keys()
+        banned_ips_holder = []
+        for ip in ips :
+            if self.failed_admin_attempts[ip] > 3:
+                banned_ips_holder.append(ip)
+        return banned_ips_holder
 
     def start_server(self):
         self.console_logger.start_message()
