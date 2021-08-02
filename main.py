@@ -7,7 +7,6 @@ from errors import AddressBannedException
 from type_capabilities import Capabilities
 from client_handler import ClientHandler
 from device_handler import DeviceHandler
-from termcolor import colored
 from colorama import init
 from console_logging import ConsoleLogger
 from twilio_handler import TwilioHandler
@@ -164,12 +163,20 @@ class Main:
                 return True
             else:
                 self.add_to_failed_attempts(websocket)
+                #re-check failed attempts after incrementing
+                if self.is_banned(websocket.remote_address[0]):
+                    raise AddressBannedException("Address is banned!!")
                 return False
-        except :
+        except Exception as e:
             print("failed authentication from:" + str(websocket.remote_address[0]))
-            self.add_to_failed_attempts(websocket)
+            #not timed out but banned 
+            if e is AddressBannedException:
+                raise e
+            #timed out and banned
             if self.is_banned(websocket.remote_address[0]):
                 raise AddressBannedException("Address is banned!!")
+            #timed out and not banned
+            self.add_to_failed_attempts(websocket)
             return False
 
     def is_admin(self,password,websocket):
@@ -214,8 +221,6 @@ class Main:
     def route_client_advanced_request(self,handler,request):
         if request == "change_config_viewing":
             pass
-
-
 
     def alert_will_not_be_spam(self,name):
         #30 seconds passed'

@@ -24,6 +24,8 @@ class ClientHandler:
 
         except Exception as e:
             if e is AddressBannedException:
+                ip = self.websocket.remote_address[0]
+                self.parent.console_logger.log_generic_row(f"{self.name} or ({ip}) is now banned!!","red" )
                 raise e
             else:
                 await self.websocket.send("timeout")
