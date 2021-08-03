@@ -221,6 +221,12 @@ class Main:
     def route_client_advanced_request(self,handler,request):
         if request == "change_config_viewing":
             pass
+        elif request == "change_config_activate":
+            pass
+        elif request == "change_config_deactivate":
+            pass
+        elif request == "change_config_disconnect":
+            pass
 
     def alert_will_not_be_spam(self,name):
         #30 seconds passed'

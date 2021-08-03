@@ -55,11 +55,27 @@ class ClientHandler:
             await asyncio.wait_for(self.websocket.send(state_response.string_version()),40)
 
     async def handle_config_request(self,request):
-        new_boolean = bool(await asyncio.wait_for(self.websocket.recv(),40))      
-        successfully_authed_with_super_pass = self.send_need_admin_auth_and_check_response(self.parent.super_admin_password,"editing")
-        if successfully_authed_with_super_pass:
-            self.modify_matching_config_boolean(request,new_boolean)
+        response = BasicResponse(self.parent.outside_names[self.name])
+        response.action = "editing"
+        try:
+            new_boolean = bool(await asyncio.wait_for(self.websocket.recv(),40))      
+            successfully_authed_with_super_pass = self.send_need_admin_auth_and_check_response(self.parent.super_admin_password,"editing")
+
+            if successfully_authed_with_super_pass:
+                self.modify_matching_config_boolean(request,new_boolean)
+                response.status = "success"
+            else:
+                response.status = "failure"
+            await asyncio.wait_for(self.websocket.send(response.string_version(),40))
             
+        except Exception as e:
+            if e is AddressBannedException:
+                raise e
+            else:
+                response.status = "timeout"
+                print(e)
+                await self.notify_timeout(response)
+
 #PRIVATE
     async def check_for_stop(self,bot_name):
         try:
@@ -96,7 +112,7 @@ class ClientHandler:
             await asyncio.wait_for(self.websocket.send(basic_response.string_version()),10)
             self.handle_activate_deactivate_or_disconnect_cleanup(bot_name,action,status)
         else:
-            basic_response.status = "Failed Auth"
+            basic_response.status = "failure"
             await asyncio.wait_for(self.websocket.send(basic_response.string_version()),10)
         
     def handle_activate_deactivate_or_disconnect_cleanup(self,bot_name,action,status):
