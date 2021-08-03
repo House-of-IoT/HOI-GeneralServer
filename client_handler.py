@@ -2,6 +2,7 @@ import asyncio
 import json
 from errors import AddressBannedException
 from BasicResponse import BasicResponse
+import traceback
 
 class ClientHandler:
     def __init__(self,parent,name,websocket):
@@ -23,13 +24,13 @@ class ClientHandler:
                 await asyncio.wait_for(self.websocket.send(empty_response),10)
 
         except Exception as e:
+            traceback.print_exc()
             if e is AddressBannedException:
                 ip = self.websocket.remote_address[0]
                 self.parent.console_logger.log_generic_row(f"{self.name} or ({ip}) is now banned!!","red" )
                 raise e
             else:
                 await self.websocket.send("timeout")
-                print(e)
                 
     #sending the server's live table state
     async def send_table_state(self,table_or_set,target,keys_or_values_or_both):
@@ -71,11 +72,12 @@ class ClientHandler:
             await asyncio.wait_for(self.websocket.send(response.string_version(),40))
 
         except Exception as e:
+            traceback.print_exc()
             if e is AddressBannedException:
                 raise e
             else:
                 response.status = "timeout"
-                print(e)
+                traceback.print_exc()
                 await self.notify_timeout(response)
 
 #PRIVATE
@@ -142,6 +144,7 @@ class ClientHandler:
                     await self.gather_data_from_bot_and_forward(bot_name)
 
                 except:
+                    traceback.print_exc()
                     self.stream_mode_status[self.name] = False
                     self.available_status[bot_name] = True
                 await asyncio.sleep(0.1)
@@ -186,6 +189,7 @@ class ClientHandler:
             capabilties = self.accepted_types[device_type]
             return capabilties.functionality[action]
         except:
+            traceback.print_exc()
             return False
 
     async def gather_deactivated_bots(self):

@@ -27,8 +27,9 @@ class DeviceHandler:
         json_string = json.dumps(data_holder)
         try:
             await asyncio.wait_for(self.parent.devices[name].send(json_string),10)
-        except:
-            del self.parent.devices[name]
+        except Exception as e:
+            raise e
+            
 
     async def try_to_gather_data_from_bot(self,websocket,name,data_holder):
         try:

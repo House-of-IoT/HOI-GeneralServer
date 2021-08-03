@@ -11,6 +11,7 @@ from colorama import init
 from console_logging import ConsoleLogger
 from twilio_handler import TwilioHandler
 from config import ConfigHandler
+import traceback
 
 class Main:
     def __init__(self):
@@ -76,13 +77,16 @@ class Main:
                 elif request == "passive_data":
                     await self.device_handler.get_and_send_passive_data(name)
                 else:
-                    self.route_client_advanced_request(handler,request)             
+                    await self.route_client_advanced_request(handler,request)             
                 
             except Exception as e:
-                print(e)
+                print(f"here:{e}")
+            
                 del self.devices[name]
                 del self.devices_type[name]
                 self.console_logger.log_disconnect(name)
+                
+                traceback.print_exc()
                 break      
     
     async def handle_bot(self,websocket,name):
@@ -102,6 +106,8 @@ class Main:
                 del self.devices[name]
                 del self.devices_type[name]
                 self.console_logger.log_disconnect(name)
+                
+                traceback.print_exc()
                 break
 
     async def next_steps(self,client_type, name,websocket):
@@ -123,7 +129,7 @@ class Main:
             else:
                 await asyncio.wait_for(websocket.send("error_invalid_type"),10)
         except:
-            print("Issue Handling type")
+            traceback.print_exc()
 
     async def check_declaration(self,websocket , path):
         try:     
@@ -142,8 +148,10 @@ class Main:
                     self.console_logger.log_name_check_error(name_and_type[0])
                     await websocket.send("issue")
             else:
+                
                 await websocket.send("issue")    
         except Exception as e:
+            traceback.print_exc()
             print(e)
 
     def is_banned(self,ip):
@@ -176,6 +184,7 @@ class Main:
                 raise AddressBannedException("Address is banned!!")
             #timed out and not banned
             self.add_to_failed_attempts(websocket)
+            traceback.print_exc()
             return False
 
     def is_admin(self,password,websocket):
@@ -214,7 +223,7 @@ class Main:
             self.available_status[name] = True
         except Exception as e:
             self.available_status[name] = True
-            print(e)
+            traceback.print_exc()
 
     #handles the extensive/advanced requests
     async def route_client_advanced_request(self,handler,request):
