@@ -30,7 +30,8 @@ class ClientHandler:
             else:
                 await self.websocket.send("timeout")
                 print(e)
-
+                
+    #sending the server's live table state
     async def send_table_state(self,table_or_set,target,keys_or_values_or_both):
         state_response = BasicResponse(self.parent.outside_names[self.name])
         state_response.target = target
@@ -54,6 +55,7 @@ class ClientHandler:
             state_response.status = "failed-auth"
             await asyncio.wait_for(self.websocket.send(state_response.string_version()),40)
 
+    #editing the server's live config settings
     async def handle_config_request(self,request):
         response = BasicResponse(self.parent.outside_names[self.name])
         response.action = "editing"
@@ -67,7 +69,7 @@ class ClientHandler:
             else:
                 response.status = "failure"
             await asyncio.wait_for(self.websocket.send(response.string_version(),40))
-            
+
         except Exception as e:
             if e is AddressBannedException:
                 raise e

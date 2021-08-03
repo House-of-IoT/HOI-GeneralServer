@@ -76,8 +76,7 @@ class Main:
                 elif request == "passive_data":
                     await self.device_handler.get_and_send_passive_data(name)
                 else:
-                    self.route_client_advanced_request(handler,request)
-                    
+                    self.route_client_advanced_request(handler,request)             
                 
             except Exception as e:
                 print(e)
