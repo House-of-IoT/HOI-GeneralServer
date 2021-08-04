@@ -21,7 +21,15 @@ class ConfigHandler:
                 print("There is an issue with the required config.json...")
                 input("Press enter to quit....")
                 quit()
-
+                
+    def string_version(self):
+        data_dict = {
+            "disconnecting" : self.disconnecting_requires_admin,
+            "activating" : self.activating_requires_admin,
+            "deactivating" : self.deactivating_requires_admin,
+            "viewing" : self.viewing_all_devices_requires_auth
+        }
+        return json.dumps(data_dict)
 
 class ConfigMaker:
     def welcome(self):
