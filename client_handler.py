@@ -55,8 +55,19 @@ class ClientHandler:
         else:
             state_response.status = "failed-auth"
             await asyncio.wait_for(self.websocket.send(state_response.string_version()),40)
+
     async def send_server_config(self):
-        state_response = BasicResponse(self.parent.outside_names[self.name])
+        try:
+            state_response = BasicResponse(self.parent.outside_names[self.name])
+            state_response.action = "viewing"
+            state_response.target = "server_config"
+            state_response.status = "success"
+            state_response.target_value = self.parent.config.string_version()
+            await asyncio.wait_for(self.websocket.send(state_response.string_version()),40)
+        except Exception as e:
+            print(e)
+            await self.notify_timeout(state_response)
+            
     #editing the server's live config settings
     async def handle_config_request(self,request):
         response = BasicResponse(self.parent.outside_names[self.name])

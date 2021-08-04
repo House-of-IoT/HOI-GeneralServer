@@ -74,6 +74,8 @@ class Main:
                     await handler.send_table_state(self.deactivated_bots,"servers_deactivated_bots","values-set")
                 elif request == "servers_banned_ips":
                     await handler.send_table_state(self.banned_ips(),"servers_banned_ips","values-set")
+                elif request == "server_config":
+                    await handler.send_server_config()
                 elif request == "passive_data":
                     await self.device_handler.get_and_send_passive_data(name)
                 else:
