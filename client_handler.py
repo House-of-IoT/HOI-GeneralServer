@@ -55,23 +55,19 @@ class ClientHandler:
             await self.send_basic_response("failed-auth",action= "viewing",target=target)
 
     async def send_server_config(self):
-        try:
-            await self.send_basic_response(
-                "success",
-                action= "viewing",
-                target="server_config" ,
-                target_value=self.parent.config.string_version())
-        except Exception as e:
-            print(e)
-            self.parent.console_logger.log_generic_row(f"A request that {self.name} made has timed out!","red")
-            await self.send_basic_response("timeout", action= "viewing",target="server_config")
-            
+        await self.send_generic_table_state("viewing","server_config",self.parent.config.string_version())
+
+    async def send_contacts_list(self):
+        await self.send_generic_table_state("viewing","contact_list",json.dumps(self.parent.contacts))
+
     #editing the server's live config settings
     async def handle_config_request(self,request):
         await self.handle_super_auth_request(request,"editing", lambda x,y: self.modify_matching_config_boolean(x,y))
     
     async def handle_contact_modification(self,request):
         await self.handle_super_auth_request(request, "editing", lambda x,y: self.add_or_remove_contact(x,y))
+        
+#PRIVATE
 
     async def handle_super_auth_request(self,request,action,fun):
         status = None
@@ -94,8 +90,19 @@ class ClientHandler:
                 traceback.print_exc()
                 self.parent.console_logger.log_generic_row(f"A request that {self.name} made has timed out!","red")
                 await self.send_basic_response("timeout",action= "editing", target=request)
-        
-#PRIVATE
+
+    async def send_generic_table_state(self,action,target,value):
+        try:
+            await self.send_basic_response(
+                "success",
+                action= action,
+                target=target ,
+                target_value=value)
+        except Exception as e:
+            print(e)
+            self.parent.console_logger.log_generic_row(f"A request that {self.name} made has timed out!","red")
+            await self.send_basic_response("timeout", action= action,target=target)
+
     async def check_for_stop(self,bot_name):
         try:
             message = asyncio.wait_for(self.websocket.recv() , 0.1)

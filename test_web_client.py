@@ -49,6 +49,9 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         else:
             return connection_response
 
+    async def add_and_view_contacts():
+        pass
+
     #assumes that one bot named "test" is connected to the server
     async def view_state_deactivated_bots(self,websocket):
         await asyncio.sleep(5)
