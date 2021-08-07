@@ -99,9 +99,6 @@ class Main:
             try:
                 if name not in self.devices:
                     break
-                if self.alerts_enabled and self.alert_will_not_be_spam(name) and self.there_are_only_bots():
-                    self.available_status[name] = False
-                    await self.check_for_alert(websocket,name)
                 if self.available_status[name] == True:
                     await self.try_to_gather_bot_passive_data(name,websocket)
 
@@ -216,17 +213,13 @@ class Main:
                 return False
         return True
 
-    async def check_for_alert(self,websocket,name):
+    async def check_for_alert_and_send(self,data,name):
         try:
-            await asyncio.wait_for(websocket.send("alert"),5)
-            result = await asyncio.wait_for(websocket.recv(),5)
-            data_dict = json.loads(result)
-            if data_dict["status"] == "alert_present":
+            data_dict = json.loads(data)
+            if data_dict["alert_status"] == "alert_present" and self.alert_will_not_be_spam(name):
                 self.console_logger.log_generic_row(f"Sending Alert for {name}","red")
-                self.twilio_handler.send_notification(data_dict["message"])
-            self.available_status[name] = True
-        except Exception as e:
-            self.available_status[name] = True
+                self.twilio_handler.send_notifications_to_all(data_dict["message"])
+        except:
             traceback.print_exc()
 
     #handles the extensive/advanced requests
@@ -248,6 +241,7 @@ class Main:
     async def try_to_gather_bot_passive_data(self,name,websocket):
         try:
             passive_data = await asyncio.wait_for(websocket.recv(),0.5)
+            self.check_for_alert_and_send(passive_data,name)
             self.bot_passive_data[name] = passive_data
         except Exception as e:
             if e is websockets.exceptions.ConnectionClosed:

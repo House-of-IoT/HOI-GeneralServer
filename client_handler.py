@@ -68,7 +68,6 @@ class ClientHandler:
         await self.handle_super_auth_request(request, "editing", lambda x,y: self.add_or_remove_contact(x,y))
         
 #PRIVATE
-
     async def handle_super_auth_request(self,request,action,fun):
         status = None
         try:
