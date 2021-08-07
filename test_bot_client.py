@@ -49,10 +49,9 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
     async def send_periodic_data_and_listen(self,websocket):
         while True:
             try:
+                await websocket.send(json.dumps({})) #basic data
                 message = await asyncio.wait_for(websocket.recv(),5)
-                if message == "basic_data":
-                    await websocket.send(json.dumps({})) 
-                elif message == "deactivate":
+                if message == "deactivate":
                     await websocket.send("success")
                     await self.enter_deactivate_loop(websocket)
                 elif message == "disconnect":
