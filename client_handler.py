@@ -68,17 +68,23 @@ class ClientHandler:
             
     #editing the server's live config settings
     async def handle_config_request(self,request):
+        await self.handle_super_auth_request(request,"editing", lambda x,y: self.modify_matching_config_boolean(x,y))
+    
+    async def handle_contact_modification(self,request):
+        await self.handle_super_auth_request(request, "editing", lambda x,y: self.add_or_remove_contact(x,y))
+
+    async def handle_super_auth_request(self,request,action,fun):
         status = None
         try:
-            new_boolean = bool(await asyncio.wait_for(self.websocket.recv(),40))      
+            value = await asyncio.wait_for(self.websocket.recv(),40)
             successfully_authed_with_super_pass = self.send_need_admin_auth_and_check_response(self.parent.super_admin_password,"editing")
 
             if successfully_authed_with_super_pass:
-                self.modify_matching_config_boolean(request,new_boolean)
+                fun(request,value)
                 status = "success"
             else:
                 status = "failure"
-            await self.send_basic_response(status,action="editing",target=request)
+            await self.send_basic_response(status,action=action,target=request)
 
         except Exception as e:
             traceback.print_exc()
@@ -88,6 +94,7 @@ class ClientHandler:
                 traceback.print_exc()
                 self.parent.console_logger.log_generic_row(f"A request that {self.name} made has timed out!","red")
                 await self.send_basic_response("timeout",action= "editing", target=request)
+        
 #PRIVATE
     async def check_for_stop(self,bot_name):
         try:
@@ -221,16 +228,27 @@ class ClientHandler:
         else:
             return True
 
-    async def modify_matching_config_boolean(self,request,new_boolean):
+    def modify_matching_config_boolean(self,request,new_value):
+        boolean = bool(new_value)
         if request == "change_config_viewing":
-            self.parent.config.viewing_all_devices_requires_auth = new_boolean
+            self.parent.config.viewing_all_devices_requires_auth = boolean
         elif request == "change_config_activating":
-            self.parent.config.activating_requires_admin = new_boolean
+            self.parent.config.activating_requires_admin = boolean
         elif request == "change_config_deactivating":
-            self.parent.config.deactivating_requires_admin = new_boolean
+            self.parent.config.deactivating_requires_admin = boolean
         else:
-            self.parent.config.disconnecting_requires_admin = new_boolean
+            self.parent.config.disconnecting_requires_admin = boolean
 
+    def add_or_remove_contact(self,request,new_value):
+        name_and_number = json.loads(new_value)
+        name = name_and_number["name"]
+        number = name_and_number["number"]
+        if request == "add-contact":
+            self.parent.contacts[name] = number
+        else:
+            del self.parent.contacts[name]
+            self.parent.console_logger.log_generic_row(f"Successfully removed {name}({number}) from contacts!", "green")
+        
     async def send_need_admin_auth_and_check_response(self,password,action):
         await self.send_basic_response("needs-admin-auth",action = action)
         if await self.parent.is_authed(self.websocket,password):

@@ -21,3 +21,4 @@ class TwilioHandler:
         for contact in contacts:
             self.send_notification(message,self.parent.contacts[contact])
         self.parent.console_logger.log_generic_row("Sent all contacts a notification!","green")
+    
