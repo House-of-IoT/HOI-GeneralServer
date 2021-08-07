@@ -59,7 +59,23 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(data_dict["viewing"],True)
 
     async def add_and_view_contacts(self,websocket):
+        await websocket.send("add-contact")
+        await websocket.send(json.dumps({"name":"test","number":"+17769392019"}))
+        response = await websocket.recv()
+        data_dict_response = json.loads(response)
+
+        #sending super admin password to add the contact
+        self.assertEqual(data_dict_response["status"],"needs-admin-auth")
+        await websocket.send("")
+        response = await websocket.recv()
+        data_dict_response = json.loads(response)
+        self.assertEqual(data_dict_response["status"],"success")
+
+        #checking if the contact is present by requesting a list from the server
         data_dict = self.gather_one_way_request_response("contact_list",websocket)
+        contacts = json.loads(data_dict["target_value"])
+        self.assertTrue("test" in contacts)
+        self.assertTrue(contacts["test"] == "+17769392019")
 
     #assumes that one bot named "test" is connected to the server
     async def view_state_deactivated_bots(self,websocket):
@@ -136,6 +152,7 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
     def name_and_type(self):
         data = {"name":"test1" , "type":"non-bot"}
         return json.dumps(data)
+
     async def gather_one_way_request_response(self,request,websocket):
         await websocket.send(request)
         response = await websocket.recv()
