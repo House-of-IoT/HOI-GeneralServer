@@ -17,11 +17,13 @@ class ClientHandler:
             bot_name = await asyncio.wait_for(  self.websocket.recv(),10)
 
             if bot_name in self.parent.devices and self.parent.available_status[bot_name] == True:
+                #allow existing recv's on bot socket to clear and then handle
+                self.parent.available_status[bot_name] = False
+                await asyncio.sleep(3) 
                 await self.handle_action(bot_name,action)
             else:
-                empty_response = BasicResponse(self.parent.outside_names[self.name]).string_version()
                 self.parent.console_logger.log_generic_row(f"'{self.name}' has requested an action from a non existing bot ","red")
-                await asyncio.wait_for(self.websocket.send(empty_response),10)
+                await self.send_basic_response("failure")
 
         except Exception as e:
             traceback.print_exc()
@@ -123,8 +125,10 @@ class ClientHandler:
         if status == "success":
             if action == "activate":
                 self.parent.deactivated_bots.remove(bot_name)
+                self.parent.available_status[bot_name] = True
             elif action == "deactivate":
                 self.parent.deactivated_bots.add(bot_name)
+                self.parent.available_status[bot_name] = True
             else:
                 del self.parent.devices[bot_name]
                 del self.parent.outside_names[bot_name]

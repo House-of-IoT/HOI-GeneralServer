@@ -3,6 +3,7 @@ import asyncio
 import json
 import websockets
 import datetime
+import websockets
 from errors import AddressBannedException
 from type_capabilities import Capabilities
 from client_handler import ClientHandler
@@ -35,6 +36,7 @@ class Main:
         self.twilio_handler = TwilioHandler()
         self.alerts_enabled = True
         self.config = ConfigHandler() #causes exit if config isn't correct
+        self.bot_passive_data = {}
 
         self.accepted_types = {
             "reed_switch":Capabilities() , 
@@ -87,7 +89,6 @@ class Main:
                 del self.devices[name]
                 del self.devices_type[name]
                 self.console_logger.log_disconnect(name)
-                
                 traceback.print_exc()
                 break      
     
@@ -101,14 +102,14 @@ class Main:
                     self.available_status[name] = False
                     await self.check_for_alert(websocket,name)
                 if self.available_status[name] == True:
-                    await asyncio.wait_for(websocket.send("--heartbeat--"),10)
+                    await self.try_to_gather_bot_passive_data(name,websocket)
+
                 await asyncio.sleep(5)
             except Exception as e:
                 #issue sending to websocket
                 del self.devices[name]
                 del self.devices_type[name]
                 self.console_logger.log_disconnect(name)
-                
                 traceback.print_exc()
                 break
 
@@ -243,6 +244,16 @@ class Main:
         else:
             return False
 
+    async def try_to_gather_bot_passive_data(self,name,websocket):
+        try:
+            passive_data = await asyncio.wait_for(websocket.recv(),0.5)
+            self.bot_passive_data[name] = passive_data
+        except Exception as e:
+            if e is websockets.exceptions.ConnectionClosed:
+                raise e
+            else:
+                pass
+            
     def banned_ips(self):
         ips = self.failed_admin_attempts.keys()
         banned_ips_holder = set()
