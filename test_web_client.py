@@ -37,6 +37,8 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         await self.viewing_connected_devices(websocket)
         await asyncio.sleep(5)
         await self.disconnect_bot(websocket) 
+        await asyncio.sleep(5)
+        await self.view_config(websocket)
 
     async def connect(self,need_websocket = False):
         websocket = await websockets.connect('ws://192.168.1.109:50223', ping_interval= None, max_size = 20000000)
@@ -49,12 +51,18 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         else:
             return connection_response
 
-    async def add_and_view_contacts():
-        pass
+    async def view_config(self,websocket):
+        data_dict = self.gather_one_way_request_response("server_config",websocket)
+        self.assertEqual(data_dict["disconnecting"],False)
+        self.assertEqual(data_dict["activating"],True)
+        self.assertEqual(data_dict["deactivating"],False)
+        self.assertEqual(data_dict["viewing"],True)
+
+    async def add_and_view_contacts(self,websocket):
+        data_dict = self.gather_one_way_request_response("contact_list",websocket)
 
     #assumes that one bot named "test" is connected to the server
     async def view_state_deactivated_bots(self,websocket):
-        await asyncio.sleep(5)
         await self.deactivate_without_auth(websocket)
         viewing_data = await self.send_and_handle_viewing(websocket,"servers_deactivated_bots")
         print(viewing_data)
@@ -63,7 +71,6 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
 
     #this test is repeating logic but ensures the bot is responding after re-activation via 'basic data'
     async def activate_and_deactivate_and_basic_data(self,websocket):
-        await asyncio.sleep(5)
         await self.deactivate_without_auth(websocket)
         await self.activate_with_auth(websocket)
         await self.basic_data(websocket,1)
@@ -129,6 +136,11 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
     def name_and_type(self):
         data = {"name":"test1" , "type":"non-bot"}
         return json.dumps(data)
+    async def gather_one_way_request_response(self,request,websocket):
+        await websocket.send(request)
+        response = await websocket.recv()
+        data_dict = json.loads(response)
+        return data_dict
 
     def assert_basic_response(self,data_dict,action,expected_status,expected_bot_name):
         self.assertEqual(data_dict["server_name"],"test_name")
