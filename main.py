@@ -37,6 +37,7 @@ class Main:
         self.alerts_enabled = True
         self.config = ConfigHandler() #causes exit if config isn't correct
         self.bot_passive_data = {}
+        self.contacts = {}
 
         self.accepted_types = {
             "reed_switch":Capabilities() , 
@@ -253,7 +254,7 @@ class Main:
                 raise e
             else:
                 pass
-            
+
     def banned_ips(self):
         ips = self.failed_admin_attempts.keys()
         banned_ips_holder = set()
