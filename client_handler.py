@@ -13,8 +13,8 @@ class ClientHandler:
 #PUBLIC
     async def gather_request_for_bot(self):
         try:
-            action = await  asyncio.wait_for( self.websocket.recv(),10)
-            bot_name = await asyncio.wait_for(  self.websocket.recv(),10)
+            action = await  asyncio.wait_for(self.websocket.recv(),10)
+            bot_name = await asyncio.wait_for(self.websocket.recv(),10)
 
             if bot_name in self.parent.devices and self.parent.available_status[bot_name] == True:
                 #allow existing recv's on bot socket to clear and then handle

@@ -101,7 +101,6 @@ class Main:
                     break
                 if self.available_status[name] == True:
                     await self.try_to_gather_bot_passive_data(name,websocket)
-
                 await asyncio.sleep(5)
             except Exception as e:
                 #issue sending to websocket
@@ -149,7 +148,6 @@ class Main:
                     self.console_logger.log_name_check_error(name_and_type[0])
                     await websocket.send("issue")
             else:
-                
                 await websocket.send("issue")    
         except Exception as e:
             traceback.print_exc()
@@ -226,6 +224,8 @@ class Main:
     async def route_client_advanced_request(self,handler,request):
         if  "change_config_" in request:
             await handler.handle_config_request(request)
+        elif request == "add-contact" or request == "remove-contact":
+            await handler.handle_contact_modification(request)
         else:
             pass
 
