@@ -187,6 +187,7 @@ class ClientHandler:
             return False
 
     async def handle_action(self,bot_name,action):
+        await self.check_and_wait_if_gathering_passive_data(bot_name)
         if action == "activate" or action == "deactivate" or action == "disconnect":
             await self.activate_deactivate_or_disconnect_bot(bot_name,action)
 
@@ -261,6 +262,10 @@ class ClientHandler:
             return True
         else:
             return False
+
+    async def check_and_wait_if_gathering_passive_data(self,name):
+        while self.parent.gathering_passive_data[name] == True:
+            await asyncio.sleep(1)
 
     async def send_basic_response(
         self,status,action = None,

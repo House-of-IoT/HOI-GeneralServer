@@ -33,10 +33,11 @@ class Main:
         self.admins = {} #used to determine who is an admin , for UI disconnecting
         self.last_alert_sent = {}
         self.console_logger = ConsoleLogger(self)
-        self.twilio_handler = TwilioHandler()
+        #self.twilio_handler = TwilioHandler("","","","")
         self.alerts_enabled = True
         self.config = ConfigHandler() #causes exit if config isn't correct
         self.bot_passive_data = {}
+        self.gathering_passive_data = {}
         self.contacts = {}
 
         self.accepted_types = {
@@ -95,13 +96,14 @@ class Main:
     
     async def handle_bot(self,websocket,name):
         self.available_status[name] = True
+        self.gathering_passive_data[name] = False
         while True:
             try:
                 if name not in self.devices:
                     break
                 if self.available_status[name] == True:
                     await self.try_to_gather_bot_passive_data(name,websocket)
-                await asyncio.sleep(5)
+                await asyncio.sleep(5.5)
             except Exception as e:
                 #issue sending to websocket
                 del self.devices[name]
@@ -216,7 +218,7 @@ class Main:
             data_dict = json.loads(data)
             if data_dict["alert_status"] == "alert_present" and self.alert_will_not_be_spam(name):
                 self.console_logger.log_generic_row(f"Sending Alert for {name}","red")
-                self.twilio_handler.send_notifications_to_all(data_dict["message"])
+                #self.twilio_handler.send_notifications_to_all(data_dict["message"])
         except:
             traceback.print_exc()
 
@@ -240,15 +242,19 @@ class Main:
 
     async def try_to_gather_bot_passive_data(self,name,websocket):
         try:
-            passive_data = await asyncio.wait_for(websocket.recv(),0.5)
-            self.check_for_alert_and_send(passive_data,name)
+            self.gathering_passive_data[name] = True
+            passive_data = await asyncio.wait_for(websocket.recv(),5.5)
+            self.gathering_passive_data[name] = False
+            await self.check_for_alert_and_send(passive_data,name)
             self.bot_passive_data[name] = passive_data
         except Exception as e:
+            #Will close connection of bot and client
             if e is websockets.exceptions.ConnectionClosed:
                 raise e
             else:
                 pass
-
+        self.gathering_passive_data[name] = False
+        
     def banned_ips(self):
         ips = self.failed_admin_attempts.keys()
         banned_ips_holder = set()

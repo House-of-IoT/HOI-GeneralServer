@@ -39,6 +39,9 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         await self.disconnect_bot(websocket) 
         await asyncio.sleep(5)
         await self.view_config(websocket)
+        await asyncio.sleep(5)
+        await self.add_and_view_contacts(websocket)
+
 
     async def connect(self,need_websocket = False):
         websocket = await websockets.connect('ws://192.168.1.109:50223', ping_interval= None, max_size = 20000000)
@@ -52,7 +55,7 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
             return connection_response
 
     async def view_config(self,websocket):
-        data_dict = self.gather_one_way_request_response("server_config",websocket)
+        data_dict = await self.gather_one_send_request_response("server_config",websocket)
         self.assertEqual(data_dict["disconnecting"],False)
         self.assertEqual(data_dict["activating"],True)
         self.assertEqual(data_dict["deactivating"],False)
@@ -72,7 +75,7 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(data_dict_response["status"],"success")
 
         #checking if the contact is present by requesting a list from the server
-        data_dict = self.gather_one_way_request_response("contact_list",websocket)
+        data_dict = await self.gather_one_send_request_response("contact_list",websocket)
         contacts = json.loads(data_dict["target_value"])
         self.assertTrue("test" in contacts)
         self.assertTrue(contacts["test"] == "+17769392019")
@@ -153,7 +156,7 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         data = {"name":"test1" , "type":"non-bot"}
         return json.dumps(data)
 
-    async def gather_one_way_request_response(self,request,websocket):
+    async def gather_one_send_request_response(self,request,websocket):
         await websocket.send(request)
         response = await websocket.recv()
         data_dict = json.loads(response)
