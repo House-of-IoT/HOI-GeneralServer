@@ -72,7 +72,7 @@ class ClientHandler:
         status = None
         try:
             value = await asyncio.wait_for(self.websocket.recv(),40)
-            successfully_authed_with_super_pass = self.send_need_admin_auth_and_check_response(self.parent.super_admin_password,"editing")
+            successfully_authed_with_super_pass = await self.send_need_admin_auth_and_check_response(self.parent.super_admin_password,"editing")
 
             if successfully_authed_with_super_pass:
                 fun(request,value)
@@ -257,6 +257,7 @@ class ClientHandler:
             self.parent.console_logger.log_generic_row(f"Successfully removed {name}({number}) from contacts!", "green")
         
     async def send_need_admin_auth_and_check_response(self,password,action):
+        print("sending")
         await self.send_basic_response("needs-admin-auth",action = action)
         if await self.parent.is_authed(self.websocket,password):
             return True

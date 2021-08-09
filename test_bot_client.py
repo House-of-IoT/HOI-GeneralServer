@@ -34,7 +34,7 @@ protocol
 class AsyncTests(unittest.IsolatedAsyncioTestCase):
     
     async def connect(self):
-        websocket = await websockets.connect('ws://192.168.1.109:50223', ping_interval= None, max_size = 20000000)
+        websocket = await websockets.connect('ws://192.168.1.142:50223', ping_interval= None, max_size = 20000000)
         await websocket.send("")
         await websocket.send(self.name_and_type())
         await websocket.send("test_name")
@@ -49,7 +49,7 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
     async def send_periodic_data_and_listen(self,websocket):
         while True:
             try:
-                await websocket.send(json.dumps({"data":"","alert_status":"alert_present", "message":"test"})) #basic data
+                
                 message = await asyncio.wait_for(websocket.recv(),5)
                 if message == "deactivate":
                     await websocket.send("success")
@@ -58,6 +58,8 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
                     await websocket.send("success")
                     print("disconnecting.")
                     break
+                elif message == "passive_data":
+                    await websocket.send(json.dumps({"data":"","alert_status":"alert_present", "message":"test"})) #basic data
 
             except Exception as e: 
                 print(e)

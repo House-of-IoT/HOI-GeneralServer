@@ -16,7 +16,7 @@ class DeviceHandler:
 
         for name in device_names:
             if self.parent.available_status[name] == True:
-                self.gather_bot_data(name,data_holder)
+                await self.gather_bot_data(name,data_holder)
             else:
                 pass
         await self.send_passive_data_to_client(data_holder,client_name)

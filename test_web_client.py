@@ -32,19 +32,24 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         websocket = await self.connect(need_websocket=True)
         await self.view_state_deactivated_bots(websocket)
         await asyncio.sleep(5)
+        print("a d ")
         await self.activate_and_deactivate_and_basic_data(websocket)
         await asyncio.sleep(5)
+        print("viewing")
         await self.viewing_connected_devices(websocket)
         await asyncio.sleep(5)
+        print("disconnecting..")
         await self.disconnect_bot(websocket) 
         await asyncio.sleep(5)
+        print("viewing config..")
         await self.view_config(websocket)
         await asyncio.sleep(5)
+        print("adding and viewing config..")
         await self.add_and_view_contacts(websocket)
 
 
     async def connect(self,need_websocket = False):
-        websocket = await websockets.connect('ws://192.168.1.109:50223', ping_interval= None, max_size = 20000000)
+        websocket = await websockets.connect('ws://192.168.1.142:50223', ping_interval= None, max_size = 20000000)
         await websocket.send("")
         await websocket.send(self.name_and_type())
         await websocket.send("test_name")
@@ -56,6 +61,8 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
 
     async def view_config(self,websocket):
         data_dict = await self.gather_one_send_request_response("server_config",websocket)
+        print(data_dict)
+        data_dict = json.loads(data_dict["target_value"])
         self.assertEqual(data_dict["disconnecting"],False)
         self.assertEqual(data_dict["activating"],True)
         self.assertEqual(data_dict["deactivating"],False)
@@ -66,7 +73,7 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         await websocket.send(json.dumps({"name":"test","number":"+17769392019"}))
         response = await websocket.recv()
         data_dict_response = json.loads(response)
-
+        print(data_dict_response)
         #sending super admin password to add the contact
         self.assertEqual(data_dict_response["status"],"needs-admin-auth")
         await websocket.send("")

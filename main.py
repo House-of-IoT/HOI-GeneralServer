@@ -17,7 +17,7 @@ import traceback
 class Main:
     def __init__(self):
         init()#for windows
-        self.host = '192.168.1.109' 
+        self.host = '192.168.1.142' 
         self.port = 50223
         self.devices = {}
         self.devices_type = {}
@@ -80,7 +80,7 @@ class Main:
                     await handler.send_table_state(self.banned_ips(),"servers_banned_ips","values-set")
                 elif request == "server_config":
                     await handler.send_server_config()
-                elif request == "passive_data":
+                elif request == "basic_data":
                     await self.device_handler.get_and_send_passive_data(name)
                 else:
                     await self.route_client_advanced_request(handler,request)             
@@ -228,6 +228,8 @@ class Main:
             await handler.handle_config_request(request)
         elif request == "add-contact" or request == "remove-contact":
             await handler.handle_contact_modification(request)
+        elif request == "contact_list":
+            await handler.send_contacts_list()
         else:
             pass
 
@@ -243,6 +245,7 @@ class Main:
     async def try_to_gather_bot_passive_data(self,name,websocket):
         try:
             self.gathering_passive_data[name] = True
+            await asyncio.wait_for(websocket.send("passive_data"),1)
             passive_data = await asyncio.wait_for(websocket.recv(),5.5)
             self.gathering_passive_data[name] = False
             await self.check_for_alert_and_send(passive_data,name)
