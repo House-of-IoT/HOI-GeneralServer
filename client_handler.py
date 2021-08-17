@@ -144,10 +144,12 @@ class ClientHandler:
             elif action == "deactivate":
                 self.parent.deactivated_bots.add(bot_name)
                 self.parent.available_status[bot_name] = True
+                del self.parent.bot_passive_data[bot_name]
             else:
                 del self.parent.devices[bot_name]
                 del self.parent.outside_names[bot_name]
                 del self.parent.devices_type[bot_name]
+                del self.parent.bot_passive_data[bot_name]
                 if bot_name in self.parent.deactivated_bots:
                     self.parent.deactivated_bots.remove(bot_name)
                 if bot_name in self.parent.stream_mode_status:
