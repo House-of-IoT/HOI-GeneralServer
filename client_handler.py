@@ -72,6 +72,8 @@ class ClientHandler:
         status = None
         try:
             value = await asyncio.wait_for(self.websocket.recv(),40)
+            print("here")
+            print(value)
             successfully_authed_with_super_pass = await self.send_need_admin_auth_and_check_response(self.parent.super_admin_password,"editing")
 
             if successfully_authed_with_super_pass:
@@ -236,12 +238,16 @@ class ClientHandler:
             return True
 
     def modify_matching_config_boolean(self,request,new_value):
-        boolean = bool(new_value)
+        boolean = bool(int(new_value))
+        print(boolean)
         if request == "change_config_viewing":
+
             self.parent.config.viewing_all_devices_requires_auth = boolean
         elif request == "change_config_activating":
+
             self.parent.config.activating_requires_admin = boolean
         elif request == "change_config_deactivating":
+
             self.parent.config.deactivating_requires_admin = boolean
         else:
             self.parent.config.disconnecting_requires_admin = boolean

@@ -49,7 +49,7 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
 
 
     async def connect(self,need_websocket = False):
-        websocket = await websockets.connect('ws://192.168.1.142:50223', ping_interval= None, max_size = 20000000)
+        websocket = await websockets.connect('ws://192.168.1.109:50223', ping_interval= None, max_size = 20000000)
         await websocket.send("")
         await websocket.send(self.name_and_type())
         await websocket.send("test_name")

@@ -17,7 +17,7 @@ import traceback
 class Main:
     def __init__(self):
         init()#for windows
-        self.host = '192.168.1.142' 
+        self.host = '192.168.1.109' 
         self.port = 50223
         self.devices = {}
         self.devices_type = {}
@@ -80,7 +80,7 @@ class Main:
                     await handler.send_table_state(self.banned_ips(),"servers_banned_ips","values-set")
                 elif request == "server_config":
                     await handler.send_server_config()
-                elif request == "basic_data":
+                elif request == "passive_data":
                     await self.device_handler.get_and_send_passive_data(name)
                 else:
                     await self.route_client_advanced_request(handler,request)             
@@ -257,7 +257,7 @@ class Main:
             else:
                 pass
         self.gathering_passive_data[name] = False
-        
+
     def banned_ips(self):
         ips = self.failed_admin_attempts.keys()
         banned_ips_holder = set()

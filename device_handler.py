@@ -36,6 +36,7 @@ class DeviceHandler:
             json_to_dict["active_status"] = name not in self.parent.deactivated_bots #false if the name is in the set
             json_to_dict["device_name"] = name
             json_to_dict["type"] = self.parent.devices_type[name]
+
             data_holder["bots"].append(json_to_dict)
         except Exception  as e:
             print(e)
