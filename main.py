@@ -108,6 +108,7 @@ class Main:
                 #issue sending to websocket
                 del self.devices[name]
                 del self.devices_type[name]
+                del self.bot_passive_data[name]
                 self.console_logger.log_disconnect(name)
                 traceback.print_exc()
                 break
@@ -252,10 +253,14 @@ class Main:
             self.bot_passive_data[name] = passive_data
         except Exception as e:
             #Will close connection of bot and client
-            if e is websockets.exceptions.ConnectionClosed:
+            traceback.print_exc()
+            if e is websockets.exceptions:
+                raise e
+            elif e is not asyncio.TimeoutError:
                 raise e
             else:
                 pass
+
         self.gathering_passive_data[name] = False
 
     def banned_ips(self):
