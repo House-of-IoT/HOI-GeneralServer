@@ -39,6 +39,7 @@ class Main:
         self.bot_passive_data = {}
         self.gathering_passive_data = {}
         self.contacts = {}
+        self.pending_bot_actions = {}
 
         self.accepted_types = {
             "reed_switch":Capabilities() , 
