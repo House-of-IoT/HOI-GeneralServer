@@ -5,14 +5,14 @@ import websockets
 import datetime
 import websockets
 from auto_scheduler import AutoScheduler
-from errors import AddressBannedException
+from Errors.errors import AddressBannedException
 from type_capabilities import Capabilities
 from client_handler import ClientHandler
 from device_handler import DeviceHandler
 from colorama import init
 from console_logging import ConsoleLogger
-from twilio_handler import TwilioHandler
-from config import ConfigHandler
+from ThirdPartyHandlers.twilio_handler import TwilioHandler
+from Config.config import ConfigHandler
 import traceback
 
 class Main:

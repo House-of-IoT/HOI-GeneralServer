@@ -30,7 +30,7 @@ class AutoScheduler:
                         response = await asyncio.wait_for(bot_websocket.recv(),10)
                         self.parent.most_recent_scheduled_tasks[task.name] = response
                     except:
-                        self.parent.avail
+                        self.parent.most_recent_scheduled_tasks[task.name] = "failure"
 
                     #release control of the bot
                     self.parent.available_status[task.name] = True
