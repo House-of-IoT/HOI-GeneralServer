@@ -4,6 +4,7 @@ import json
 import websockets
 import datetime
 import websockets
+from auto_scheduler import AutoScheduler
 from errors import AddressBannedException
 from type_capabilities import Capabilities
 from client_handler import ClientHandler
@@ -39,7 +40,7 @@ class Main:
         self.bot_passive_data = {}
         self.gathering_passive_data = {}
         self.contacts = {}
-        self.pending_bot_actions = {}
+        self.auto_scheduler = AutoScheduler(2,self)
 
         self.accepted_types = {
             "reed_switch":Capabilities() , 

@@ -1,7 +1,13 @@
 import asyncio
+import BasicResponse
+
+''' Used for composition of client handler and auto scheduler'''
 
 class ActionUtils:    
-    
+    def __init__(self,websocket,name):
+        self.websocket = websocket
+        self.name = name
+
     async def send_need_admin_auth_and_check_response(self,password,action):
         await self.send_basic_response("needs-admin-auth",action = action)
         if await self.parent.is_authed(self.websocket,password):

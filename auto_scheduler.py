@@ -19,6 +19,7 @@ class AutoScheduler:
         for task in tasks:
             #if the scheduled time has passed or it is the scheduled time
             if task.time >= datetime.datetime():
+                pass
 
 class Task:
     def __init__(self,time,name,action):
