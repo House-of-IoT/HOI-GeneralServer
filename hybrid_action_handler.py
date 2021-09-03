@@ -21,4 +21,4 @@ class HybridActionHandler:
             task = Task(datetime.strptime(task_dict["time"]),task_dict["bot_name"],task_dict["action"])
             self.parent.auto_scheduler.add_task(task)
         else:
-            pass
+            utils.send_basic_response("failure","scheduled",bot_name=task_data["bot_name"])

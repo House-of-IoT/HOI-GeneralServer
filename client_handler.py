@@ -72,8 +72,6 @@ class ClientHandler:
         status = None
         try:
             value = await asyncio.wait_for(self.websocket.recv(),40)
-            print("here")
-            print(value)
             successfully_authed_with_super_pass = await self.send_need_admin_auth_and_check_response(self.parent.super_admin_password,"editing")
 
             if successfully_authed_with_super_pass:
