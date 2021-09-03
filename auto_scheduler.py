@@ -1,4 +1,5 @@
 import datetime
+import asyncio
 
 class AutoScheduler:
     def __init__(self,interval,parent):
@@ -14,13 +15,26 @@ class AutoScheduler:
         uid = str(task.time) + task.bot_name + task.action
         del self.tasks[uid]
     
-    def execute_tasks(self):
+    async def execute_tasks(self):
         tasks = list(self.tasks.keys())
         for task in tasks:
             #if the scheduled time has passed or it is the scheduled time
             if task.time >= datetime.datetime():
-                pass
+                # if bot is connected and available
+                if task.name in self.parent.devices and self.parent.available_status[task.name] == True:
+                    self.parent.available_status[task.name] = False
+                    try:
+                        #send the request and gather response
+                        bot_websocket = self.parent.devices[task.name]
+                        await asyncio.wait_for(bot_websocket.send(task.action),15)
+                        response = await asyncio.wait_for(bot_websocket.recv(),10)
+                        self.parent.most_recent_scheduled_tasks[task.name] = response
+                    except:
+                        self.parent.avail
 
+                    #release control of the bot
+                    self.parent.available_status[task.name] = True
+       
 class Task:
     def __init__(self,time,name,action):
         self.time = time

@@ -19,8 +19,6 @@ class HybridActionHandler:
         if(result == True):# auth passed
             utils.send_basic_response("success","scheduled",bot_name=task_dict["bot_name"])
             task = Task(datetime.strptime(task_dict["time"]),task_dict["bot_name"],task_dict["action"])
-            self.parent.auto_scheduler.
+            self.parent.auto_scheduler.add_task(task)
         else:
-
-
-        
+            pass

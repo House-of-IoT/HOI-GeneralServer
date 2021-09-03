@@ -40,6 +40,7 @@ class Main:
         self.bot_passive_data = {}
         self.gathering_passive_data = {}
         self.contacts = {}
+        self.most_recent_scheduled_tasks = {}
         self.auto_scheduler = AutoScheduler(2,self)
 
         self.accepted_types = {
