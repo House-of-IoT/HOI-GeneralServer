@@ -26,8 +26,8 @@ class AutoScheduler:
                     try:
                         #send the request and gather response
                         bot_websocket = self.parent.devices[task.name]
-                        await asyncio.wait_for(bot_websocket.send(task.action),15)
-                        response = await asyncio.wait_for(bot_websocket.recv(),10)
+                        await asyncio.wait_for(bot_websocket.send(task.action),5)
+                        response = await asyncio.wait_for(bot_websocket.recv(),8)
                         self.parent.most_recent_scheduled_tasks[task.name] = response
                     except:
                         self.parent.most_recent_scheduled_tasks[task.name] = "failure"

@@ -1,5 +1,5 @@
 import asyncio
-import BasicResponse
+import DataObjects.BasicResponse as BasicResponse
 
 ''' Used for composition of client handler and auto scheduler'''
 
