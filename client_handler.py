@@ -1,7 +1,7 @@
 import asyncio
 import json
-from errors import AddressBannedException
-from BasicResponse import BasicResponse
+from Errors.errors import AddressBannedException
+from DataObjects.BasicResponse import BasicResponse
 import traceback
 
 class ClientHandler:

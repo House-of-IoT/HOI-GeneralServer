@@ -1,12 +1,12 @@
-from BasicResponse import BasicResponse
+from DataObjects.BasicResponse import BasicResponse
 import asyncio
 import json
 import websockets
 import datetime
 import websockets
-from auto_scheduler import AutoScheduler
+from HybridActionsAndAutoScheduling.auto_scheduler import AutoScheduler
 from Errors.errors import AddressBannedException
-from type_capabilities import Capabilities
+from DataObjects.type_capabilities import Capabilities
 from client_handler import ClientHandler
 from device_handler import DeviceHandler
 from colorama import init
