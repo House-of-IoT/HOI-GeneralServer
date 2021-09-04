@@ -34,7 +34,13 @@ class AutoScheduler:
 
                     #release control of the bot
                     self.parent.available_status[task.name] = True
-       
+
+                    #only execute one task at a time 
+                    break
+    
+    async def handle_super_task(self):
+        pass
+
 class Task:
     def __init__(self,time,name,action):
         self.time = time
