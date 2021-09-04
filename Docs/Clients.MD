@@ -26,18 +26,22 @@ as an example to construct a client, it is built to be simple to modify and copy
 
 Note: Basic actions are activation,deactivation,disconnection of bots and viewing server state.
 
-(Deactivation ,Activation, and disconnection)
-1.Send 'bot_control'
-2.Send the action that you would like to execute('activate' , 'deactivate', 'disconnect')
-3.Send the name of the bot you are trying to control.
-4.Gather response that will be in JSON formatt({server_name : "" ,action : "" ,status: "" ,bot_name: "",target: "",target_value: ""}).
+## (Deactivation ,Activation, and disconnection)
+
+1. Send 'bot_control'
+2. Send the action that you would like to execute('activate' , 'deactivate', 'disconnect')
+3. Send the name of the bot you are trying to control.
+4. Gather response that will be in JSON formatt({server_name : "" ,action : "" ,status: "" ,bot_name: "",target: "",target_value: ""}).
   * if you get a status of "success" then no more follow up is required
   * if you get a status of "needs-admin-auth"  the client will need to provide the admin password for authentication'
   * if you get a status of "timeout" , this means the targeted bot failed to respond to the request in a timely fashion.
 
-(viewing server state)
-1.Send the correct opcode(For example, you would send "servers_banned_ips" if you would like to view the ip addresses that are currently banned)
-2.Gather response that will be in JSON formatt({server_name : "" ,action : "" ,status: "" ,bot_name: "",target: "",target_value: ""}
+
+
+## (viewing server state)
+
+1. Send the correct opcode(For example, you would send "servers_banned_ips" if you would like to view the ip addresses that are currently banned)
+2. Gather response that will be in JSON formatt({server_name : "" ,action : "" ,status: "" ,bot_name: "",target: "",target_value: ""}
   * if you get a status of "success" then no more follow up is required and the data will be located in target_value
   * if you get a status of "needs-admin-auth"  the client will need to provide the admin password for authentication'
   * if you get a status of "timeout" , this means the client failed to respond to the request in a timely fashion.
