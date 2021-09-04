@@ -1,7 +1,6 @@
 from twilio.rest import Client
 
 class TwilioHandler:
-
     def __init__(self,account_sid, auth_token,phone_number,parent):
         self.account_sid = account_sid
         self.auth_token = auth_token
