@@ -5,7 +5,7 @@
   * Mainly used for raw data analyzation
   * Super Administrative tool
 
-# How to create a custom non-bot client?
+# How to create a custom client?
 
 You could use the [test_web_client](https://github.com/House-of-IoT/HOI-GeneralServer/blob/master/TestClients/test_web_client.py)
 as an example to construct a client, it is built to be simple to modify and copy.
