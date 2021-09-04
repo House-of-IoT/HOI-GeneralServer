@@ -38,11 +38,12 @@ Note: Basic actions are activation,deactivation,disconnection of bots and viewin
 
 
 
-## (viewing server state)
+## (Viewing server state)
 
 1. Send the correct opcode(For example, you would send "servers_banned_ips" if you would like to view the ip addresses that are currently banned)
 2. Gather response that will be in JSON formatt({server_name : "" ,action : "" ,status: "" ,bot_name: "",target: "",target_value: ""}
   * if you get a status of "success" then no more follow up is required and the data will be located in target_value
   * if you get a status of "needs-admin-auth"  the client will need to provide the admin password for authentication'
   * if you get a status of "timeout" , this means the client failed to respond to the request in a timely fashion.
+
 
