@@ -18,7 +18,7 @@ import traceback
 class Main:
     def __init__(self):
         init()#for windows
-        self.host = '192.168.1.109' 
+        self.host = '192.168.1.142' 
         self.port = 50223
         self.devices = {}
         self.devices_type = {}
@@ -137,7 +137,7 @@ class Main:
         except:
             traceback.print_exc()
 
-    async def check_declaration(self,websocket , path):
+    async def check_declaration(self,websocket, path):
         try:     
             if self.is_banned(str(websocket.remote_address[0])):
                 return
@@ -171,7 +171,10 @@ class Main:
     async def is_authed(self,websocket,specific_password):
         try:
             password = await asyncio.wait_for(websocket.recv(),35)
+            print(len(specific_password))
+            print(password)
             if password == specific_password:
+              
                 return True
             else:
                 self.add_to_failed_attempts(websocket)
@@ -179,6 +182,7 @@ class Main:
                 if self.is_banned(websocket.remote_address[0]):
                     raise AddressBannedException("Address is banned!!")
                 return False
+
         except Exception as e:
             print("failed authentication from:" + str(websocket.remote_address[0]))
             #not timed out but banned 

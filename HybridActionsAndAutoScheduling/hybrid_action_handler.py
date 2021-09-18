@@ -1,6 +1,5 @@
 import asyncio
 from datetime import datetime
-from typing import Text
 from action_utils import ActionUtils
 from auto_scheduler import Task
 import json

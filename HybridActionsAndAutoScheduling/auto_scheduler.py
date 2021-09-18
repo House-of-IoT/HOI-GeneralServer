@@ -37,10 +37,7 @@ class AutoScheduler:
 
                     #only try to execute one task at a time 
                     break
-    
-    async def handle_super_task(self):
-        pass
-
+                
 class Task:
     def __init__(self,time,name,action):
         self.time = time
