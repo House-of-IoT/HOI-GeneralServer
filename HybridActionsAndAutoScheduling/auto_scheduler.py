@@ -18,9 +18,9 @@ class AutoScheduler:
         
     def task_should_run(self,task):
         #if the task's time has passed or the time is now
-        if task.time <= datetime.datetime().utcnow():
+        if task.time <= datetime.datetime.utcnow():
             # if bot is connected and available
-            if task.name in self.parent.devices and self.parent.available_status[task.name] == True:
+            if task.bot_name in self.parent.devices and self.parent.available_status[task.bot_name] == True:
                 return True
         return False
     
@@ -38,7 +38,7 @@ class AutoScheduler:
                     self.parent.most_recent_scheduled_tasks[task.name] = response
                 except:
                     self.parent.most_recent_scheduled_tasks[task.name] = "failure"
-                    
+
                 #release control of the bot
                 self.parent.available_status[task.name] = True
 

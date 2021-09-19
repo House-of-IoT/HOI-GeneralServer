@@ -3,12 +3,13 @@
 from asyncio import tasks
 import datetime
 from unittest.case import TestCase
+import unittest
 import auto_scheduler
 
 class MockParentForScheduler:
     def __init__(self,available_status,parent_devices):
         self.available_status = available_status
-        self.parent_devices = parent_devices
+        self.devices = parent_devices
 
 class Tests(TestCase):
     def test(self):
@@ -57,3 +58,5 @@ class Tests(TestCase):
         self.assertTrue(task_not_in_scheduler)
 
 
+if __name__ == "__main__":
+    unittest.main()
