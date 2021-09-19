@@ -1,7 +1,6 @@
 import asyncio
 import datetime
 
-
 class AutoScheduler:
     def __init__(self,interval,parent):
          self.tasks = {}
@@ -24,23 +23,27 @@ class AutoScheduler:
                 return True
         return False
     
-    async def execute_tasks(self):
+    async def try_to_execute_one_task(self):
         tasks = list(self.tasks.keys())
-        for task in tasks:
+        for task_uid in tasks:
+            task = self.tasks[task_uid]
+
             #if the scheduled time has passed or it is the scheduled time
             if self.task_should_run(task):
-                self.parent.available_status[task.name] = False
+                self.parent.available_status[task.bot_name] = False
                 try:
                     #send the request and gather response
-                    bot_websocket = self.parent.devices[task.name]
+                    bot_websocket = self.parent.devices[task.bot_name]
                     await asyncio.wait_for(bot_websocket.send(task.action),5)
                     response = await asyncio.wait_for(bot_websocket.recv(),8)
-                    self.parent.most_recent_scheduled_tasks[task.name] = response
-                except:
-                    self.parent.most_recent_scheduled_tasks[task.name] = "failure"
+                    self.parent.most_recent_scheduled_tasks[task.bot_name] = response
+                except Exception as e:
+                    self.parent.most_recent_scheduled_tasks[task.bot_name] = "failure"
+                #remove the task
+                self.cancel_task(task)
 
                 #release control of the bot
-                self.parent.available_status[task.name] = True
+                self.parent.available_status[task.bot_name] = True
 
                 #only try to execute one task at a time 
                 break
