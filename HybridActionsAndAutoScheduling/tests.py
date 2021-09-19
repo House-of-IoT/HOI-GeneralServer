@@ -11,17 +11,17 @@ class MockParentForScheduler:
         self.parent_devices = parent_devices
 
 class Tests(TestCase):
-    
     def test(self):
         task_one = auto_scheduler.Task(datetime.datetime.utcnow(),"test_bot","test")
         task_two = auto_scheduler.Task(datetime.datetime.utcnow() + datetime.timedelta(days = 3),"test_bot","test")
         available_status = {"test_bot":True}
         parent_devices = {"test_bot":"WEBSOCKET_PLACEHOLDER_BUT_FOR_TEST"}
         mock_parent = MockParentForScheduler(available_status,parent_devices)
-        scheduler = auto_scheduler.AutoScheduler()
+        scheduler = auto_scheduler.AutoScheduler(10,mock_parent)
 
         self.should_execute(task_one,scheduler,1)
-        self.should_execute(task_one,scheduler,2)
+        self.should_execute(task_two,scheduler,2)
+        self.adding_task(task_one,scheduler)
 
     def should_execute(self,task,scheduler,case):
         result = scheduler.task_should_run(task)
@@ -33,6 +33,27 @@ class Tests(TestCase):
         elif case == 2:
             self.assertFalse(result)
         
-    def adding_task(self,task,mock_parent,scheduler):
+    def adding_task(self,task,scheduler):
+        #make sure task is not present
+        uid = str(task.time) + task.bot_name + task.action
+        task_not_in_scheduler = uid not in scheduler.tasks
+        self.assertTrue(task_not_in_scheduler)
+
+        #add and make sure task is present
+        scheduler.add_task(task)
+        task_now_exists_in_scheduler = uid in scheduler.tasks
+        self.assertTrue(task_now_exists_in_scheduler)
+
+    def canceling_task(self,task,scheduler):
+        #Add and make sure task is present
+        scheduler.add_task(task)
+        uid = str(task.time) + task.bot_name + task.action
+        task_now_in_scheduler = uid in scheduler.tasks
+        self.assertTrue(task_now_in_scheduler)
+
+        #cancel and make sure task is not present
+        scheduler.cancel_task(task)
+        task_not_in_scheduler = uid not in scheduler.tasks
+        self.assertTrue(task_not_in_scheduler)
 
 
