@@ -7,7 +7,7 @@
 # Gist
   House of Iot is a platform for home automation with custom DIY devices. All devices "in the house" has matching tutorials on physical and software setup!
   House of Iot will ALWAYS be open-source! House of Iot aims to remove the barrier to entry for DIYers in the IoT space, we are aiming for a diverse set of home           automation! Everything from Irrigation to a custom weather station.
-# Want to learn more ? 
+# Want to learn more? 
 check my [blog](https://dev.to/ronaldthenerdsuperuser/what-is-house-of-iot-4jm4)
   
 check the [docs](https://github.com/House-of-IoT/HOI-GeneralServer/tree/master/Docs)
