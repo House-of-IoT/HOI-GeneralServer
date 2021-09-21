@@ -31,7 +31,6 @@ class Main:
         self.regular_password = ""#move to env
         self.super_admin_password = ""#move to env
         self.device_handler = DeviceHandler(self)
-        self.admins = {} #used to determine who is an admin , for UI disconnecting
         self.last_alert_sent = {}
         self.console_logger = ConsoleLogger(self)
         #self.twilio_handler = TwilioHandler("","","","")
@@ -41,7 +40,7 @@ class Main:
         self.gathering_passive_data = {}
         self.contacts = {}
         self.most_recent_scheduled_tasks = {}
-        self.auto_scheduler = AutoScheduler(2,self)
+        self.auto_scheduler = AutoScheduler(5,self)
 
         self.accepted_types = {
             "reed_switch":Capabilities() , 
@@ -56,23 +55,40 @@ class Main:
             "infared":Capabilities(),
             "non-bot":Capabilities()}
 
-    def name_and_type(self, response):
-        try:
-            data_dict = json.loads(response)
-            if "name" in data_dict and "type" in data_dict:
-                return (data_dict["name"] , data_dict["type"])
-            else:
-                return None
-        except: 
-            return None 
+    """
+    Starting point for all new connections.
+    """
+    async def check_declaration(self,websocket, path):
+        try:     
+            if self.is_banned(str(websocket.remote_address[0])):
+                return
+            if await self.is_authed(websocket,self.regular_password):
+                type_of_client = await asyncio.wait_for(websocket.recv(), 10)
+                name_and_type = self.name_and_type(type_of_client)
+                outside_name = await asyncio.wait_for(websocket.recv(),10)
 
+                #Make sure the name doesn't exist already
+                if name_and_type != None and name_and_type[0] not in self.devices:
+                    self.outside_names[name_and_type[0]] = outside_name
+                    await self.handle_type(websocket,name_and_type[0],name_and_type[1]) 
+                else:
+                    self.console_logger.log_name_check_error(name_and_type[0])
+                    await websocket.send("issue")
+            else:
+                await websocket.send("issue")    
+        except Exception as e:
+            traceback.print_exc()
+
+    """
+    Waits on a request from the client and routes the request
+    by using a ClientHandler instance.
+    """
     async def handle_client(self,websocket,name):
         while True:
             await asyncio.sleep(1)
             try:
                 handler = ClientHandler(self,name,websocket)
                 request = await websocket.recv()
-                print(request)
                 if request == "bot_control":
                     await handler.gather_request_for_bot()
                 elif request == "servers_devices":
@@ -88,15 +104,17 @@ class Main:
                 else:
                     await self.route_client_advanced_request(handler,request)             
                 
-            except Exception as e:
-                print(f"here:{e}")
-            
+            except Exception as e:      
                 del self.devices[name]
                 del self.devices_type[name]
                 self.console_logger.log_disconnect(name)
                 traceback.print_exc()
                 break      
     
+    """
+    Gathers passive data on a hard-coded interval if
+    the bot isn't being used by a client.
+    """
     async def handle_bot(self,websocket,name):
         self.available_status[name] = True
         self.gathering_passive_data[name] = False
@@ -116,13 +134,10 @@ class Main:
                 traceback.print_exc()
                 break
 
-    async def next_steps(self,client_type, name,websocket):
-        self.console_logger.log_new_connection(name,client_type)
-        if client_type == "non-bot":
-            await self.handle_client(websocket,name)
-        else:
-            await self.handle_bot(websocket,name)
-
+    """
+    Does a validation check on the type claimed by the client
+    and proceeds with next_steps if the type is valid.
+    """
     async def handle_type(self,websocket,name,client_type):
         try:
             if client_type in self.accepted_types:
@@ -137,28 +152,6 @@ class Main:
         except:
             traceback.print_exc()
 
-    async def check_declaration(self,websocket, path):
-        try:     
-            if self.is_banned(str(websocket.remote_address[0])):
-                return
-            if await self.is_authed(websocket,self.regular_password):
-                type_of_client = await asyncio.wait_for(websocket.recv(), 10)
-                name_and_type = self.name_and_type(type_of_client)
-                outside_name = await asyncio.wait_for(websocket.recv(),10)
-
-                # Name and type exists/there is no client with this name
-                if name_and_type != None and name_and_type[0] not in self.devices:
-                    self.outside_names[name_and_type[0]] = outside_name
-                    await self.handle_type(websocket,name_and_type[0],name_and_type[1]) 
-                else:
-                    self.console_logger.log_name_check_error(name_and_type[0])
-                    await websocket.send("issue")
-            else:
-                await websocket.send("issue")    
-        except Exception as e:
-            traceback.print_exc()
-            print(e)
-
     def is_banned(self,ip):
         if ip in self.failed_admin_attempts:
             if self.failed_admin_attempts[ip] > 3:
@@ -168,13 +161,14 @@ class Main:
                 return False
         return False
 
+    """ 
+    Returns true or false if passwords don't match
+    and enforces network bans if too many failed attempts occured
+    """
     async def is_authed(self,websocket,specific_password):
         try:
             password = await asyncio.wait_for(websocket.recv(),35)
-            print(len(specific_password))
-            print(password)
             if password == specific_password:
-              
                 return True
             else:
                 self.add_to_failed_attempts(websocket)
@@ -195,6 +189,13 @@ class Main:
             self.add_to_failed_attempts(websocket)
             traceback.print_exc()
             return False
+
+    async def next_steps(self,client_type, name,websocket):
+        self.console_logger.log_new_connection(name,client_type)
+        if client_type == "non-bot":
+            await self.handle_client(websocket,name)
+        else:
+            await self.handle_bot(websocket,name)
 
     def is_admin(self,password,websocket):
         if password == self.admin_password:
@@ -220,6 +221,16 @@ class Main:
             if self.devices_type[name] == "non-bot":
                 return False
         return True
+
+    def name_and_type(self, response):
+        try:
+            data_dict = json.loads(response)
+            if "name" in data_dict and "type" in data_dict:
+                return (data_dict["name"] , data_dict["type"])
+            else:
+                return None
+        except: 
+            return None 
 
     async def check_for_alert_and_send(self,data,name):
         try:

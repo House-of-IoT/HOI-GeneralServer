@@ -113,9 +113,5 @@ class AsyncTests(IsolatedAsyncioTestCase):
         task_no_longer_exist = task_uid not in scheduler.tasks
         self.assertTrue(task_no_longer_exist)
 
-
-    
-    
-
 if __name__ == "__main__":
     unittest.main()
