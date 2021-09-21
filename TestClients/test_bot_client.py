@@ -34,7 +34,7 @@ protocol
 class AsyncTests(unittest.IsolatedAsyncioTestCase):
     
     async def connect(self):
-        websocket = await websockets.connect('ws://192.168.1.109:50223', ping_interval= None, max_size = 20000000)
+        websocket = await websockets.connect('ws://192.168.1.142:50223', ping_interval= None, max_size = 20000000)
         await websocket.send("")
         await websocket.send(self.name_and_type())
         await websocket.send("test_name")
@@ -59,7 +59,7 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
                     print("disconnecting.")
                     break
                 elif message == "passive_data":
-                    await websocket.send(json.dumps({"data":"","alert_status":"alert_present", "message":"test"})) #basic data
+                    await websocket.send(json.dumps({"data":"","alert_status":"alert_present", "message":"test for house of iot network #1"})) #basic data
 
             except Exception as e: 
                 print(e)

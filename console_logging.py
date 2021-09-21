@@ -34,7 +34,6 @@ class ConsoleLogger:
 
     def log_device_stats(self):
         self.log_info(f"There are {len(self.parent.devices.keys())} devices currently connected to the server")
-        self.log_info(f"Admins:{len(self.parent.admins.keys())}")
         self.log_info(f"Devices:{len(self.parent.devices)}\n")
 
     def log_undetected_bot(self,name):

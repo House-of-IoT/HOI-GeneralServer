@@ -13,7 +13,7 @@ class ConfigHandler:
 
     def grab_current_config(self):
         with open ("config.json",'r') as File:
-            data = File.readlines()
+            data = File.read()
             try:
                 data_dict = json.loads(data)
                 self.disconnecting_requires_admin = data_dict["disconnecting"]
@@ -22,7 +22,8 @@ class ConfigHandler:
                 self.deactivating_requires_admin = data_dict["deactivating"]
                 self.host = data_dict["host"]
                 self.port = data_dict["port"]
-            except:
+            except Exception as e:
+                print(e)
                 print("There is an issue with the required config.json...")
                 input("Press enter to quit....")
                 quit()

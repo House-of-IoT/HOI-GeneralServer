@@ -3,9 +3,9 @@ import os
 
 class TwilioHandler:
     def __init__(self,parent):
-        self.account_sid =os.environ.get("hoi-t-account_sid")
-        self.auth_token = os.environ.get("hoi-t-auth-token")
-        self.phone_number = os.environ.get("hoi-t-phone-number")
+        self.account_sid =os.environ.get("hoi_t_account_sid")
+        self.auth_token = os.environ.get("hoi_t_auth_token")
+        self.phone_number = os.environ.get("hoi_t_phone_number")
         self.client = Client(self.account_sid, self.auth_token)
         self.parent = parent
 

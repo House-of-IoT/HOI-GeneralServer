@@ -25,9 +25,9 @@ class Main:
         self.deactivated_bots = set()
         self.stream_mode_status= {}
         self.outside_names = {}
-        self.admin_password = os.environ.get("apw-hoi-gs")
-        self.regular_password = os.environ.get("rpw-hoi-gs")
-        self.super_admin_password = os.environ.get("sapw-hoi-gs")
+        self.admin_password = os.environ.get("apw_hoi_gs")
+        self.regular_password = os.environ.get("rpw_hoi_gs")
+        self.super_admin_password = os.environ.get("sapw_hoi_gs")
         self.device_handler = DeviceHandler(self)
         self.last_alert_sent = {}
         self.console_logger = ConsoleLogger(self)
@@ -223,7 +223,7 @@ class Main:
             data_dict = json.loads(data)
             if data_dict["alert_status"] == "alert_present" and self.alert_will_not_be_spam(name):
                 self.console_logger.log_generic_row(f"Sending Alert for {name}","red")
-                #self.twilio_handler.send_notifications_to_all(data_dict["message"])
+                self.twilio_handler.send_notifications_to_all(data_dict["message"])
         except:
             traceback.print_exc()
 
@@ -280,7 +280,7 @@ class Main:
         loop.run_until_complete(
             websockets.serve(self.check_declaration,self.config.host,self.config.port,ping_interval=None))
         loop.run_until_complete(
-            self.auto_scheduler.execute_tasks())
+            self.auto_scheduler.try_to_execute_one_task())
         loop.run_forever()
 
 Main().start_server()
