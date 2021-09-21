@@ -7,6 +7,9 @@ class ConfigHandler:
         self.activating_requires_admin = True
         self.deactivating_requires_admin = False
         self.viewing_all_devices_requires_auth = True
+        self.host = None
+        self.port = None
+        self.grab_current_config()
 
     def grab_current_config(self):
         with open ("config.json",'r') as File:
@@ -17,6 +20,8 @@ class ConfigHandler:
                 self.activating_requires_admin = data_dict["activating"]
                 self.viewing_all_devices_requires_auth = data_dict["viewing"]
                 self.deactivating_requires_admin = data_dict["deactivating"]
+                self.host = data_dict["host"]
+                self.port = data_dict["port"]
             except:
                 print("There is an issue with the required config.json...")
                 input("Press enter to quit....")
@@ -42,12 +47,16 @@ class ConfigMaker:
         activating = input("\nactivating bots(smart devices) requires admin authentication[Y,N]:")
         deactivating = input("\ndeactivating bots(smart devices) requires admin authentication[Y,N]:")
         viewing = input("\nviewing all devices connected to the server requires admin authentication[Y,N]:")
+        host = input("\nhost:")
+        port = int(input("port:"))
 
         data_dict = {}
         data_dict["disconnecting"] = self.route_bool(disconnecting)
         data_dict["activating"] = self.route_bool(activating)
         data_dict["deactivating"] = self.route_bool(deactivating)
         data_dict["viewing"] = self.route_bool(viewing)
+        data_dict["host"] = host
+        data_dict["port"] = port
         self.write_config(data_dict)
 
     def write_config(self,data_dict):
@@ -65,4 +74,3 @@ if __name__ == "__main__":
     maker = ConfigMaker()
     maker.welcome()
     maker.make_config()
-            

@@ -1,10 +1,11 @@
 from twilio.rest import Client
+import os
 
 class TwilioHandler:
-    def __init__(self,account_sid, auth_token,phone_number,parent):
-        self.account_sid = account_sid
-        self.auth_token = auth_token
-        self.phone_number = phone_number
+    def __init__(self,parent):
+        self.account_sid =os.environ.get("hoi-t-account_sid")
+        self.auth_token = os.environ.get("hoi-t-auth-token")
+        self.phone_number = os.environ.get("hoi-t-phone-number")
         self.client = Client(self.account_sid, self.auth_token)
         self.parent = parent
 

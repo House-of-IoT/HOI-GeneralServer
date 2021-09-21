@@ -5,20 +5,19 @@ import datetime
 import websockets
 from HybridActionsAndAutoScheduling.auto_scheduler import AutoScheduler
 from Errors.errors import AddressBannedException
-from DataObjects.type_capabilities import Capabilities
 from client_handler import ClientHandler
 from device_handler import DeviceHandler
 from colorama import init
 from console_logging import ConsoleLogger
 from ThirdPartyHandlers.twilio_handler import TwilioHandler
 from Config.config import ConfigHandler
+from DataObjects.type_handler import TypeHandler
 import traceback
+import os
 
 class Main:
     def __init__(self):
         init()#for windows
-        self.host = '192.168.1.142' 
-        self.port = 50223
         self.devices = {}
         self.devices_type = {}
         self.failed_admin_attempts = {}
@@ -26,34 +25,22 @@ class Main:
         self.deactivated_bots = set()
         self.stream_mode_status= {}
         self.outside_names = {}
-        self.admin_password = ""#move to env
-        self.regular_password = ""#move to env
-        self.super_admin_password = ""#move to env
+        self.admin_password = os.environ.get("apw-hoi-gs")
+        self.regular_password = os.environ.get("rpw-hoi-gs")
+        self.super_admin_password = os.environ.get("sapw-hoi-gs")
         self.device_handler = DeviceHandler(self)
         self.last_alert_sent = {}
         self.console_logger = ConsoleLogger(self)
-        #self.twilio_handler = TwilioHandler("","","","")
+        self.twilio_handler = TwilioHandler(self)
         self.alerts_enabled = True
-        self.config = ConfigHandler() #causes exit if config isn't correct
+        self.config = ConfigHandler()
         self.bot_passive_data = {}
         self.gathering_passive_data = {}
         self.contacts = {}
         self.most_recent_scheduled_tasks = {}
         self.auto_scheduler = AutoScheduler(5,self)
-
-        self.accepted_types = {
-            "reed_switch":Capabilities() , 
-            "gas_smoke_fire_detector":Capabilities(), 
-            "ralph":Capabilities(
-                has_audio_streaming=True, 
-                has_ground_movement=True) , 
-            "home_watcher":Capabilities(
-                has_audio_streaming=True,
-                has_video_streaming=True,
-                has_pir=True),
-            "infared":Capabilities(),
-            "non-bot":Capabilities()}
-
+        self.type_handler = TypeHandler()
+        
     """
     Starting point for all new connections.
     """
@@ -139,7 +126,7 @@ class Main:
     """
     async def handle_type(self,websocket,name,client_type):
         try:
-            if client_type in self.accepted_types:
+            if self.type_handler.is_valid(client_type):
                 self.devices[name] = websocket
                 self.devices_type[name] = client_type
                 self.last_alert_sent[name] = datetime.datetime.now()
@@ -291,7 +278,7 @@ class Main:
         self.console_logger.start_message()
         loop = asyncio.get_event_loop()
         loop.run_until_complete(
-            websockets.serve(self.check_declaration,self.host,self.port,ping_interval=None))
+            websockets.serve(self.check_declaration,self.config.host,self.config.port,ping_interval=None))
         loop.run_until_complete(
             self.auto_scheduler.execute_tasks())
         loop.run_forever()
