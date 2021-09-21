@@ -1,4 +1,3 @@
-from DataObjects.BasicResponse import BasicResponse
 import asyncio
 import json
 import websockets
@@ -152,15 +151,6 @@ class Main:
         except:
             traceback.print_exc()
 
-    def is_banned(self,ip):
-        if ip in self.failed_admin_attempts:
-            if self.failed_admin_attempts[ip] > 3:
-                print(f"the banned ip({ip}) is trying to auth")
-                return True
-            else:
-                return False
-        return False
-
     """ 
     Returns true or false if passwords don't match
     and enforces network bans if too many failed attempts occured
@@ -189,6 +179,15 @@ class Main:
             self.add_to_failed_attempts(websocket)
             traceback.print_exc()
             return False
+
+    def is_banned(self,ip):
+        if ip in self.failed_admin_attempts:
+            if self.failed_admin_attempts[ip] > 3:
+                print(f"the banned ip({ip}) is trying to auth")
+                return True
+            else:
+                return False
+        return False
 
     async def next_steps(self,client_type, name,websocket):
         self.console_logger.log_new_connection(name,client_type)
@@ -241,7 +240,6 @@ class Main:
         except:
             traceback.print_exc()
 
-    #handles the extensive/advanced requests
     async def route_client_advanced_request(self,handler,request):
         if  "change_config_" in request:
             await handler.handle_config_request(request)
