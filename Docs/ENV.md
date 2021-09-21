@@ -7,3 +7,10 @@
  4. The twilio account sid for your server ("hoi_t_account_sid").
  5. The twilio auth token for your server ("hoi_t_auth_token").
  6. The twilio phone number for your server ("hoi_t_phone_number").
+
+
+## Don't know how to set environmental variables?
+How to set them vary from operating system to operating system. Here are guides for windows and linux:
+
+[How to set ENV variables for linux](https://www.serverlab.ca/tutorials/linux/administration-linux/how-to-set-environment-variables-in-linux/)
+[How to set ENV variables for windows](https://phoenixnap.com/kb/windows-set-environment-variable)
