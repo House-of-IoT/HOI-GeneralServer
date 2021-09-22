@@ -108,7 +108,7 @@ class Main:
             try:
                 if name not in self.devices:
                     break
-                if self.available_status[name] == True:
+                if self.available_status[name] == True and name not in self.deactivated_bots:
                     await self.try_to_gather_bot_passive_data(name,websocket)
                 await asyncio.sleep(5.5)
             except Exception as e:
