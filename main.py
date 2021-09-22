@@ -250,7 +250,7 @@ class Main:
         try:
             self.gathering_passive_data[name] = True
             await asyncio.wait_for(websocket.send("passive_data"),1)
-            passive_data = await asyncio.wait_for(websocket.recv(),5.5)
+            passive_data = await asyncio.wait_for(websocket.recv(),10.5)
             self.gathering_passive_data[name] = False
             await self.check_for_alert_and_send(passive_data,name)
             self.bot_passive_data[name] = passive_data
