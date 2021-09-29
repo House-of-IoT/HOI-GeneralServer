@@ -2,6 +2,8 @@ import asyncio
 import json
 from Errors.errors import AddressBannedException
 from DataObjects.BasicResponse import BasicResponse
+from HybridActionsAndAutoScheduling.auto_scheduler import Task
+from dateutil import parser
 import traceback
 
 class ClientHandler:
@@ -261,7 +263,20 @@ class ClientHandler:
         else:
             del self.parent.contacts[name]
             self.parent.console_logger.log_generic_row(f"Successfully removed {name}({number}) from contacts!", "green")
-        
+
+    def add_or_remove_task(self,request,value):
+        data_dict = json.loads(value)
+        str_to_datetime = parser.parse(data_dict["time"])
+
+        name = data_dict["name"]
+        action = data_dict["action"]
+        task = Task(str_to_datetime,name,action)
+        if request == "add-task":
+            self.parent.auto_scheduler.add_task(task)
+        else:
+            self.parent.auto_scheduler.cancel_task(task)
+
+
     async def send_need_admin_auth_and_check_response(self,password,action):
         print("sending")
         await self.send_basic_response("needs-admin-auth",action = action)
