@@ -234,6 +234,8 @@ class Main:
             await handler.handle_contact_modification(request)
         elif request == "contact_list":
             await handler.send_contacts_list()
+        elif request == "add-task" or request == "remove-task":
+            await handler.handle_task_modification(request)
         else:
             pass
 
