@@ -68,6 +68,9 @@ class ClientHandler:
     
     async def handle_contact_modification(self,request):
         await self.handle_super_auth_request(request, "editing", lambda x,y: self.add_or_remove_contact(x,y))
+
+    async def handle_task_modification(self,request):
+        await self.handle_super_auth_request(request,"editing",lambda x,y: self.add_or_remove_task(x,y))
         
 #PRIVATE
     async def handle_super_auth_request(self,request,action,fun):
@@ -275,7 +278,6 @@ class ClientHandler:
             self.parent.auto_scheduler.add_task(task)
         else:
             self.parent.auto_scheduler.cancel_task(task)
-
 
     async def send_need_admin_auth_and_check_response(self,password,action):
         print("sending")
