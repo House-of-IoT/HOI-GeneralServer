@@ -1,7 +1,7 @@
 import asyncio
 import DataObjects.BasicResponse as BasicResponse
 
-''' Used for composition of client handler and auto scheduler'''
+''' Basic action utilities'''
 
 class ActionUtils:    
     def __init__(self,websocket,name):
