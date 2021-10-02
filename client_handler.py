@@ -62,6 +62,9 @@ class ClientHandler:
     async def send_contacts_list(self):
         await self.send_generic_table_state("viewing","contact_list",json.dumps(self.parent.contacts))
 
+    async def send_task_list(self):
+        await self.send_generic_table_state("viewing","task_list",json.dumps(self.parent.auto_scheduler.tasks))
+
     #editing the server's live config settings
     async def handle_config_request(self,request):
         await self.handle_super_auth_request(request,"editing", lambda x,y: self.modify_matching_config_boolean(x,y))
@@ -244,15 +247,11 @@ class ClientHandler:
 
     def modify_matching_config_boolean(self,request,new_value):
         boolean = bool(int(new_value))
-        print(boolean)
         if request == "change_config_viewing":
-
             self.parent.config.viewing_all_devices_requires_auth = boolean
         elif request == "change_config_activating":
-
             self.parent.config.activating_requires_admin = boolean
         elif request == "change_config_deactivating":
-
             self.parent.config.deactivating_requires_admin = boolean
         else:
             self.parent.config.disconnecting_requires_admin = boolean
