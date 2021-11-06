@@ -5,31 +5,27 @@ import os
 from queries import PostgresQueries
 
 class SQLHandler:
-    async def __init__(self,parent,using_sql = False):
-        if using_sql:
-            try:
-                await self.gather_connection()
-                self.parent = parent
-                self.successful_connection = True
-            except:
-                self.successful_connection = False
-
+    
     async def gather_connection(self):
-        host = os.environ.get("db_h"),
-        port = os.environ.get("db_p")
-        database = os.environ.get("HOI")
-        user = os.environ.get("HOI_USER")        
-        password = os.environ.get("HOI_PW")
-        pool = await aiopg.create_pool(f""" 
-            dbname={database}
-            user={user}
-            port={port}
-            password={password}
-            host={host}
-        """)
+        try:
+            host = os.environ.get("db_h"),
+            port = os.environ.get("db_p")
+            database = os.environ.get("HOI")
+            user = os.environ.get("HOI_USER")        
+            password = os.environ.get("HOI_PW")
+            pool = await aiopg.create_pool(f""" 
+                dbname={database}
+                user={user}
+                port={port}
+                password={password}
+                host={host}
+            """)
 
-        self.connection = await pool.acquire()
-        self.cursor = await self.connection.cursor()
+            self.connection = await pool.acquire()
+            self.cursor = await self.connection.cursor()
+            self.successful_connection = True
+        except:
+            self.successful_connection = False
 
     async def create_tables_if_needed(self):
         await self.cursor.execute(PostgresQueries.create_notification_table)

@@ -26,7 +26,7 @@ class Main:
         self.config = ConfigHandler()
         self.auto_scheduler = AutoScheduler(5,self)
         self.type_handler = TypeHandler()
-        self.sql_handler = SQLHandler(self,self.config.using_sql)
+        self.sql_handler = SQLHandler()
         
     """
     Starting point for all new connections
@@ -282,6 +282,10 @@ class Main:
         self.regular_password = os.environ.get("rpw_hoi_gs")
         self.super_admin_password = os.environ.get("sapw_hoi_gs")
     
+    async def gather_connection_if_using_sql(self,using_sql):
+        if using_sql:
+           await self.sql_handler.gather_connection()
+
     def set_basic_empty_state(self):
         self.bot_passive_data = {}
         self.gathering_passive_data = {}
@@ -300,6 +304,8 @@ class Main:
     def start_server(self):
         self.console_logger.start_message()
         loop = asyncio.get_event_loop()
+        loop.run_until_complete(
+            self.gather_connection_if_using_sql(self.config.using_sql))
         loop.run_until_complete(
             websockets.serve(self.check_declaration,self.config.host,self.config.port,ping_interval=None))
         loop.run_until_complete(
