@@ -2,7 +2,6 @@ import asyncio
 import json
 import websockets
 import datetime
-import websockets
 from HybridActionsAndAutoScheduling.auto_scheduler import AutoScheduler
 from Errors.errors import AddressBannedException
 from client_handler import ClientHandler

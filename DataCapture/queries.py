@@ -14,7 +14,7 @@ class PostgresQueries:
     #stores all notifications
     create_notification_table = '''
         CREATE TABLE IF NOT EXISTS notifications(
-            Id INTEGER PRIMARY KEY,
+            Id SERIAL PRIMARY KEY,
             Name VARCHAR(20) NOT NULL,
             Description text NOT NULL,
             Datetime_saved TIMESTAMP
@@ -24,7 +24,7 @@ class PostgresQueries:
     #stores all contacts
     create_contacts_table = """
         CREATE TABLE IF NOT EXISTS contacts(
-            Id INTEGER PRIMARY KEY,
+            Id SERIAL PRIMARY KEY,
             Name VARCHAR(20) NOT NULL,
             Number VARCHAR 20 NOT NULL
         );
@@ -33,7 +33,7 @@ class PostgresQueries:
     #stores every action execution
     create_action_execution_history = """
         CREATE TABLE IF NOT EXISTS actions(
-            Id INTEGER PRIMARY KEY,
+            Id SERIAL PRIMARY KEY,
             Executor VARCHAR(20) NOT NULL,
             Action VARCHAR(50) NOT NULL,
             BotName VARCHAR(50) NOT NULL,
@@ -46,7 +46,7 @@ class PostgresQueries:
     #stores connection history
     create_connection_history = """
         CREATE TABLE IF NOT EXISTS connections(
-            Id INTEGER PRIMARY KEY,
+            Id SERIAL PRIMARY KEY,
             Name VARCHAR(50) NOT NULL,
             Type VARCHAR(50) NOT NULL,
             Datetime_connected TIMESTAMP
@@ -57,7 +57,7 @@ class PostgresQueries:
     #stores banned Ips 
     create_banned_history = """
         CREATE TABLE IF NOT EXISTS banned(
-            Id INTEGER PRIMARY KEY,
+            Id SERIAL PRIMARY KEY,
             Ip VARCHAR(30) NOT NULL
         );
     """
@@ -92,8 +92,9 @@ class PostgresQueries:
     def select_query(table_name):
         Query = f"""SELECT * FROM {table_name}"""
         return Query
-        
+
     @staticmethod 
     def remove_expired_history_query(table_name, parameter):
         Query = f""" DELETE FROM {table_name} where {parameter}  <= ?"""
+        return Query
 
