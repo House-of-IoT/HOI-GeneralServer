@@ -9,7 +9,9 @@ Note: SQL Injection isn't a concern due to the nature of HOI.
     which is a larger issue than accessing historic data.
 """
 
-class LiteQueries:
+
+#SQLite
+class PostgresQueries:
     #stores all notifications
     create_notification_table = '''
         CREATE TABLE IF NOT EXISTS notifications(
@@ -59,7 +61,6 @@ class LiteQueries:
             Id INTEGER PRIMARY KEY,
             Ip VARCHAR(30) NOT NULL
         );
-    
     """
 
     #insertions
