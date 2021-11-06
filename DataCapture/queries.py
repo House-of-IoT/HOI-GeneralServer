@@ -4,10 +4,12 @@ Note: SQL Injection isn't a concern due to the nature of HOI.
 1.Once someone has access to the general server, they can access all data
     so there is no restricted data to be accessed.
     The only people connected to the server should be trusted members of the server.
+
+    Anyone malicious connected to the server will have some form of control of the devices,
+    which is a larger issue than accessing historic data.
 """
 
-class Queries:
-
+class LiteQueries:
     #stores all notifications
     create_notification_table = '''
         CREATE TABLE IF NOT EXISTS notifications(
@@ -60,36 +62,33 @@ class Queries:
     
     """
 
-      #insertion
-    @staticmethod
-    def insert_notification():
-        pass
-    @staticmethod
-    def insert_action_execution():
-        pass
-    @staticmethod
-    def insert_contact():
-        pass
-    @staticmethod
-    def insert_banned_ip():
-        pass
-    @staticmethod
-    def insert_connection():
-        pass
+    #insertions
+    insert_notification = """
+        INSERT INTO notifications (Name,Description,Date) VALUES (?,?,?)
+    """
 
-    #deletion
+    insert_contact = """
+        INSERT INTO contacts (Name,Number) VALUES (?,?)
+    """
+
+    insert_action_execution = """
+        INSERT INTO actions (Executor,Action,BotName,Type,Date) VALUES (?,?,?,?,?)
+    """
+
+    insert_connection = """
+        INSERT INTO connections (Name,Type,Date) VALUES (?,?,?)
+    """
+
+    insert_banned = """
+        INSERT INTO banned (Ip) VALUES (?)
+    """
+
     @staticmethod
-    def delete_notification():
-        pass
+    def single_parameter_delete_query(table_name,parameter):
+        Query = f""" DELETE FROM {table_name} WHERE {parameter} = ? """
+        return Query
+
     @staticmethod
-    def delete_action_execution():
-        pass
-    @staticmethod
-    def delete_connection_history():
-        pass
-    @staticmethod
-    def delete_contact():
-        pass    
-    @staticmethod
-    def delete_banned_ip():
-        pass
+    def select_query(table_name):
+        Query = f"""SELECT * FROM {table_name}"""
+        return Query
