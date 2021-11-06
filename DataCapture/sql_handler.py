@@ -5,13 +5,14 @@ import os
 from queries import PostgresQueries
 
 class SQLHandler:
-    async def __init__(self,parent):
-        try:
-            await self.gather_connection()
-            self.parent = parent
-            self.successful_connection = True
-        except:
-            self.successful_connection = False
+    async def __init__(self,parent,using_sql = False):
+        if using_sql:
+            try:
+                await self.gather_connection()
+                self.parent = parent
+                self.successful_connection = True
+            except:
+                self.successful_connection = False
 
     async def gather_connection(self):
         host = os.environ.get("db_h"),

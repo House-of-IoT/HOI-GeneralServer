@@ -7,6 +7,7 @@ class ConfigHandler:
         self.activating_requires_admin = True
         self.deactivating_requires_admin = False
         self.viewing_all_devices_requires_auth = True
+        self.using_sql = False
         self.host = None
         self.port = None
         self.grab_current_config()
@@ -22,6 +23,7 @@ class ConfigHandler:
                 self.deactivating_requires_admin = data_dict["deactivating"]
                 self.host = data_dict["host"]
                 self.port = data_dict["port"]
+                self.using_sql = data_dict["using_sql"]
             except Exception as e:
                 print(e)
                 print("There is an issue with the required config.json...")
@@ -50,6 +52,7 @@ class ConfigMaker:
         viewing = input("\nviewing all devices connected to the server requires admin authentication[Y,N]:")
         host = input("\nhost:")
         port = int(input("port:"))
+        using_sql = input("using_sql[Y,N]:")
 
         data_dict = {}
         data_dict["disconnecting"] = self.route_bool(disconnecting)
@@ -58,6 +61,7 @@ class ConfigMaker:
         data_dict["viewing"] = self.route_bool(viewing)
         data_dict["host"] = host
         data_dict["port"] = port
+        data_dict["using_sql"] = self.route_bool(using_sql)
         self.write_config(data_dict)
 
     def write_config(self,data_dict):

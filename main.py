@@ -11,6 +11,7 @@ from console_logging import ConsoleLogger
 from ThirdPartyHandlers.twilio_handler import TwilioHandler
 from Config.config import ConfigHandler
 from DataObjects.type_handler import TypeHandler
+from DataCapture.sql_handler import SQLHandler
 import traceback
 import os
 
@@ -39,6 +40,7 @@ class Main:
         self.most_recent_scheduled_tasks = {}
         self.auto_scheduler = AutoScheduler(5,self)
         self.type_handler = TypeHandler()
+        self.sql_handler = SQLHandler(self,self.config.using_sql)
         
     """
     Starting point for all new connections.
