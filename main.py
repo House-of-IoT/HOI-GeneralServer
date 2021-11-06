@@ -17,27 +17,13 @@ import os
 
 class Main:
     def __init__(self):
-        init()#for windows
-        self.devices = {}
-        self.devices_type = {}
-        self.failed_admin_attempts = {}
-        self.available_status = {}
-        self.deactivated_bots = set()
-        self.stream_mode_status= {}
-        self.outside_names = {}
-        self.admin_password = os.environ.get("apw_hoi_gs")
-        self.regular_password = os.environ.get("rpw_hoi_gs")
-        self.super_admin_password = os.environ.get("sapw_hoi_gs")
+        init()#color for windows cli
+        self.gather_env()
+        self.set_basic_empty_state()
         self.device_handler = DeviceHandler(self)
-        self.last_alert_sent = {}
         self.console_logger = ConsoleLogger(self)
         self.twilio_handler = TwilioHandler(self)
-        self.alerts_enabled = True
         self.config = ConfigHandler()
-        self.bot_passive_data = {}
-        self.gathering_passive_data = {}
-        self.contacts = {}
-        self.most_recent_scheduled_tasks = {}
         self.auto_scheduler = AutoScheduler(5,self)
         self.type_handler = TypeHandler()
         self.sql_handler = SQLHandler(self,self.config.using_sql)
@@ -278,6 +264,26 @@ class Main:
             if self.failed_admin_attempts[ip] > 3:
                 banned_ips_holder.add(ip)
         return banned_ips_holder
+
+    def gather_env(self):
+        self.admin_password = os.environ.get("apw_hoi_gs")
+        self.regular_password = os.environ.get("rpw_hoi_gs")
+        self.super_admin_password = os.environ.get("sapw_hoi_gs")
+    
+    def set_basic_empty_state(self):
+        self.bot_passive_data = {}
+        self.gathering_passive_data = {}
+        self.contacts = {}
+        self.most_recent_scheduled_tasks = {}
+        self.devices = {}
+        self.devices_type = {}
+        self.failed_admin_attempts = {}
+        self.available_status = {}
+        self.deactivated_bots = set()
+        self.last_alert_sent = {}
+        self.stream_mode_status= {}
+        self.outside_names = {}
+        self.alerts_enabled = True
 
     def start_server(self):
         self.console_logger.start_message()
