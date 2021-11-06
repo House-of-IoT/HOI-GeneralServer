@@ -9,7 +9,6 @@ Note: SQL Injection isn't a concern due to the nature of HOI.
     which is a larger issue than accessing historic data.
 """
 
-
 #SQLite
 class PostgresQueries:
     #stores all notifications
@@ -18,7 +17,7 @@ class PostgresQueries:
             Id INTEGER PRIMARY KEY,
             Name VARCHAR(20) NOT NULL,
             Description text NOT NULL,
-            Date TIMESTAMP
+            Datetime_saved TIMESTAMP
         );
     '''
 
@@ -39,7 +38,7 @@ class PostgresQueries:
             Action VARCHAR(50) NOT NULL,
             BotName VARCHAR(50) NOT NULL,
             Type VARCHAR(50) NOT NULL,
-            Date TIMESTAMP
+            Datetime_executed TIMESTAMP
         );
     
     """
@@ -50,7 +49,7 @@ class PostgresQueries:
             Id INTEGER PRIMARY KEY,
             Name VARCHAR(50) NOT NULL,
             Type VARCHAR(50) NOT NULL,
-            Date TIMESTAMP
+            Datetime_connected TIMESTAMP
         );
     
     """
@@ -65,7 +64,7 @@ class PostgresQueries:
 
     #insertions
     insert_notification = """
-        INSERT INTO notifications (Name,Description,Date) VALUES (?,?,?)
+        INSERT INTO notifications (Name,Description,Datetime_saved) VALUES (?,?,?)
     """
 
     insert_contact = """
@@ -73,11 +72,11 @@ class PostgresQueries:
     """
 
     insert_action_execution = """
-        INSERT INTO actions (Executor,Action,BotName,Type,Date) VALUES (?,?,?,?,?)
+        INSERT INTO actions (Executor,Action,BotName,Type,Datetime_executed) VALUES (?,?,?,?,?)
     """
 
     insert_connection = """
-        INSERT INTO connections (Name,Type,Date) VALUES (?,?,?)
+        INSERT INTO connections (Name,Type,Datetime_connected) VALUES (?,?,?)
     """
 
     insert_banned = """
@@ -93,3 +92,8 @@ class PostgresQueries:
     def select_query(table_name):
         Query = f"""SELECT * FROM {table_name}"""
         return Query
+        
+    @staticmethod 
+    def remove_expired_history_query(table_name, parameter):
+        Query = f""" DELETE FROM {table_name} where {parameter}  <= ?"""
+
