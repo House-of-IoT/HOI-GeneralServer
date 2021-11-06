@@ -59,3 +59,37 @@ class Queries:
         );
     
     """
+
+      #insertion
+    @staticmethod
+    def insert_notification():
+        pass
+    @staticmethod
+    def insert_action_execution():
+        pass
+    @staticmethod
+    def insert_contact():
+        pass
+    @staticmethod
+    def insert_banned_ip():
+        pass
+    @staticmethod
+    def insert_connection():
+        pass
+
+    #deletion
+    @staticmethod
+    def delete_notification():
+        pass
+    @staticmethod
+    def delete_action_execution():
+        pass
+    @staticmethod
+    def delete_connection_history():
+        pass
+    @staticmethod
+    def delete_contact():
+        pass    
+    @staticmethod
+    def delete_banned_ip():
+        pass
