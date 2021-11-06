@@ -7,6 +7,8 @@ Note: SQL Injection isn't a concern due to the nature of HOI.
 """
 
 class Queries:
+
+    #stores all notifications
     create_notification_table = '''
         CREATE TABLE IF NOT EXISTS notifications(
             Id INTEGER PRIMARY KEY,
@@ -15,17 +17,9 @@ class Queries:
             Date TIMESTAMP
         );
     '''
-    #For autoscheduling only
-    create_task_execution_history_table = '''
-        CREATE TABLE IF NOT EXISTS tasks(
-            Id INTEGER PRIMARY KEY,
-            BotName VARCHAR(50) NOT NULL,
-            Action VARCHAR(50) NOT NULL,
-            Date TIMESTAMP
-        );
-    '''
-    
-    create_contacts_history = """
+
+    #stores all contacts
+    create_contacts_table = """
         CREATE TABLE IF NOT EXISTS contacts(
             Id INTEGER PRIMARY KEY,
             Name VARCHAR(20) NOT NULL,
@@ -33,14 +27,35 @@ class Queries:
         );
     """
 
-    #for users only
+    #stores every action execution
     create_action_execution_history = """
         CREATE TABLE IF NOT EXISTS actions(
             Id INTEGER PRIMARY KEY,
             Executor VARCHAR(20) NOT NULL,
             Action VARCHAR(50) NOT NULL,
             BotName VARCHAR(50) NOT NULL,
+            Type VARCHAR(50) NOT NULL,
             Date TIMESTAMP
+        );
+    
+    """
+
+    #stores connection history
+    create_connection_history = """
+        CREATE TABLE IF NOT EXISTS connections(
+            Id INTEGER PRIMARY KEY,
+            Name VARCHAR(50) NOT NULL,
+            Type VARCHAR(50) NOT NULL,
+            Date TIMESTAMP
+        );
+    
+    """
+
+    #stores banned Ips 
+    create_banned_history = """
+        CREATE TABLE IF NOT EXISTS banned(
+            Id INTEGER PRIMARY KEY,
+            Ip VARCHAR(30) NOT NULL
         );
     
     """
