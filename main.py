@@ -29,7 +29,7 @@ class Main:
         self.sql_handler = SQLHandler(self,self.config.using_sql)
         
     """
-    Starting point for all new connections.
+    Starting point for all new connections
     """
     async def check_declaration(self,websocket, path):
         try:     
@@ -39,14 +39,10 @@ class Main:
                 type_of_client = await asyncio.wait_for(websocket.recv(), 10)
                 name_and_type = self.name_and_type(type_of_client)
                 outside_name = await asyncio.wait_for(websocket.recv(),10)
-
-                #Make sure the name doesn't exist already
-                if name_and_type != None and name_and_type[0] not in self.devices:
-                    self.outside_names[name_and_type[0]] = outside_name
-                    await self.handle_type(websocket,name_and_type[0],name_and_type[1]) 
-                else:
-                    self.console_logger.log_name_check_error(name_and_type[0])
-                    await websocket.send("issue")
+                await self.validate_name_and_type_and_continue(
+                    name_and_type,
+                    outside_name,
+                    websocket)
             else:
                 await websocket.send("issue")    
         except Exception as e:
@@ -153,16 +149,22 @@ class Main:
             self.add_to_failed_attempts(websocket)
             traceback.print_exc()
             return False
+    """
+    Makes sure this person isn't already connected and their type is acceptable
+    
+    """
+    async def validate_name_and_type_and_continue(self,name_and_type,outside_name,websocket):
+        #Make sure the name doesn't exist already
+        if name_and_type != None and name_and_type[0] not in self.devices:
+            self.outside_names[name_and_type[0]] = outside_name
+            await self.handle_type(websocket,name_and_type[0],name_and_type[1]) 
+        else:
+            self.console_logger.log_name_check_error(name_and_type[0])
+            await websocket.send("issue")
 
-    def is_banned(self,ip):
-        if ip in self.failed_admin_attempts:
-            if self.failed_admin_attempts[ip] > 3:
-                print(f"the banned ip({ip}) is trying to auth")
-                return True
-            else:
-                return False
-        return False
-
+    """
+    Enter main loop for the specific type. Handle bots or non-bots.
+    """
     async def next_steps(self,client_type, name,websocket):
         self.console_logger.log_new_connection(name,client_type)
         if client_type == "non-bot":
@@ -170,49 +172,6 @@ class Main:
         else:
             await self.handle_bot(websocket,name)
 
-    def is_admin(self,password,websocket):
-        if password == self.admin_password:
-            return True
-        else:
-            self.add_to_failed_attempts(websocket)
-            return False
-
-    def add_to_failed_attempts(self,websocket):
-        ip = str(websocket.remote_address[0])
-        if ip in self.failed_admin_attempts:
-            self.failed_admin_attempts[ip] +=1
-        else:
-            self.failed_admin_attempts[ip] = 1
-
-    async def reset_attempts(self):
-        await asyncio.sleep(86400)# one day
-        self.failed_admin_attempts = {}
-
-    def there_are_only_bots(self):
-        names = self.devices.keys()
-        for name in names:
-            if self.devices_type[name] == "non-bot":
-                return False
-        return True
-
-    def name_and_type(self, response):
-        try:
-            data_dict = json.loads(response)
-            if "name" in data_dict and "type" in data_dict:
-                return (data_dict["name"] , data_dict["type"])
-            else:
-                return None
-        except: 
-            return None 
-
-    async def check_for_alert_and_send(self,data,name):
-        try:
-            data_dict = json.loads(data)
-            if data_dict["alert_status"] == "alert_present" and self.alert_will_not_be_spam(name):
-                self.console_logger.log_generic_row(f"Sending Alert for {name}","red")
-                self.twilio_handler.send_notifications_to_all(data_dict["message"])
-        except:
-            traceback.print_exc()
 
     async def route_client_advanced_request(self,handler,request):
         if  "change_config_" in request:
@@ -227,15 +186,6 @@ class Main:
             await handler.send_task_list()
         else:
             pass
-
-    def alert_will_not_be_spam(self,name):
-        #30 seconds passed'
-        now = datetime.datetime.now()
-        if (now - self.last_alert_sent[name]).total_seconds() >= 30:
-            self.last_alert_sent[name] = now
-            return True
-        else:
-            return False
 
     async def try_to_gather_bot_passive_data(self,name,websocket):
         try:
@@ -257,6 +207,52 @@ class Main:
 
         self.gathering_passive_data[name] = False
 
+    def is_banned(self,ip):
+        if ip in self.failed_admin_attempts:
+            if self.failed_admin_attempts[ip] > 3:
+                print(f"the banned ip({ip}) is trying to auth")
+                return True
+            else:
+                return False
+        return False
+
+    def is_admin(self,password,websocket):
+        if password == self.admin_password:
+            return True
+        else:
+            self.add_to_failed_attempts(websocket)
+            return False
+
+    def add_to_failed_attempts(self,websocket):
+        ip = str(websocket.remote_address[0])
+        if ip in self.failed_admin_attempts:
+            self.failed_admin_attempts[ip] +=1
+        else:
+            self.failed_admin_attempts[ip] = 1
+
+    async def reset_attempts(self):
+        await asyncio.sleep(86400)# one day
+        self.failed_admin_attempts = {}
+
+    def name_and_type(self, response):
+        try:
+            data_dict = json.loads(response)
+            if "name" in data_dict and "type" in data_dict:
+                return (data_dict["name"] , data_dict["type"])
+            else:
+                return None
+        except: 
+            return None 
+
+    async def check_for_alert_and_send(self,data,name):
+        try:
+            data_dict = json.loads(data)
+            if data_dict["alert_status"] == "alert_present" and self.alert_will_not_be_spam(name):
+                self.console_logger.log_generic_row(f"Sending Alert for {name}","red")
+                self.twilio_handler.send_notifications_to_all(data_dict["message"])
+        except:
+            traceback.print_exc()
+
     def banned_ips(self):
         ips = self.failed_admin_attempts.keys()
         banned_ips_holder = set()
@@ -264,6 +260,22 @@ class Main:
             if self.failed_admin_attempts[ip] > 3:
                 banned_ips_holder.add(ip)
         return banned_ips_holder
+
+    def there_are_only_bots(self):
+        names = self.devices.keys()
+        for name in names:
+            if self.devices_type[name] == "non-bot":
+                return False
+        return True
+
+    def alert_will_not_be_spam(self,name):
+        #30 seconds passed'
+        now = datetime.datetime.now()
+        if (now - self.last_alert_sent[name]).total_seconds() >= 30:
+            self.last_alert_sent[name] = now
+            return True
+        else:
+            return False
 
     def gather_env(self):
         self.admin_password = os.environ.get("apw_hoi_gs")
