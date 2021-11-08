@@ -5,7 +5,7 @@ import os
 from queries import PostgresQueries
 
 class SQLHandler:
-    
+
     async def gather_connection(self):
         try:
             host = os.environ.get("db_h"),
@@ -50,6 +50,9 @@ class SQLHandler:
 
     async def create_banned(self,ip):
         await self.cursor.execute(PostgresQueries.insert_banned,(ip,))
+        
+    async def create_contact(self,name,number):
+        await self.cursor.execute(PostgresQueries.insert_contact,(name,number))
 
     async def get_all_rows(self,table_name):
         await self.cursor.execute(PostgresQueries.select_query(table_name))
