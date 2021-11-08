@@ -24,6 +24,10 @@ class Tests(unittest.IsolatedAsyncioTestCase):
     async def test(self):
         handler = SQLHandler()
         await handler.gather_connection()
+        await self.contact_insertion(handler)
+        await self.banned_insertion(handler)
+        await self.notification_insertion(handler)
+        await self.contact_insertion(handler)
 
     async def contact_insertion(self,handler):
         contacts = handler.get_all_rows("contacts")
@@ -64,16 +68,3 @@ class Tests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(notifications[0][2],"random_notification")
         self.assertEqual(notifications[0][3],date)
 
-
-    async def create_contact(self,handler):
-        contacts = await handler.get_all_rows("contacts")
-        self.assertEqual(len(contacts),0)
-
-        await handler.create_contact("test","18829389282")
-
-        contacts = await handler.get_all_rows("contacts")
-
-        self.assertEqual(len(contacts),1)
-
-        self.assertEqual(contacts[0][1],"test")
-        self.assertEqual(contacts[0][2],"18829389282")
