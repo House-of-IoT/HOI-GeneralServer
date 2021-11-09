@@ -10,6 +10,7 @@ but there are a few notable features that make House Of Iot interesting.
 * Real-time Special Action Execution(specific to each bot, for example: Controlling an cloud-RC car).
 * Real-time Basic Action Execution(Activation,Deactivation,Disconnection,Viewing)
 * Pre-Scheduling actions(specific to each bot, for example: watering a plant everyday at 5am with a House Of Iot irrigation system could be scheduled).
+* Chain Controlling(allowing devices to trigger the actions of other devices based on state)
 * Remote configurable server settings.
   * You can alter what requires admin authentication
     * Activating bots
