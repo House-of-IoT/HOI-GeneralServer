@@ -10,6 +10,9 @@ Note: SQL Injection isn't a concern due to the nature of HOI.
 """
 
 #SQLite
+from datetime import datetime
+
+
 class PostgresQueries:
     #stores all notifications
     create_notification_table = '''
@@ -24,10 +27,9 @@ class PostgresQueries:
     #stores all contacts
     create_contacts_table = """
         CREATE TABLE IF NOT EXISTS contacts(
-            Id SERIAL PRIMARY KEY,
-            Name VARCHAR(20) NOT NULL,
-            Number VARCHAR 20 NOT NULL
-        );
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(20) NOT NULL,
+            number VARCHAR(20) NOT NULL);
     """
 
     #stores every action execution
@@ -63,25 +65,41 @@ class PostgresQueries:
     """
 
     #insertions
-    insert_notification = """
-        INSERT INTO notifications (Name,Description,Datetime_saved) VALUES (?,?,?)
-    """
+    @staticmethod
+    def insert_notification_query(name,desc,Datetime_saved):
+        insert_notification = f"""
+            INSERT INTO notifications (Name,Description,Datetime_saved) VALUES ('{name}','{desc}','{Datetime_saved}');
+            """
+        return insert_notification
+   
+    @staticmethod 
+    def insert_contact_query(name,number):
+        insert_contact = f"""
+            INSERT INTO contacts(name,number) VALUES('{name}','{number}');
+            """
+        return insert_contact
+   
+    @staticmethod
+    def insert_action_execution_query(executor,action,botname,type_data,Datetime_executed):
+        insert_action_execution = f"""
+            INSERT INTO actions (Executor,Action,BotName,Type,Datetime_executed) VALUES ('{executor}','{action}','{botname}','{type_data}','{Datetime_executed}');
+            """
+        return insert_action_execution
 
-    insert_contact = """
-        INSERT INTO contacts (Name,Number) VALUES (?,?)
-    """
+    @staticmethod 
+    def insert_connection_query(name,type_data,Datetime_connected):
+        insert_connection = f"""
+        INSERT INTO connections(Name,Type,Datetime_connected) VALUES ('{name}','{type_data}','{Datetime_connected}');
+        """
+        return insert_connection
 
-    insert_action_execution = """
-        INSERT INTO actions (Executor,Action,BotName,Type,Datetime_executed) VALUES (?,?,?,?,?)
-    """
 
-    insert_connection = """
-        INSERT INTO connections (Name,Type,Datetime_connected) VALUES (?,?,?)
-    """
-
-    insert_banned = """
-        INSERT INTO banned (Ip) VALUES (?)
-    """
+    @staticmethod 
+    def insert_banned_query(ip):
+        banned_query = f"""
+            INSERT INTO banned (Ip) VALUES ('{ip}');
+        """
+        return banned_query
 
     @staticmethod
     def single_parameter_delete_query(table_name,parameter):
@@ -94,7 +112,6 @@ class PostgresQueries:
         return Query
 
     @staticmethod 
-    def remove_expired_history_query(table_name, parameter):
-        Query = f""" DELETE FROM {table_name} where {parameter}  <= ?"""
+    def remove_expired_history_query(table_name, parameter,date):
+        Query = f""" DELETE FROM {table_name} where {parameter}  <= '{date}' """
         return Query
-

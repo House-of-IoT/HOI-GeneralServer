@@ -1,8 +1,10 @@
 from logging import Handler
+from os import name
 import unittest
 import asyncio
 from datetime import datetime
 from sql_handler import SQLHandler
+import warnings
 
 """
 The tests below requires the following env variables
@@ -23,23 +25,29 @@ class Tests(unittest.IsolatedAsyncioTestCase):
 
     async def test(self):
         handler = SQLHandler()
-        await handler.gather_connection()
-        await self.contact_insertion(handler)
-        await self.banned_insertion(handler)
-        await self.notification_insertion(handler)
-        await self.contact_insertion(handler)
+        try:
+            await handler.gather_connection()
+            await handler.create_tables_if_needed()
+            await self.contact_insertion(handler)
+            await self.banned_insertion(handler)
+            await self.notification_insertion(handler)
+        except Exception as e:
+            if handler.connection.close():
+                await handler.connection.close()
+            raise e
 
     async def contact_insertion(self,handler):
-        contacts = handler.get_all_rows("contacts")
+        contacts = await handler.get_all_rows("contacts")
+        print(contacts)
         self.assertEqual(len(contacts),0)
-        handler.create_contact("test","12399239923932")
+        await handler.create_contact("test","12399239923932")
 
-        contacts = handler.get_all_rows("contacts")
+        contacts = await handler.get_all_rows("contacts")
         self.assertEqual(len(contacts),1)
 
         #is the data correct?
-        self.assertEqual(contacts[0][0],"test")
-        self.assertEqual(contacts[0][1],"12399239923932")
+        self.assertEqual(contacts[0][1],"test")
+        self.assertEqual(contacts[0][2],"12399239923932")
 
     async def banned_insertion(self,handler):
         ips = await handler.get_all_rows("banned")
@@ -68,3 +76,8 @@ class Tests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(notifications[0][2],"random_notification")
         self.assertEqual(notifications[0][3],date)
 
+
+if __name__ == "__main__":
+   
+    warnings.simplefilter("ignore", ResourceWarning)
+    unittest.main()
