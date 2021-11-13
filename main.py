@@ -26,7 +26,6 @@ class Main:
         self.config = ConfigHandler()
         self.auto_scheduler = AutoScheduler(5,self)
         self.type_handler = TypeHandler()
-        self.sql_handler = SQLHandler()
         
     """
     Starting point for all new connections

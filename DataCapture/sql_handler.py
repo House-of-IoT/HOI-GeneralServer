@@ -1,4 +1,5 @@
 from datetime import datetime
+from genericpath import exists
 import aiopg
 from .queries import PostgresQueries
 import os
@@ -10,7 +11,7 @@ query execution.
 
 class SQLHandler:
     def __init__(self):
-        self.connected = False
+        self.connection_status = False
 
     async def gather_connection(self):
         try:
@@ -27,43 +28,72 @@ class SQLHandler:
                 password=password,
                 host=host)
 
-            self.connected = True
-
+            self.connection_status = True
+            return True
         except Exception as e:
             print(e)
-            raise e
+            return False
 
     async def create_tables_if_needed(self,cursor):
-        await cursor.execute(PostgresQueries.create_notification_table)
-        await cursor.execute(PostgresQueries.create_action_execution_history)
-        await cursor.execute(PostgresQueries.create_contacts_table)
-        await cursor.execute(PostgresQueries.create_banned_history)
-        await cursor.execute(PostgresQueries.create_connection_history)
+        try:
+            await cursor.execute(PostgresQueries.create_notification_table)
+            await cursor.execute(PostgresQueries.create_action_execution_history)
+            await cursor.execute(PostgresQueries.create_contacts_table)
+            await cursor.execute(PostgresQueries.create_banned_history)
+            await cursor.execute(PostgresQueries.create_connection_history)
+            return True
+        except:
+            return False
 
     async def remove_expired_rows(self,date,table_name,date_column_name,cursor):
-        await cursor.execute(PostgresQueries.remove_expired_history_query(
-            table_name,date_column_name,date))
+        try:
+            await cursor.execute(PostgresQueries.remove_expired_history_query(
+                table_name,date_column_name,date))
+            return True
+        except:
+            return False
 
     async def create_notification(self,name,desc,date,cursor):
-        await cursor.execute(PostgresQueries.insert_notification_query(name,desc,date))
+        try:
+            await cursor.execute(PostgresQueries.insert_notification_query(name,desc,date))
+            return True
+        except:
+            return False
 
     async def create_action_execution(self,executor,action,bot_name,type_data,date,cursor):
-        await cursor.execute(
-            PostgresQueries.insert_action_execution_query(executor,action,bot_name,type_data,date))
-    
+        try:
+            await cursor.execute(
+                PostgresQueries.insert_action_execution_query(executor,action,bot_name,type_data,date))
+            return True
+        except:
+            return False
+
     async def create_connection_history(self,name,type_data,date,cursor):
-        await cursor.execute(PostgresQueries.insert_connection_query(name,type_data,date))
+        try:
+            await cursor.execute(PostgresQueries.insert_connection_query(name,type_data,date))
+            return True
+        except:
+            return False
 
     async def create_banned(self,ip,cursor):
-        await cursor.execute(PostgresQueries.insert_banned_query(ip))
+        try:
+            await cursor.execute(PostgresQueries.insert_banned_query(ip))
+        except:
+            return False
         
     async def create_contact(self,name,number,cursor):
-        await cursor.execute(PostgresQueries.insert_contact_query(name,number))
+        try:
+            await cursor.execute(PostgresQueries.insert_contact_query(name,number))
+        except:
+            return False
 
     async def get_all_rows(self,table_name,cursor):
-        await cursor.execute(PostgresQueries.select_query(table_name))
-        return await self.all_rows(cursor)
-    
+        try:
+            await cursor.execute(PostgresQueries.select_query(table_name))
+            return await self.all_rows(cursor)
+        except:
+            return False
+        
     async def all_rows(self,cursor):
         results = []
         async for row in cursor:
