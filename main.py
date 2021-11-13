@@ -309,9 +309,7 @@ class Main:
         loop.run_until_complete(
             self.auto_scheduler.try_to_execute_one_task())
         loop.run_forever()
-        
 
 if __name__ == "__main__":
     main = Main()
     main.start_server()
-    

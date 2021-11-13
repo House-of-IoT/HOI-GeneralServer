@@ -21,7 +21,7 @@ If the server is configured to use database:
     A notification is sent to all connected clients and all cached contacts.
 """
 
-class CaptureManager:
+class CaptureAndServeManager:
     def __init__(self,using_sql,parent):
         self.using_sql = using_sql
         self.sql_handler = SQLHandler()
@@ -60,8 +60,31 @@ class CaptureManager:
                 del self.parent.contacts[name]
 
     async def update_cached_contacts(self):
-        pass
-        
+        try:
+            if self.sql_handler.connection_status == True and self.sql_handler.connection.closed == False:
+                cursor = await self.sql_handler.connection.cursor()
+                contacts = await self.sql_handler.get_all_rows("contacts",cursor)
+                contact_dict = self.convert_contacts_to_dict(contacts)
+                self.write_json_to_file("contact_cache.json")
+                cursor.close()
+
+        except:
+            pass
+
+    def convert_contacts_to_dict(self,contacts):
+        if len(contacts) == 0 :
+            return {}
+        else:
+            data_dict = {}
+            for row in contacts:
+                #key is the name, value is the number
+                data_dict[row[1]] = row[2]
+            return data_dict
+
+    def write_json_to_file(self,file_name,data_dict):
+            with open(file_name, "w") as file:
+                file.write(json.dumps(data_dict))
+            
     def enter_memory_capture_mode(self):
         pass
         
