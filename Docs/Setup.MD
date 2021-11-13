@@ -1,4 +1,4 @@
-# Setup(Needs Improvment with graphics)
+# Setup(Needs Improvement with graphics)
 
 To setup a generic GeneralServer you would need to 
 
