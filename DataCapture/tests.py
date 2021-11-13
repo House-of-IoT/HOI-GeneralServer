@@ -29,7 +29,6 @@ class Tests(unittest.IsolatedAsyncioTestCase):
             await handler.create_tables_if_needed()
             await self.contact_insertion(handler)
             await self.banned_insertion(handler)
-            await self.notification_insertion(handler)
         except Exception as e:
             await handler.connection.close()
             raise e
@@ -58,22 +57,6 @@ class Tests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(ips),1)
 
         self.assertEqual(ips[0][1],"293.212.23123.1",self.cursor)
-
-    async def notification_insertion(self,handler):
-        notifications = await handler.get_all_rows("notifications",self.cursor)
-        self.assertEqual(len(notifications),0)
-
-        date = datetime.utcnow()
-        await handler.create_notification("test","random_notification",date,self.cursor)
-
-        notifications = await handler.get_all_rows("notifications",self.cursor)
-
-        self.assertEqual(len(notifications),1)
-
-        self.assertEqual(notifications[0][1],"test")
-        self.assertEqual(notifications[0][2],"random_notification")
-        self.assertEqual(notifications[0][3],date)
-
 
 if __name__ == "__main__":
     unittest.main()

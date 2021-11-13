@@ -1,6 +1,7 @@
 from datetime import datetime
 from sql_handler import SQLHandler
 from Errors.errors import IssueConnectingToDB
+from data_catch_up_manager import DataCatchUpManager
 import json
 import asyncio
 
@@ -26,15 +27,13 @@ class CaptureAndServeManager:
         self.using_sql = using_sql
         self.sql_handler = SQLHandler()
         self.failed_connection_datetimes = []
-        self.in_temp_memory_mode = False
+        self.currently_trying_to_connect = False
+        self.catch_up_manager = DataCatchUpManager(self.sql_handler)
         self.parent = parent
 
     async def try_to_gather_connection_if_needed(self):
-        #if we never initally connected or the connection closed 
+        #if we never initally connected or the was connection closed 
         if self.sql_handler.connection_status == False or self.sql_handler.connection.closed == True:
-            
-            #if we haven't attempted too many reconnects(entered temp memory mode)
-            if self.in_temp_memory_mode == False:
                 connection_gathered = await self.sql_handler.gather_connection()
                 
                 #handle next steps after connection attempt
@@ -89,10 +88,32 @@ class CaptureAndServeManager:
                 file.write(json.dumps(data_dict))
 
     def enter_memory_capture_mode(self):
-        self.in_temp_memory_mode = True
+        self.using_sql = False
+        self.failed_connection_datetimes = 
         loop = asyncio.get_event_loop()
         loop.run_until_complete(self.try_to_restore_connection_every_hour())
 
-    async def try_to_restore_connection_every_hour(self):
-        pass
+    async def attemp_reconnect_and_mode_switch(self):
+        self.currently_trying_to_connect = True
+        connection_gathered = await self.sql_handler.gather_connection()
+        if connection_gathered:
+            await self.catch_up()
+            self.using_sql = True
         
+        self.currently_trying_to_connect = False
+
+    async def catch_up(self):
+        await self.catch_up_manager.catch_up_action_execution(None)
+        await self.catch_up_manager.catch_up_banned(None)
+        await self.catch_up_manager.catch_up_connections(None)
+        await self.catch_up_manager.catch_up_contacts(None)
+
+    async def try_to_restore_connection_every_hour(self):
+        while self.using_sql == False:
+            await asyncio.sleep(3600)
+            """
+            Make sure there isn't an attempt already in progress.
+            This can happen if a user manually triggers a reconnect.
+            """
+            if self.currently_trying_to_connect == False:
+                await self.attemp_reconnect_and_mode_switch()

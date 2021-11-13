@@ -53,13 +53,6 @@ class SQLHandler:
         except:
             return False
 
-    async def create_notification(self,name,desc,date,cursor):
-        try:
-            await cursor.execute(PostgresQueries.insert_notification_query(name,desc,date))
-            return True
-        except:
-            return False
-
     async def create_action_execution(self,executor,action,bot_name,type_data,date,cursor):
         try:
             await cursor.execute(

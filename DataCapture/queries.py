@@ -13,15 +13,6 @@ Note: SQL Injection isn't a concern due to the nature of HOI.
 from datetime import datetime
 
 class PostgresQueries:
-    #stores all notifications
-    create_notification_table = '''
-        CREATE TABLE IF NOT EXISTS notifications(
-            Id SERIAL PRIMARY KEY,
-            Name VARCHAR(20) NOT NULL,
-            Description text NOT NULL,
-            Datetime_saved TIMESTAMP
-        );
-    '''
 
     #stores all contacts
     create_contacts_table = """
@@ -63,14 +54,6 @@ class PostgresQueries:
         );
     """
 
-    #insertions
-    @staticmethod
-    def insert_notification_query(name,desc,Datetime_saved):
-        insert_notification = f"""
-            INSERT INTO notifications (Name,Description,Datetime_saved) VALUES ('{name}','{desc}','{Datetime_saved}');
-            """
-        return insert_notification
-   
     @staticmethod 
     def insert_contact_query(name,number):
         insert_contact = f"""
