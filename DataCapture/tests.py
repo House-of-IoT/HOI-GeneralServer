@@ -1,12 +1,8 @@
-from logging import Handler
 from os import name
 import unittest
-import asyncio
 from datetime import datetime
-
-from aiopg.connection import Cursor
 from sql_handler import SQLHandler
-import warnings
+
 
 """
 The tests below requires the following env variables
