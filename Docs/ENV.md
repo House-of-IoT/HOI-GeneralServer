@@ -9,10 +9,14 @@
  6. The twilio phone number for your server ("hoi_t_phone_number").
 
 If you are running a Postgres database with this system you will need:
-    host  -> ("hoi_db_host"),
+    host  -> ("hoi_db_host")
+    
     port -> ("hoi_db_port")
+    
     database -> ("hoi_db_name")
-    user -> ("hoi_db_user")        
+    
+    user -> ("hoi_db_user")     
+    
     password  -> ("hoi_db_pw")
 
 ## Don't know how to set environmental variables?
