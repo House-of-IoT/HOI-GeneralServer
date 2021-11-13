@@ -3,6 +3,8 @@ from os import name
 import unittest
 import asyncio
 from datetime import datetime
+
+from aiopg.connection import Cursor
 from sql_handler import SQLHandler
 import warnings
 
@@ -25,6 +27,7 @@ class Tests(unittest.IsolatedAsyncioTestCase):
 
     async def test(self):
         handler = SQLHandler()
+        self.cursor = await handler.connection.cursor()
         try:
             await handler.gather_connection()
             await handler.create_tables_if_needed()
@@ -32,17 +35,16 @@ class Tests(unittest.IsolatedAsyncioTestCase):
             await self.banned_insertion(handler)
             await self.notification_insertion(handler)
         except Exception as e:
-            if handler.connection.close():
-                await handler.connection.close()
+            await handler.connection.close()
             raise e
 
     async def contact_insertion(self,handler):
-        contacts = await handler.get_all_rows("contacts")
+        contacts = await handler.get_all_rows("contacts",self.cursor)
         print(contacts)
         self.assertEqual(len(contacts),0)
-        await handler.create_contact("test","12399239923932")
+        await handler.create_contact("test","12399239923932",self.cursor)
 
-        contacts = await handler.get_all_rows("contacts")
+        contacts = await handler.get_all_rows("contacts",self.cursor)
         self.assertEqual(len(contacts),1)
 
         #is the data correct?
@@ -50,25 +52,25 @@ class Tests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(contacts[0][2],"12399239923932")
 
     async def banned_insertion(self,handler):
-        ips = await handler.get_all_rows("banned")
+        ips = await handler.get_all_rows("banned",self.cursor)
         self.assertEqual(len(ips),0)
 
-        await handler.create_banned("293.212.23123.1") 
+        await handler.create_banned("293.212.23123.1",self.cursor) 
 
-        ips = await handler.get_all_rows("banned")
+        ips = await handler.get_all_rows("banned",self.cursor)
 
         self.assertEqual(len(ips),1)
 
-        self.assertEqual(ips[0][1],"293.212.23123.1")
+        self.assertEqual(ips[0][1],"293.212.23123.1",self.cursor)
 
     async def notification_insertion(self,handler):
-        notifications = await handler.get_all_rows("notifications")
+        notifications = await handler.get_all_rows("notifications",self.cursor)
         self.assertEqual(len(notifications),0)
 
         date = datetime.utcnow()
-        await handler.create_notification("test","random_notification",date)
+        await handler.create_notification("test","random_notification",date,self.cursor)
 
-        notifications = await handler.get_all_rows("notifications")
+        notifications = await handler.get_all_rows("notifications",self.cursor)
 
         self.assertEqual(len(notifications),1)
 
@@ -78,6 +80,4 @@ class Tests(unittest.IsolatedAsyncioTestCase):
 
 
 if __name__ == "__main__":
-   
-    warnings.simplefilter("ignore", ResourceWarning)
     unittest.main()

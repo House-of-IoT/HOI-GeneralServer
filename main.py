@@ -283,6 +283,7 @@ class Main:
         self.super_admin_password = os.environ.get("sapw_hoi_gs")
     
     async def gather_connection_if_using_sql(self,using_sql):
+        print("running")
         if using_sql:
            await self.sql_handler.gather_connection()
 
@@ -304,8 +305,6 @@ class Main:
     def start_server(self):
         self.console_logger.start_message()
         loop = asyncio.get_event_loop()
-        loop.run_until_complete(
-            self.gather_connection_if_using_sql(self.config.using_sql))
         loop.run_until_complete(
             websockets.serve(self.check_declaration,self.config.host,self.config.port,ping_interval=None))
         loop.run_until_complete(

@@ -12,7 +12,6 @@ Note: SQL Injection isn't a concern due to the nature of HOI.
 #SQLite
 from datetime import datetime
 
-
 class PostgresQueries:
     #stores all notifications
     create_notification_table = '''
