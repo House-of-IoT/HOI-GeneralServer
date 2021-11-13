@@ -1,6 +1,9 @@
 import asyncio
 import datetime
 
+"""
+Handles auto schedule execution and tasking.
+"""
 class AutoScheduler:
     def __init__(self,interval,parent):
          self.tasks = {}
@@ -48,6 +51,10 @@ class AutoScheduler:
                 #only try to execute one task at a time 
                 break
                 
+
+"""
+Data representation of an auto scheduled task.
+"""
 class Task:
     def __init__(self,time,name,action):
         self.time = time

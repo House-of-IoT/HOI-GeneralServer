@@ -1,19 +1,24 @@
-import asyncio
 from datetime import datetime
 import aiopg
+from .queries import PostgresQueries
 import os
 
-from .queries import PostgresQueries
+"""
+Handles the connection to the database and handles
+query execution.
+"""
 
 class SQLHandler:
+    def __init__(self):
+        self.connected = False
 
     async def gather_connection(self):
         try:
-            host = "127.0.0.1"
-            port = "5432"
-            database = "postgres"
-            user = "postgres"        
-            password = 'password'
+            host = os.environ("hoi_db_host")
+            port = os.environ("hoi_db_port")
+            database = os.environ("hoi_db_name")
+            user = os.environ("hoi_db_user")      
+            password = os.environ("hoi_db_pw")
 
             self.connection = await aiopg.connect(
                 database=database,
@@ -21,9 +26,10 @@ class SQLHandler:
                 port=port,
                 password=password,
                 host=host)
-            self.successful_connection = True
+
+            self.connected = True
+
         except Exception as e:
-            self.successful_connection = False
             print(e)
             raise e
 

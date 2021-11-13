@@ -6,11 +6,11 @@ from sql_handler import SQLHandler
 
 """
 The tests below requires the following env variables
-    host  -> ("db_h"),
-    port -> ("db_p")
-    database -> ("HOI")
-    user -> ("HOI_USER")        
-    password  -> ("HOI_PW")
+    host  -> ("hoi_db_host"),
+    port -> ("hoi_db_port")
+    database -> ("hoi_db_name")
+    user -> ("hoi_db_user")        
+    password  -> ("hoi_db_pw")
 
 The tests below must be done on a clean database.
 
