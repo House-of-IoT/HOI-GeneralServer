@@ -1,8 +1,8 @@
 from datetime import datetime
 from sql_handler import SQLHandler
 from Errors.errors import IssueConnectingToDB
-import os.path
 import json
+import asyncio
 
 """
 Handles all data captures.
@@ -49,10 +49,13 @@ class CaptureAndServeManager:
     async def capture_contact(self,name,number,type_of_contact_capture):
         if self.using_sql:
             await self.try_to_gather_connection_if_needed()
+            cursor = await self.sql_handler.connection.cursor()
+
             if type_of_contact_capture == "add-contact":
-                await self.sql_handler.create_contact(name,number)
+                await self.sql_handler.create_contact(name,number,cursor)
             else:
                 pass#delete
+            cursor.close()
         else:
             if type_of_contact_capture == "add-contact":
                 self.parent.contacts[name] = number
@@ -65,11 +68,11 @@ class CaptureAndServeManager:
                 cursor = await self.sql_handler.connection.cursor()
                 contacts = await self.sql_handler.get_all_rows("contacts",cursor)
                 contact_dict = self.convert_contacts_to_dict(contacts)
-                self.write_json_to_file("contact_cache.json")
+                self.write_json_to_file("contact_cache.json",contact_dict)
                 cursor.close()
-
-        except:
-            pass
+        except Exception as e:
+            print(e)
+            self.parent.console_logger.log_generic_row("Issue Caching Contacts!", "red")
 
     def convert_contacts_to_dict(self,contacts):
         if len(contacts) == 0 :
@@ -84,7 +87,12 @@ class CaptureAndServeManager:
     def write_json_to_file(self,file_name,data_dict):
             with open(file_name, "w") as file:
                 file.write(json.dumps(data_dict))
-            
+
     def enter_memory_capture_mode(self):
+        self.in_temp_memory_mode = True
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(self.try_to_restore_connection_every_hour())
+
+    async def try_to_restore_connection_every_hour(self):
         pass
         
