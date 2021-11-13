@@ -32,7 +32,7 @@ So first you would like to turn off the sprinkler.
 5. If the device is connected and available the server will forward the "turn-off" code to the bot(which it understand from its device software implementation).
 6. The server will get the response back from the bot and forward the response to the non-bot that made the request. If the response is "success", the sprinklers should have been turned off!
 
-# Gist
-The HOI-GeneralServer is the connecting point all of the devices in a House of Iot System. All communication goes through the GeneralServer to and from bots/non-bots with enforced permissions by using the Auth system. The server was designed to be easy to deploy and setup. Are you tired of setting up databases and external services to run extremely simple systems? House of Iot doesn't require the use any outside services to run the server, no databases or message brokers. It is as simple as setting a few pre-settings and running the server.
+# Final
+The HOI-GeneralServer is the connecting point all of the devices in a House of Iot System. All communication goes through the GeneralServer to and from bots/non-bots with enforced permissions by using the Auth system. The server was designed to be easy to deploy and setup. 
 
 There are options to improve scalability and have additional features by configuring the server to run with a database.
