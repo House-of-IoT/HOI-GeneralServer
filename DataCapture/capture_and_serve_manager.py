@@ -75,6 +75,27 @@ class CaptureAndServeManager:
         if len(queue_obj.qsize()) > size:
             self.queue_obj.get()
         queue_obj.put(data["data"])
+    
+    async def serve_data(self,type_of_data):
+        if self.using_sql:
+            await self.try_to_gather_connection_if_needed()
+            cursor = await self.sql_handler.connection.cursor()
+            data = await self.sql_handler.get_all_rows(type_of_data,cursor)
+            cursor.close()
+            correctly_formatted_data = self.convert_data_to_expected_type(data,type_of_data)
+            return correctly_formatted_data
+        else:
+            return self.serve_data_from_memory(type_of_data)
+    
+    def serve_data_from_memory(self,type_of_data):
+        if type_of_data == "contacts":
+            return self.parent.contacts
+        elif type_of_data == "banned":
+            return self.banned_in_memory()
+        elif type_of_data == "action_execution":
+            return self.convert_queue_to_list(self.parent.most_recent_executed_actions)
+        elif type_of_data == "connections":
+            return self.convert_queue_to_list(self.parent.most_recent_connections)
 
     async def try_to_gather_connection_if_needed(self):
         #if we never initally connected or the was connection closed 
@@ -148,3 +169,62 @@ class CaptureAndServeManager:
             """
             if self.currently_trying_to_connect == False:
                 await self.attemp_reconnect_and_mode_switch()
+
+    def convert_data_to_expected_type(self,data,type_of_data):
+        if type_of_data == "contacts":
+            return self.structure_contact_data(data)
+        elif type_of_data == "connections":
+            return self.structure_connection_data
+        elif type_of_data == "action_execution":
+            return self.structure_action_execution_data(data)
+        elif type_of_data == "banned":
+            return self.structure_banned_data(data)
+
+    def structure_contact_data(self,data):
+        data = {}
+        for contact in data:
+            data[contact[1]] = contact[2]
+        return data
+        
+    def structure_action_execution_data(self,data):
+        data = []
+        for action_execution in data:
+            data_dict = {
+                "executor":action_execution[1], 
+                "action":action_execution[2], 
+                "bot_name": action_execution[3], 
+                "bot_type":action_execution[4],
+                "datetime":action_execution[5]}
+            data.append(data_dict)
+        return data
+
+    def structure_connection_data(self,data):
+        data = []
+        for connection in data:
+            data_dict = {
+                "name":connection[1], 
+                "type":connection[2], 
+                "datetime":connection[3]}
+        data.append(data_dict)
+        return data
+
+    def structure_banned_data(self,data):
+        data = set()
+        for banned in data:
+            data.add(banned[1])
+        return data
+
+    def convert_queue_to_list(self,target_queue):
+        result = []
+        while target_queue.qsize() > 0:
+            result.append(target_queue.get())
+        return result
+
+    #fix DRY VIOLATION
+    def banned_in_memory(self):
+        ips = self.parent.failed_admin_attempts.keys()
+        banned_ips_holder = set()
+        for ip in ips :
+            if self.parent.failed_admin_attempts[ip] > 3:
+                banned_ips_holder.add(ip)
+        return banned_ips_holder
