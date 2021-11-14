@@ -12,6 +12,7 @@ from ThirdPartyHandlers.twilio_handler import TwilioHandler
 from Config.config import ConfigHandler
 from DataObjects.type_handler import TypeHandler
 from DataCapture.sql_handler import SQLHandler
+import queue
 import traceback
 import os
 
@@ -291,6 +292,8 @@ class Main:
         self.gathering_passive_data = {}
         self.contacts = {}
         self.most_recent_scheduled_tasks = {}
+        self.most_recent_executed_actions = queue.Queue()
+        self.most_recent_connections = queue.Queue()
         self.devices = {}
         self.devices_type = {}
         self.failed_admin_attempts = {}
