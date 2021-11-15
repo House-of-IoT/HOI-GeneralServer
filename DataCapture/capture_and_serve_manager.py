@@ -31,6 +31,23 @@ class CaptureAndServeManager:
         self.catch_up_manager = DataCatchUpManager(self.sql_handler)
         self.parent = parent
 
+#PUBLIC
+    async def try_to_gather_serve_target(self,target):
+        try:
+            type_of_data = self.map_target_to_type_of_data(target)
+            return await self.serve_data(type_of_data)
+        except Exception as e:
+            print(e)
+            return False
+
+    async def try_to_route_and_capture(self,data):
+        try:
+            await self.route_and_capture(data)
+        except Exception as e:
+            #notification of failure
+            pass
+
+#PRIVATE
     async def route_and_capture(self,data):
         if self.using_sql:
             await self.try_to_gather_connection_if_needed()
@@ -222,6 +239,16 @@ class CaptureAndServeManager:
         while target_queue.qsize() > 0:
             result.append(target_queue.get())
         return result
+
+    def map_target_to_type_of_data(self,target):
+        if target == "servers_banned_ips":
+            return "banned"
+        elif target == "recent_connections":
+            return "connections"
+        elif target == "recent_action_executions":
+            return "action_execution"
+        else:
+            return "contacts"
 
     #fix DRY VIOLATION
     def banned_in_memory(self):
