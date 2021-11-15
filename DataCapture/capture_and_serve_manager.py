@@ -1,6 +1,7 @@
 from datetime import datetime
 from sql_handler import SQLHandler
 from Errors.errors import IssueConnectingToDB
+from Errors.errors import IssueGatheringServeData
 from data_catch_up_manager import DataCatchUpManager
 import json
 import asyncio
@@ -38,7 +39,7 @@ class CaptureAndServeManager:
             return await self.serve_data(type_of_data)
         except Exception as e:
             print(e)
-            return False
+            raise IssueGatheringServeData(f"while trying to gather data for {target} an error occured")
 
     async def try_to_route_and_capture(self,data):
         try:

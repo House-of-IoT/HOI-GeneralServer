@@ -2,6 +2,7 @@ import asyncio
 import json
 from Errors.errors import AddressBannedException
 from Errors.errors import BotStuckInPassiveDataGather
+from Errors.errors import IssueGatheringServeData
 from DataObjects.BasicResponse import BasicResponse
 from HybridActionsAndAutoScheduling.auto_scheduler import Task
 from dateutil import parser
@@ -28,7 +29,9 @@ class ClientHandler:
                 await self.wait_on_bot_passive_data_recv_to_clear(bot_name)
                 await self.handle_action(bot_name,action)
             else:
-                self.parent.console_logger.log_generic_row(f"'{self.name}' has requested an action from a non existing bot ","red")
+                self.parent.console_logger.log_generic_row(
+                    f"'{self.name}' has requested an action from a non existing bot ","red")
+
                 await self.send_basic_response("failure")
 
         except Exception as e:
@@ -38,10 +41,20 @@ class ClientHandler:
     async def send_table_state(self,table_or_set,target,keys_or_values_or_both):
         if(await self.client_has_credentials("viewing")):
             try:
-                await self.route_data_request_and_send(keys_or_values_or_both,table_or_set,target)
+                #if we get a null object we need to use the capture manager.
+                if table_or_set == None:
+                    table_or_set_capture_manager = self.parent.try_to_gather_serve_target(target)
+                    await self.route_data_request_and_send(
+                        keys_or_values_or_both,
+                        table_or_set_capture_manager,
+                        target)
+                else:
+                    await self.route_data_request_and_send(
+                        keys_or_values_or_both,
+                        table_or_set,
+                        target)
             except Exception as e:
-                print(e)
-                await self.send_basic_response("timeout",action= "viewing",target=target)
+                await self.handle_send_table_state_exception(e,target)
         else:
             await self.send_basic_response("failed-auth",action= "viewing",target=target)
 
@@ -325,6 +338,19 @@ class ClientHandler:
             await self.websocket.send("fatal_timeout")
         else:
             await self.websocket.send("timeout")
+
+    async def handle_send_table_state_exception(self,e,target):
+        traceback.print_exc()
+        if e is IssueGatheringServeData:
+            await self.send_basic_response(
+                "fatal_gathering",
+                action= "viewing",
+                target=target)
+        else:
+            await self.send_basic_response(
+                "timeout",
+                action= "viewing",
+                target=target)
 
     async def send_basic_response(
         self,status,action = None,

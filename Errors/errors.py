@@ -6,3 +6,6 @@ class IssueConnectingToDB(Exception):
 
 class BotStuckInPassiveDataGather(Exception):
     pass
+
+class IssueGatheringServeData(Exception):
+    pass
