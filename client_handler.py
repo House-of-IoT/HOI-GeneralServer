@@ -1,10 +1,12 @@
 import asyncio
 import json
 from Errors.errors import AddressBannedException
+from Errors.errors import BotStuckInPassiveDataGather
 from DataObjects.BasicResponse import BasicResponse
 from HybridActionsAndAutoScheduling.auto_scheduler import Task
 from dateutil import parser
 import traceback
+import datetime
 
 class ClientHandler:
     def __init__(self,parent,name,websocket):
@@ -13,43 +15,30 @@ class ClientHandler:
         self.websocket = websocket
 
 #PUBLIC
+
+    #gather user requested action for bot control
     async def gather_request_for_bot(self):
         try:
             action = await  asyncio.wait_for(self.websocket.recv(),10)
             bot_name = await asyncio.wait_for(self.websocket.recv(),10)
 
             if bot_name in self.parent.devices and self.parent.available_status[bot_name] == True:
-                #allow existing recv's on bot socket to clear and then handle
+                #establish control over the bot and wait until the passive data recv clear
                 self.parent.available_status[bot_name] = False
-                await asyncio.sleep(3) 
+                await self.wait_on_bot_passive_data_recv_to_clear(bot_name)
                 await self.handle_action(bot_name,action)
             else:
                 self.parent.console_logger.log_generic_row(f"'{self.name}' has requested an action from a non existing bot ","red")
                 await self.send_basic_response("failure")
 
         except Exception as e:
-            traceback.print_exc()
-            if e is AddressBannedException:
-                ip = self.websocket.remote_address[0]
-                self.parent.console_logger.log_generic_row(f"{self.name} or ({ip}) is now banned!!","red" )
-                raise e
-            else:
-                await self.websocket.send("timeout")
+            self.handle_bot_control_exception(e)
                 
     #sending the server's live table state
     async def send_table_state(self,table_or_set,target,keys_or_values_or_both):
         if(await self.client_has_credentials("viewing")):
             try:
-                target_value = None
-                if keys_or_values_or_both == "keys":
-                    target_value = table_or_set.keys()
-                elif keys_or_values_or_both == "values":
-                    target_value = table_or_set.values()
-                elif keys_or_values_or_both == "values-set":
-                    target_value = list(table_or_set)
-                else:
-                     target_value = json.dumps(table_or_set)
-                await self.send_basic_response("success",action = "viewing", target= target, target_value= target_value)
+                await self.route_data_request_and_send(keys_or_values_or_both,table_or_set,target)
             except Exception as e:
                 print(e)
                 await self.send_basic_response("timeout",action= "viewing",target=target)
@@ -285,10 +274,57 @@ class ClientHandler:
             return True
         else:
             return False
+    """
+    Takes an object and gets the requested attributes from it 
+    and sends them in basic response format.
+
+    keys -> Gets the keys of a dict(list)
+    values -> Gets the values of a dict(list)
+    values-set -> Gets the values of a set(list)
+    both(else) -> Just returns the full dict(json serialized dict -> str)
+    """
+    async def route_data_request_and_send(self,keys_or_values_or_both,table_or_set,target):
+        target_value = None
+        if keys_or_values_or_both == "keys":
+            target_value = table_or_set.keys()
+        elif keys_or_values_or_both == "values":
+            target_value = table_or_set.values()
+        elif keys_or_values_or_both == "values-set":
+            target_value = list(table_or_set)
+        else:
+            target_value = json.dumps(table_or_set)
+        await self.send_basic_response(
+            "success",
+            action = "viewing", 
+            target = target, 
+            target_value = target_value)
 
     async def check_and_wait_if_gathering_passive_data(self,name):
         while self.parent.gathering_passive_data[name] == True:
             await asyncio.sleep(1)
+
+    async def wait_on_bot_passive_data_recv_to_clear(self,name):
+        start_time = datetime.datetime.utcnow()
+        while True:
+            await asyncio.sleep(0.5)
+            if self.parent.gathering_passive_data[name] == False:
+                break
+
+            current_time = datetime.datetime.utcnow()
+            seconds_passed = (current_time-start_time).total_seconds()
+            if seconds_passed > 12 and self.parent.gathering_passive_data[name]:
+                raise BotStuckInPassiveDataGather("Bot stuck in passive data gather.")
+
+    async def handle_bot_control_exception(self,e):
+        traceback.print_exc()
+        if e is AddressBannedException:
+            ip = self.websocket.remote_address[0]
+            self.parent.console_logger.log_generic_row(f"{self.name} or ({ip}) is now banned!!","red" )
+            raise e
+        if e is BotStuckInPassiveDataGather:
+            await self.websocket.send("fatal_timeout")
+        else:
+            await self.websocket.send("timeout")
 
     async def send_basic_response(
         self,status,action = None,

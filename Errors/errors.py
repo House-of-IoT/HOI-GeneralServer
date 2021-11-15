@@ -3,3 +3,6 @@ class AddressBannedException(Exception):
 
 class IssueConnectingToDB(Exception):
     pass
+
+class BotStuckInPassiveDataGather(Exception):
+    pass

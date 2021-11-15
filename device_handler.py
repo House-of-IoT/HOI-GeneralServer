@@ -2,7 +2,7 @@ import asyncio
 import json
 
 """
-Handles all data gathering/requesting from client to bot
+gathers passive data from memory and sends to client
 """
 
 class DeviceHandler:    
