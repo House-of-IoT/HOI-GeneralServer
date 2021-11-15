@@ -43,7 +43,7 @@ class ClientHandler:
             try:
                 #if we get a null object we need to use the capture manager.
                 if table_or_set == None:
-                    table_or_set_capture_manager = self.parent.try_to_gather_serve_target(target)
+                    table_or_set_capture_manager = self.parent.capture_and_serve_manager.try_to_gather_serve_target(target)
                     await self.route_data_request_and_send(
                         keys_or_values_or_both,
                         table_or_set_capture_manager,
@@ -67,13 +67,13 @@ class ClientHandler:
                     target,
                     self.parent.config.string_version())
             elif target == "contact_list":
-                table_state = self.parent.try_to_gather_serve_target("contacts")
+                table_state = self.parent.capture_and_serve_manager.try_to_gather_serve_target("contacts")
                 await self.send_generic_table_state(
                     "viewing",
                     target,
                     target,json.dumps(table_state))
             elif target == "recent_connections":
-                table_state = self.parent.try_to_gather_serve_target("connections")
+                table_state = self.parent.capture_and_serve_manager.try_to_gather_serve_target("connections")
                 await self.send_generic_table_state(
                     "viewing",
                     target,
@@ -84,7 +84,7 @@ class ClientHandler:
                     target,
                     json.dumps(self.parent.auto_scheduler.tasks))
             elif target == "executed_actions":
-                table_state = self.parent.try_to_gather_serve_target("action_execution")
+                table_state = self.parent.capture_and_serve_manager.try_to_gather_serve_target("action_execution")
                 await self.send_generic_table_state(
                     "viewing",
                     target,

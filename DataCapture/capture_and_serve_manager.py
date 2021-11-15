@@ -246,7 +246,7 @@ class CaptureAndServeManager:
             return "banned"
         elif target == "recent_connections":
             return "connections"
-        elif target == "recent_action_executions":
+        elif target == "executed_actions":
             return "action_execution"
         else:
             return "contacts"
