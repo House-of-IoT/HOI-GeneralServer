@@ -37,7 +37,7 @@ class ClientHandler:
         except Exception as e:
             self.handle_bot_control_exception(e)
                 
-    #sending the server's live table state
+    #sending the server's live table state that could have authentication requirements
     async def send_table_state(self,table_or_set,target,keys_or_values_or_both):
         if(await self.client_has_credentials("viewing")):
             try:
@@ -58,15 +58,40 @@ class ClientHandler:
         else:
             await self.send_basic_response("failed-auth",action= "viewing",target=target)
 
-    async def send_server_config(self):
-        await self.send_generic_table_state("viewing","server_config",self.parent.config.string_version())
-
-    async def send_contacts_list(self):
-        await self.send_generic_table_state("viewing","contact_list",json.dumps(self.parent.contacts))
-
-    async def send_task_list(self):
-        await self.send_generic_table_state("viewing","task_list",json.dumps(self.parent.auto_scheduler.tasks))
-
+    #sending the server's live table state that don't have authentication requirements
+    async def send_table_state_with_no_auth_requirements(self,target):
+        try:
+            if target == "server_config":
+                await self.send_generic_table_state(
+                    "viewing",
+                    target,
+                    self.parent.config.string_version())
+            elif target == "contact_list":
+                table_state = self.parent.try_to_gather_serve_target("contacts")
+                await self.send_generic_table_state(
+                    "viewing",
+                    target,
+                    target,json.dumps(table_state))
+            elif target == "recent_connections":
+                table_state = self.parent.try_to_gather_serve_target("connections")
+                await self.send_generic_table_state(
+                    "viewing",
+                    target,
+                    target,json.dumps(table_state))
+            elif target == "task_list":
+                await self.send_generic_table_state(
+                    "viewing",
+                    target,
+                    json.dumps(self.parent.auto_scheduler.tasks))
+            elif target == "executed_actions":
+                table_state = self.parent.try_to_gather_serve_target("action_execution")
+                await self.send_generic_table_state(
+                    "viewing",
+                    target,
+                    target,json.dumps(table_state))
+        except Exception as e:
+            await self.handle_send_table_state_exception(e,target)
+            
     #editing the server's live config settings
     async def handle_config_request(self,request):
         await self.handle_super_auth_request(request,"editing", lambda x,y: self.modify_matching_config_boolean(x,y))
