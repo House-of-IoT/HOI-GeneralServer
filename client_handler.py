@@ -73,7 +73,7 @@ class ClientHandler:
                     target,
                     target,json.dumps(table_state))
             elif target == "recent_connections":
-                table_state = self.parent.capture_and_serve_manager.try_to_gather_serve_target("connections")
+                table_state = self.parent.capture_and_serve_manager.try_to_gather_serve_target("recent_connections")
                 await self.send_generic_table_state(
                     "viewing",
                     target,
@@ -84,7 +84,7 @@ class ClientHandler:
                     target,
                     json.dumps(self.parent.auto_scheduler.tasks))
             elif target == "executed_actions":
-                table_state = self.parent.capture_and_serve_manager.try_to_gather_serve_target("action_execution")
+                table_state = self.parent.capture_and_serve_manager.try_to_gather_serve_target("recent_action_executions")
                 await self.send_generic_table_state(
                     "viewing",
                     target,
