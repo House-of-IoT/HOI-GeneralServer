@@ -285,11 +285,6 @@ class Main:
         self.regular_password = os.environ.get("rpw_hoi_gs")
         self.super_admin_password = os.environ.get("sapw_hoi_gs")
     
-    async def gather_connection_if_using_sql(self,using_sql):
-        print("running")
-        if using_sql:
-           await self.sql_handler.gather_connection()
-
     def set_basic_empty_state(self):
         self.bot_passive_data = {}
         self.gathering_passive_data = {}
