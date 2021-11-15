@@ -91,16 +91,23 @@ class ClientHandler:
                     target,json.dumps(table_state))
         except Exception as e:
             await self.handle_send_table_state_exception(e,target)
-            
-    #editing the server's live config settings
-    async def handle_config_request(self,request):
-        await self.handle_super_auth_request(request,"editing", lambda x,y: self.modify_matching_config_boolean(x,y))
-    
-    async def handle_contact_modification(self,request):
-        await self.handle_super_auth_request(request, "editing", lambda x,y: self.add_or_remove_contact(x,y))
 
-    async def handle_task_modification(self,request):
-        await self.handle_super_auth_request(request,"editing",lambda x,y: self.add_or_remove_task(x,y))
+    async def handle_state_or_record_modification(self,target):
+            if target == "add-task" or target == "remove-task":
+                await self.handle_super_auth_request(
+                    target,
+                    "editing",
+                    lambda x,y: self.add_or_remove_task(x,y))
+            elif target == "add-contact" or target == "remove-contact":
+                await self.handle_super_auth_request(
+                    target, 
+                    "editing", 
+                    lambda x,y: self.add_or_remove_contact(x,y))
+            elif "change_config_" in target:
+                await self.handle_super_auth_request(
+                    target, 
+                    "editing", 
+                    lambda x,y: self.add_or_remove_contact(x,y))
         
 #PRIVATE
     async def handle_super_auth_request(self,request,action,fun):

@@ -158,7 +158,6 @@ class Main:
         else:
             await self.handle_bot(websocket,name)
 
-
     async def route_client_request(self,websocket,handler):
         request = await websocket.recv()
         if request == "bot_control":
@@ -178,13 +177,13 @@ class Main:
 
     async def route_client_advanced_request(self,handler,request):
         if  "change_config_" in request:
-            await handler.handle_config_request(request)
+            await handler.handle_state_or_record_modification(request)
         elif request == "add-contact" or request == "remove-contact":
-            await handler.handle_contact_modification(request)
+            await handler.handle_state_or_record_modification(request)
         elif request == "contact_list":
             await handler.send_table_state_with_no_auth_requirements(request)
         elif request == "add-task" or request == "remove-task":
-            await handler.handle_task_modification(request)
+            await handler.handle_state_or_record_modification(request)
         elif request == "task_list":
             await handler.send_table_state_with_no_auth_requirements(request)
         elif request == "executed_actions":
