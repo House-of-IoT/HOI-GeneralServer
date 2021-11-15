@@ -67,7 +67,7 @@ class ClientHandler:
                     "viewing",
                     target,
                     self.parent.config.string_version())
-            elif target in RoutingTypes.generic_state_with_no_auth:
+            elif target in RoutingTypes.GENERIC_STATE_WITH_NO_AUTH_CAPTURE_MANAGER:
                 table_state = self.parent.capture_and_serve_manager.try_to_gather_serve_target(target)
                 await self.send_generic_table_state(
                     "viewing",

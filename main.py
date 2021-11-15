@@ -169,23 +169,15 @@ class Main:
             await handler.send_table_state(self.deactivated_bots,"servers_deactivated_bots","values-set")
         elif request == "servers_banned_ips":
             await handler.send_table_state(None,"servers_banned_ips","values-set")
-        elif request == "server_config":
-            await handler.send_table_state_with_no_auth_requirements(request)
         elif request == "passive_data":
             await self.device_handler.get_and_send_passive_data(handler.name)
         else:
             await self.route_client_advanced_request(handler,request)   
 
     async def route_client_advanced_request(self,handler,request):
-        if  "change_config_" in request:
+        if  "change_config_" in request or request in RoutingTypes.STATE_OR_RECORD_MODIFICATION:
             await handler.handle_state_or_record_modification(request)
-        elif request == "add-contact" or request == "remove-contact":
-            await handler.handle_state_or_record_modification(request)
-        elif request == "contact_list":
-            await handler.send_table_state_with_no_auth_requirements(request)
-        elif request == "add-task" or request == "remove-task":
-            await handler.handle_state_or_record_modification(request)
-        elif request in RoutingTypes.generic_state_with_no_auth:
+        elif request in RoutingTypes.GENERIC_STATE_WITH_NO_AUTH:
             await handler.send_table_state_with_no_auth_requirements(request)
         else:
             pass
