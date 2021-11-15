@@ -12,6 +12,7 @@ from ThirdPartyHandlers.twilio_handler import TwilioHandler
 from Config.config import ConfigHandler
 from DataCapture.capture_and_serve_manager import CaptureAndServeManager
 from DataObjects.type_handler import TypeHandler
+from DataObjects.routing_types import RoutingTypes
 import queue
 import traceback
 import os
@@ -184,11 +185,7 @@ class Main:
             await handler.send_table_state_with_no_auth_requirements(request)
         elif request == "add-task" or request == "remove-task":
             await handler.handle_state_or_record_modification(request)
-        elif request == "task_list":
-            await handler.send_table_state_with_no_auth_requirements(request)
-        elif request == "executed_actions":
-            await handler.send_table_state_with_no_auth_requirements(request)
-        elif request == "recent_connections":
+        elif request in RoutingTypes.generic_state_with_no_auth:
             await handler.send_table_state_with_no_auth_requirements(request)
         else:
             pass
