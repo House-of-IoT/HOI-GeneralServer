@@ -6,6 +6,7 @@ from Errors.errors import IssueGatheringServeData
 from DataObjects.BasicResponse import BasicResponse
 from HybridActionsAndAutoScheduling.auto_scheduler import Task
 from dateutil import parser
+from DataObjects.routing_types import RoutingTypes
 import traceback
 import datetime
 
@@ -66,14 +67,8 @@ class ClientHandler:
                     "viewing",
                     target,
                     self.parent.config.string_version())
-            elif target == "contact_list":
-                table_state = self.parent.capture_and_serve_manager.try_to_gather_serve_target("contacts")
-                await self.send_generic_table_state(
-                    "viewing",
-                    target,
-                    target,json.dumps(table_state))
-            elif target == "recent_connections":
-                table_state = self.parent.capture_and_serve_manager.try_to_gather_serve_target("recent_connections")
+            elif target in RoutingTypes.generic_state_with_no_auth:
+                table_state = self.parent.capture_and_serve_manager.try_to_gather_serve_target(target)
                 await self.send_generic_table_state(
                     "viewing",
                     target,
@@ -83,12 +78,6 @@ class ClientHandler:
                     "viewing",
                     target,
                     json.dumps(self.parent.auto_scheduler.tasks))
-            elif target == "executed_actions":
-                table_state = self.parent.capture_and_serve_manager.try_to_gather_serve_target("recent_action_executions")
-                await self.send_generic_table_state(
-                    "viewing",
-                    target,
-                    target,json.dumps(table_state))
         except Exception as e:
             await self.handle_send_table_state_exception(e,target)
 
@@ -105,9 +94,9 @@ class ClientHandler:
                     lambda x,y: self.add_or_remove_contact(x,y))
             elif "change_config_" in target:
                 await self.handle_super_auth_request(
-                    target, 
+                    target,
                     "editing", 
-                    lambda x,y: self.add_or_remove_contact(x,y))
+                    lambda x,y: self.modify_matching_config_boolean(x,y))
         
 #PRIVATE
     async def handle_super_auth_request(self,request,action,fun):
