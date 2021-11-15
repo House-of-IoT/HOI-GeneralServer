@@ -10,8 +10,8 @@ from colorama import init
 from console_logging import ConsoleLogger
 from ThirdPartyHandlers.twilio_handler import TwilioHandler
 from Config.config import ConfigHandler
+from DataCapture.capture_and_serve_manager import CaptureAndServeManager
 from DataObjects.type_handler import TypeHandler
-from DataCapture.sql_handler import SQLHandler
 import queue
 import traceback
 import os
@@ -27,6 +27,7 @@ class Main:
         self.config = ConfigHandler()
         self.auto_scheduler = AutoScheduler(5,self)
         self.type_handler = TypeHandler()
+        self.capture_and_serve_manager = CaptureAndServeManager(self.config.using_sql,self)
         
     """
     Starting point for all new connections
@@ -53,26 +54,11 @@ class Main:
     by using a ClientHandler instance.
     """
     async def handle_client(self,websocket,name):
+        handler = ClientHandler(self,name,websocket)
         while True:
             await asyncio.sleep(1)
             try:
-                handler = ClientHandler(self,name,websocket)
-                request = await websocket.recv()
-                if request == "bot_control":
-                    await handler.gather_request_for_bot()
-                elif request == "servers_devices":
-                    await handler.send_table_state(self.devices_type,"servers_devices","both")
-                elif request == "servers_deactivated_bots":
-                    await handler.send_table_state(self.deactivated_bots,"servers_deactivated_bots","values-set")
-                elif request == "servers_banned_ips":
-                    await handler.send_table_state(self.banned_ips(),"servers_banned_ips","values-set")
-                elif request == "server_config":
-                    await handler.send_server_config()
-                elif request == "passive_data":
-                    await self.device_handler.get_and_send_passive_data(name)
-                else:
-                    await self.route_client_advanced_request(handler,request)             
-                
+                await self.route_client_request(websocket,handler)
             except Exception as e:      
                 del self.devices[name]
                 del self.devices_type[name]
@@ -172,6 +158,23 @@ class Main:
         else:
             await self.handle_bot(websocket,name)
 
+
+    async def route_client_request(self,websocket,handler):
+        request = await websocket.recv()
+        if request == "bot_control":
+            await handler.gather_request_for_bot()
+        elif request == "servers_devices":
+            await handler.send_table_state(self.devices_type,"servers_devices","both")
+        elif request == "servers_deactivated_bots":
+            await handler.send_table_state(self.deactivated_bots,"servers_deactivated_bots","values-set")
+        elif request == "servers_banned_ips":
+            await handler.send_table_state(self.banned_ips(),"servers_banned_ips","values-set")
+        elif request == "server_config":
+            await handler.send_server_config()
+        elif request == "passive_data":
+            await self.device_handler.get_and_send_passive_data(handler.name)
+        else:
+            await self.route_client_advanced_request(handler,request)   
 
     async def route_client_advanced_request(self,handler,request):
         if  "change_config_" in request:

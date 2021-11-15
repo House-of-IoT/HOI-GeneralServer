@@ -50,7 +50,10 @@ class CaptureAndServeManager:
 
     async def capture_contact_in_db(self,data,cursor):
         if data["type"] == "add-contact":
-            await self.sql_handler.create_contact(data["data"]["name"],data["data"]["number"],cursor)
+            await self.sql_handler.create_contact(
+                data["data"]["name"],
+                data["data"]["number"],
+                cursor)
         else:
             pass #delete
 
