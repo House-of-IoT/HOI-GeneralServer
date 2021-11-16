@@ -32,24 +32,21 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         websocket = await self.connect(need_websocket=True)
         await self.view_state_deactivated_bots(websocket)
         await asyncio.sleep(5)
-        print("a d ")
         await self.activate_and_deactivate_and_basic_data(websocket)
         await asyncio.sleep(5)
-        print("viewing")
         await self.viewing_connected_devices(websocket)
         await asyncio.sleep(5)
-        print("disconnecting..")
         await self.disconnect_bot(websocket) 
         await asyncio.sleep(5)
-        print("viewing config..")
         await self.view_config(websocket)
         await asyncio.sleep(5)
-        print("adding and viewing config..")
         await self.add_and_view_contacts(websocket)
 
 
     async def connect(self,need_websocket = False):
-        websocket = await websockets.connect('ws://192.168.1.109:50223', ping_interval= None, max_size = 20000000)
+        connection_string = 'ws://localhost:50223'
+        print(f"connecting to server using {connection_string}....")
+        websocket = await websockets.connect(connection_string, ping_interval= None, max_size = 20000000)
         await websocket.send("")
         await websocket.send(self.name_and_type())
         await websocket.send("test_name")
@@ -60,8 +57,8 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
             return connection_response
 
     async def view_config(self,websocket):
+        print("testing config viewing...")
         data_dict = await self.gather_one_send_request_response("server_config",websocket)
-        print(data_dict)
         data_dict = json.loads(data_dict["target_value"])
         self.assertEqual(data_dict["disconnecting"],False)
         self.assertEqual(data_dict["activating"],True)
@@ -69,11 +66,11 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(data_dict["viewing"],True)
 
     async def add_and_view_contacts(self,websocket):
+        print("testing adding and viewing contacts...")
         await websocket.send("add-contact")
         await websocket.send(json.dumps({"name":"test","number":"+17769392019"}))
         response = await websocket.recv()
         data_dict_response = json.loads(response)
-        print(data_dict_response)
         #sending super admin password to add the contact
         self.assertEqual(data_dict_response["status"],"needs-admin-auth")
         await websocket.send("")
@@ -89,19 +86,21 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
 
     #assumes that one bot named "test" is connected to the server
     async def view_state_deactivated_bots(self,websocket):
+        print("testing deactivation without auth requirements....")
         await self.deactivate_without_auth(websocket)
         viewing_data = await self.send_and_handle_viewing(websocket,"servers_deactivated_bots")
-        print(viewing_data)
         self.assertTrue("test" in viewing_data["target_value"][0])
         await self.activate_with_auth(websocket)
 
     #this test is repeating logic but ensures the bot is responding after re-activation via 'basic data'
     async def activate_and_deactivate_and_basic_data(self,websocket):
+        print("testing activation , deactivation and passive data....")
         await self.deactivate_without_auth(websocket)
         await self.activate_with_auth(websocket)
         await self.basic_data(websocket,1)
 
     async def viewing_connected_devices(self,websocket):
+        print("testing connected devices...")
         viewing_data = await self.send_and_handle_viewing(websocket,"servers_devices")
         self.assertEqual(viewing_data["target"] ,"servers_devices")
         self.assertTrue("test1" in  json.loads(viewing_data["target_value"]))
@@ -110,6 +109,7 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
 
     #assumes there is a bot connected by the name of "test"
     async def disconnect_bot(self,websocket):
+        print("testing bot disconnection....")
         await self.send_bot_control(websocket,"disconnect")
         response = await websocket.recv()
         data_dict = json.loads(response)
@@ -118,7 +118,12 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
 
     #assumes there are 'bot_num' amount of bots connected
     async def basic_data(self,websocket,bot_num):
-        await websocket.send("basic_data")
+        """
+        Wait on the server to gather passive data from 
+        the bot since the previous basic data is deleted once deactivation happens.
+        """
+        await asyncio.sleep(10) 
+        await websocket.send("passive_data")
         response = await websocket.recv()
         data_dict = json.loads(response)
         self.assertEqual(data_dict["server_name"],"test_name")

@@ -1,8 +1,8 @@
 from datetime import datetime
-from sql_handler import SQLHandler
+from .sql_handler import SQLHandler
 from Errors.errors import IssueConnectingToDB
 from Errors.errors import IssueGatheringServeData
-from data_catch_up_manager import DataCatchUpManager
+from .data_catch_up_manager import DataCatchUpManager
 import json
 import asyncio
 

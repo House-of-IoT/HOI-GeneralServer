@@ -1,1 +1,1 @@
-{"disconnecting": true, "activating": true, "deactivating": true, "viewing": true, "host": "localhost", "port": 50223}
+{"disconnecting": false, "activating": true, "deactivating": false, "viewing": true, "host": "localhost", "port": 50223, "using_sql" :false}

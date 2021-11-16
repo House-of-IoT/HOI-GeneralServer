@@ -44,7 +44,7 @@ class ClientHandler:
             try:
                 #if we get a null object we need to use the capture manager.
                 if table_or_set == None:
-                    table_or_set_capture_manager = self.parent.capture_and_serve_manager.try_to_gather_serve_target(target)
+                    table_or_set_capture_manager = await  self.parent.capture_and_serve_manager.try_to_gather_serve_target(target)
                     await self.route_data_request_and_send(
                         keys_or_values_or_both,
                         table_or_set_capture_manager,
@@ -68,10 +68,9 @@ class ClientHandler:
                     target,
                     self.parent.config.string_version())
             elif target in RoutingTypes.GENERIC_STATE_WITH_NO_AUTH_CAPTURE_MANAGER:
-                table_state = self.parent.capture_and_serve_manager.try_to_gather_serve_target(target)
+                table_state = await self.parent.capture_and_serve_manager.try_to_gather_serve_target(target)
                 await self.send_generic_table_state(
                     "viewing",
-                    target,
                     target,json.dumps(table_state))
             elif target == "task_list":
                 await self.send_generic_table_state(
@@ -79,6 +78,7 @@ class ClientHandler:
                     target,
                     json.dumps(self.parent.auto_scheduler.tasks))
         except Exception as e:
+            print(e)
             await self.handle_send_table_state_exception(e,target)
 
     async def handle_state_or_record_modification(self,target):

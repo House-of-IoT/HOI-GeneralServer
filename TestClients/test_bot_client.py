@@ -34,7 +34,7 @@ protocol
 class AsyncTests(unittest.IsolatedAsyncioTestCase):
     
     async def connect(self):
-        websocket = await websockets.connect('ws://192.168.1.142:50223', ping_interval= None, max_size = 20000000)
+        websocket = await websockets.connect('ws://localhost:50223', ping_interval= None, max_size = 20000000)
         await websocket.send("")
         await websocket.send(self.name_and_type())
         await websocket.send("test_name")
@@ -51,6 +51,7 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
             try:
                 
                 message = await asyncio.wait_for(websocket.recv(),5)
+                print(message)
                 if message == "deactivate":
                     await websocket.send("success")
                     await self.enter_deactivate_loop(websocket)
@@ -68,7 +69,6 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         while True:
             try:
                 message = await asyncio.wait_for(websocket.recv(),5)
-                print(message)
                 if message == "activate":
                     await websocket.send("success")
                     break
