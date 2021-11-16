@@ -17,7 +17,8 @@ class AutoScheduler:
 
     def cancel_task(self,task):
         uid = str(task.time) + task.bot_name + task.action
-        del self.tasks[uid]
+        if uid in self.tasks:
+            del self.tasks[uid]
         
     def task_should_run(self,task):
         #if the task's time has passed or the time is now
