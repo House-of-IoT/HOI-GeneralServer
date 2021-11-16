@@ -14,7 +14,8 @@ class TypeHandler:
                 has_video_streaming=True,
                 has_pir=True),
             "infared":Capabilities(has_pir=True),
-            "non-bot":Capabilities()}
+            "non-bot":Capabilities(),
+            "test_bot":Capabilities(has_test_trigger=True)}
 
     def is_valid(self,type_str):
         if type_str in self.accepted_types:

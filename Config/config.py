@@ -7,6 +7,7 @@ class ConfigHandler:
         self.activating_requires_admin = True
         self.deactivating_requires_admin = False
         self.viewing_all_devices_requires_auth = True
+        self.device_specific_actions_require_auth = True
         self.using_sql = False
         self.host = None
         self.port = None
@@ -24,6 +25,7 @@ class ConfigHandler:
                 self.host = data_dict["host"]
                 self.port = data_dict["port"]
                 self.using_sql = data_dict["using_sql"]
+                self.device_specific_actions_require_auth = data_dict["device_specific"]
             except Exception as e:
                 print(e)
                 print("There is an issue with the required config.json...")
@@ -47,12 +49,13 @@ class ConfigMaker:
 
     def make_config(self):
         disconnecting = input("\nDisconnecting bots(smart devices) requires admin authentication[Y,N]:")
-        activating = input("\nactivating bots(smart devices) requires admin authentication[Y,N]:")
-        deactivating = input("\ndeactivating bots(smart devices) requires admin authentication[Y,N]:")
-        viewing = input("\nviewing all devices connected to the server requires admin authentication[Y,N]:")
-        host = input("\nhost:")
-        port = int(input("port:"))
-        using_sql = input("using_sql[Y,N]:")
+        activating = input("\nActivating bots(smart devices) requires admin authentication[Y,N]:")
+        deactivating = input("\nDeactivating bots(smart devices) requires admin authentication[Y,N]:")
+        viewing = input("\nViewing all devices connected to the server requires admin authentication[Y,N]:")
+        host = input("\nHost:")
+        port = int(input("Port:"))
+        using_sql = input("Using sql[Y,N]:")
+        device_specific_actions = input("Device specific actions require authentication[Y,N]:")
 
         data_dict = {}
         data_dict["disconnecting"] = self.route_bool(disconnecting)
@@ -62,6 +65,7 @@ class ConfigMaker:
         data_dict["host"] = host
         data_dict["port"] = port
         data_dict["using_sql"] = self.route_bool(using_sql)
+        data_dict["device_specific"] = self.route_bool(device_specific_actions)
         self.write_config(data_dict)
 
     def write_config(self,data_dict):

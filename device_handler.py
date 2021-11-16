@@ -14,8 +14,6 @@ class DeviceHandler:
         device_names = self.parent.bot_passive_data.keys()
         data_holder = {"server_name":self.parent.outside_names[client_name],"bots":[]}
 
-        print( self.parent.bot_passive_data)
-
         for name in device_names:
             if self.parent.available_status[name] == True:
                 await self.gather_bot_data(name,data_holder)
