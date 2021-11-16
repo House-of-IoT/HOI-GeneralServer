@@ -1,5 +1,4 @@
 import json
-from os import name
 
 class ConfigHandler:
     def __init__(self):

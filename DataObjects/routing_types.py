@@ -17,3 +17,7 @@ class RoutingTypes:
         "add-contact",
         "remove-contact"
     }
+
+    BASIC_ACTIONS = {
+        "test_trigger"
+    }

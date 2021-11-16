@@ -20,9 +20,11 @@ class ClientHandler:
 
     #gather user requested action for bot control
     async def gather_request_for_bot(self):
+        name_holder_for_error = None
         try:
             action = await  asyncio.wait_for(self.websocket.recv(),10)
             bot_name = await asyncio.wait_for(self.websocket.recv(),10)
+            name_holder_for_error = bot_name
 
             if bot_name in self.parent.devices and self.parent.available_status[bot_name] == True:
                 #establish control over the bot and wait until the passive data recv clear
@@ -36,6 +38,8 @@ class ClientHandler:
                 await self.send_basic_response("failure")
 
         except Exception as e:
+            if name_holder_for_error in self.parent.available_status:
+                self.parent.available_status[name_holder_for_error] = True
             self.handle_bot_control_exception(e)
                 
     #sending the server's live table state that could have authentication requirements
@@ -99,6 +103,46 @@ class ClientHandler:
                     lambda x,y: self.modify_matching_config_boolean(x,y))
         
 #PRIVATE
+    """
+    Takes action and routes it to the correct functionality
+    """
+    async def handle_action(self,bot_name,action):
+        await self.check_and_wait_if_gathering_passive_data(bot_name)
+        
+        if bot_name in self.parent.deactivated_bots:
+            await asyncio.wait_for(self.websocket.send("issue"),10)
+            return
+        if action == "activate" or action == "deactivate" or action == "disconnect":
+            await self.activate_deactivate_or_disconnect_bot(bot_name,action)
+        elif self.bot_type_has_capability(bot_name,action) and action in RoutingTypes.BASIC_ACTIONS:
+            await self.execute_basic_action_protocol(bot_name,action)
+        elif self.bot_type_has_capability(bot_name,action):
+            await asyncio.wait_for(self.websocket.send("success"),10)
+            await self.begin_capability(bot_name,action)
+        else:
+            await asyncio.wait_for(self.websocket.send("issue"),10)
+    
+        if bot_name in self.parent.available_status:
+            self.parent.available_status[bot_name] = True
+
+    """
+    Takes actions that are "basic"(needs a one time opcode to change a device's state)
+    and executes.
+    """
+    async def execute_basic_action_protocol(self,bot_name,action):
+        if(await self.client_has_credentials(action)):
+            #send bot the basic request
+            bot_connection  = self.parent.devices[bot_name]
+            await asyncio.wait_for(bot_connection.send(action),10)
+            status = await asyncio.wait_for(bot_connection.recv(),10);
+            self.parent.console_logger.log_generic_row(f"bot({bot_name}) responded with {status} to {self.name}'s action request:{action}\n","green")
+            #send client the result
+            await self.send_basic_response(status,action= action,bot_name=bot_name)
+            return (status,True)
+        else:
+            await self.send_basic_response("failure",action= action,bot_name=bot_name)
+            return (None,False)
+
     async def handle_super_auth_request(self,request,action,fun):
         status = None
         try:
@@ -147,43 +191,34 @@ class ClientHandler:
             pass
 
     async def begin_capability(self,bot_name,action):
-        if action == "video_stream" or action == "audio_steam" and  self.parent.available_status[bot_name] == True :
-            self.parent.available_status[bot_name] = False
+        if action == "video_stream" or action == "audio_steam":
             self.parent.stream_mode_status[self.name] = True
             await self.stream(bot_name,action)
 
     async def activate_deactivate_or_disconnect_bot(self,bot_name,action):
-        if(await self.client_has_credentials(action)):
-            #send bot the basic request
-            bot_connection  = self.parent.devices[bot_name]
-            await asyncio.wait_for(bot_connection.send(action),10)
-            status = await asyncio.wait_for(bot_connection.recv(),10);
-            self.parent.console_logger.log_generic_row(f"bot({bot_name}) responded with {status} to {self.name}'s action request:{action}\n","green")
-            #send client the result
-            await self.send_basic_response(status,action= action,bot_name=bot_name)
-            self.handle_activate_deactivate_or_disconnect_cleanup(bot_name,action,status)
-        else:
-            await self.send_basic_response("failure",action= action,bot_name=bot_name)
+        credential_status_and_bot_return_status = await self.execute_basic_action_protocol(bot_name,action)
+        bot_return_status = credential_status_and_bot_return_status[1]
+        if bot_return_status == "success":
+            self.handle_activate_deactivate_or_disconnect_cleanup(bot_name,action)
         
-    def handle_activate_deactivate_or_disconnect_cleanup(self,bot_name,action,status):
-        if status == "success":
-            if action == "activate":
+    def handle_activate_deactivate_or_disconnect_cleanup(self,bot_name,action):
+        if action == "activate":
+            self.parent.deactivated_bots.remove(bot_name)
+            self.parent.available_status[bot_name] = True
+        elif action == "deactivate":
+            self.parent.deactivated_bots.add(bot_name)
+            self.parent.available_status[bot_name] = True
+            del self.parent.bot_passive_data[bot_name]
+        else:
+            del self.parent.devices[bot_name]
+            del self.parent.outside_names[bot_name]
+            del self.parent.devices_type[bot_name]
+            del self.parent.bot_passive_data[bot_name]
+            if bot_name in self.parent.deactivated_bots:
                 self.parent.deactivated_bots.remove(bot_name)
-                self.parent.available_status[bot_name] = True
-            elif action == "deactivate":
-                self.parent.deactivated_bots.add(bot_name)
-                self.parent.available_status[bot_name] = True
-                del self.parent.bot_passive_data[bot_name]
-            else:
-                del self.parent.devices[bot_name]
-                del self.parent.outside_names[bot_name]
-                del self.parent.devices_type[bot_name]
-                del self.parent.bot_passive_data[bot_name]
-                if bot_name in self.parent.deactivated_bots:
-                    self.parent.deactivated_bots.remove(bot_name)
-                if bot_name in self.parent.stream_mode_status:
-                    del self.parent.stream_mode_status[bot_name]
-                self.parent.console_logger.log_disconnect(bot_name)
+            if bot_name in self.parent.stream_mode_status:
+                del self.parent.stream_mode_status[bot_name]
+            self.parent.console_logger.log_disconnect(bot_name)
                     
     async def stream (self,bot_name,action):
         if await self.bot_was_notified(bot_name,action):
@@ -219,22 +254,7 @@ class ClientHandler:
         except:
             return False
 
-    async def handle_action(self,bot_name,action):
-        await self.check_and_wait_if_gathering_passive_data(bot_name)
-        if action == "activate" or action == "deactivate" or action == "disconnect":
-            await self.activate_deactivate_or_disconnect_bot(bot_name,action)
-
-        elif self.bot_type_has_capability(bot_name,action):
-            if bot_name in self.parent.deactivated_bots:
-                await asyncio.wait_for(self.websocket.send("bot is deactivated!!"),10)
-                return
-            await asyncio.wait_for(self.websocket.send("success"),10)
-            self.begin_capability(bot_name,action)
-
-        else:
-            await asyncio.wait_for(self.websocket.send("issue"),10)
-
-    def bot_type_has_capability(self,bot_name,action)-> bool:
+    def bot_type_has_capability(self,bot_name,action):
         try:
             device_type = self.parent.devices_type[bot_name]
             capabilties = self.accepted_types[device_type]
@@ -266,7 +286,7 @@ class ClientHandler:
         elif action == "viewing":
             return self.parent.config.viewing_all_devices_requires_auth
         else:
-            return True
+            return self.parent.config.device_specific_actions_require_auth
 
     def modify_matching_config_boolean(self,request,new_value):
         boolean = bool(int(new_value))
