@@ -23,6 +23,7 @@ class MockWebsocket:
 
 class Tests(TestCase):
     def test(self):
+        print("testing sync")
         task_one = auto_scheduler.Task(datetime.datetime.utcnow(),"test_bot","test")
         task_two = auto_scheduler.Task(datetime.datetime.utcnow() + datetime.timedelta(days = 3),"test_bot","test")
         mock_websocket = MockWebsocket()
@@ -83,6 +84,7 @@ class Tests(TestCase):
 class AsyncTests(IsolatedAsyncioTestCase):
 
     async def test(self):
+        print("testing")
         #task should execute due to the utcnow being gathered before the executing's utcnow
         task_one = auto_scheduler.Task(datetime.datetime.utcnow(),"test_bot","test")
         mock_websocket = MockWebsocket()
@@ -92,6 +94,7 @@ class AsyncTests(IsolatedAsyncioTestCase):
 
         mock_parent = MockParentForScheduler(available_status,parent_devices)
         scheduler = auto_scheduler.AutoScheduler(10,mock_parent)
+        print("checking execution...")
         await self.execution_worked(task_one,scheduler)
 
     async def execution_worked(self,task,scheduler):

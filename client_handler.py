@@ -108,7 +108,7 @@ class ClientHandler:
     """
     async def handle_action(self,bot_name,action):
         await self.check_and_wait_if_gathering_passive_data(bot_name)
-        
+
         if bot_name in self.parent.deactivated_bots:
             await asyncio.wait_for(self.websocket.send("issue"),10)
             return
@@ -130,7 +130,7 @@ class ClientHandler:
     and executes.
     """
     async def execute_basic_action_protocol(self,bot_name,action):
-        if(await self.client_has_credentials(action)):
+        if await self.client_has_credentials(action):
             #send bot the basic request
             bot_connection  = self.parent.devices[bot_name]
             await asyncio.wait_for(bot_connection.send(action),10)
@@ -155,7 +155,6 @@ class ClientHandler:
             else:
                 status = "failure"
             await self.send_basic_response(status,action=action,target=request)
-
         except Exception as e:
             traceback.print_exc()
             if e is AddressBannedException:

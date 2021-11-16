@@ -300,7 +300,7 @@ class Main:
         loop.run_until_complete(
             websockets.serve(self.check_declaration,self.config.host,self.config.port,ping_interval=None))
         loop.run_until_complete(
-            self.auto_scheduler.try_to_execute_one_task())
+            self.auto_scheduler.execute_tasks())
         loop.run_forever()
 
 if __name__ == "__main__":
