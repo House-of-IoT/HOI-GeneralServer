@@ -36,7 +36,9 @@ class ConfigHandler:
             "disconnecting" : self.disconnecting_requires_admin,
             "activating" : self.activating_requires_admin,
             "deactivating" : self.deactivating_requires_admin,
-            "viewing" : self.viewing_all_devices_requires_auth
+            "viewing" : self.viewing_all_devices_requires_auth,
+            "using_sql": self.using_sql,
+            "device_specific":self.device_specific_actions_require_auth
         }
         return json.dumps(data_dict)
 

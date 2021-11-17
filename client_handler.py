@@ -40,7 +40,7 @@ class ClientHandler:
         except Exception as e:
             if name_holder_for_error in self.parent.available_status:
                 self.parent.available_status[name_holder_for_error] = True
-            self.handle_bot_control_exception(e)
+            await self.handle_bot_control_exception(e)
                 
     #sending the server's live table state that could have authentication requirements
     async def send_table_state(self,table_or_set,target,keys_or_values_or_both):
@@ -109,21 +109,22 @@ class ClientHandler:
     async def handle_action(self,bot_name,action):
         await self.check_and_wait_if_gathering_passive_data(bot_name)
 
-        if bot_name in self.parent.deactivated_bots:
-            await asyncio.wait_for(self.websocket.send("issue"),10)
-            return
         if action == "activate" or action == "deactivate" or action == "disconnect":
             await self.activate_deactivate_or_disconnect_bot(bot_name,action)
-        elif self.bot_type_has_capability(bot_name,action) and action in RoutingTypes.BASIC_ACTIONS:
-            await self.execute_basic_action_protocol(bot_name,action)
-        elif self.bot_type_has_capability(bot_name,action):
-            await asyncio.wait_for(self.websocket.send("success"),10)
-            await self.begin_capability(bot_name,action)
         else:
-            await asyncio.wait_for(self.websocket.send("issue"),10)
-    
-        if bot_name in self.parent.available_status:
-            self.parent.available_status[bot_name] = True
+            if bot_name in self.parent.deactivated_bots:
+                await asyncio.wait_for(self.websocket.send("issue"),10)
+                return
+            elif self.bot_type_has_capability(bot_name,action) and action in RoutingTypes.BASIC_ACTIONS:
+                await self.execute_basic_action_protocol(bot_name,action)
+            elif self.bot_type_has_capability(bot_name,action):
+                await asyncio.wait_for(self.websocket.send("success"),10)
+                await self.begin_capability(bot_name,action)
+            else:
+                await asyncio.wait_for(self.websocket.send("issue"),10)
+        
+            if bot_name in self.parent.available_status:
+                self.parent.available_status[bot_name] = True
 
     """
     Takes actions that are "basic"(needs a one time opcode to change a device's state)
@@ -196,7 +197,7 @@ class ClientHandler:
 
     async def activate_deactivate_or_disconnect_bot(self,bot_name,action):
         credential_status_and_bot_return_status = await self.execute_basic_action_protocol(bot_name,action)
-        bot_return_status = credential_status_and_bot_return_status[1]
+        bot_return_status = credential_status_and_bot_return_status[0]
         if bot_return_status == "success":
             self.handle_activate_deactivate_or_disconnect_cleanup(bot_name,action)
         
@@ -321,7 +322,6 @@ class ClientHandler:
             self.parent.auto_scheduler.cancel_task(task)
 
     async def send_need_admin_auth_and_check_response(self,password,action):
-        print("sending")
         await self.send_basic_response("needs-admin-auth",action = action)
         if await self.parent.is_authed(self.websocket,password):
             return True

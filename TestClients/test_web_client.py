@@ -42,7 +42,6 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         await asyncio.sleep(5)
         await self.add_and_view_contacts(websocket)
 
-
     async def connect(self,need_websocket = False):
         connection_string = 'ws://localhost:50223'
         print(f"connecting to server using {connection_string}....")
@@ -64,6 +63,9 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(data_dict["activating"],True)
         self.assertEqual(data_dict["deactivating"],False)
         self.assertEqual(data_dict["viewing"],True)
+        # CHECKING FOR KEY ERROR COULD BE TRUE OR FALSE WHEN TESTING BOTH
+        data_dict["using_sql"]
+        self.assertEqual(data_dict["device_specific"],True)
 
     async def add_and_view_contacts(self,websocket):
         print("testing adding and viewing contacts...")
@@ -122,13 +124,13 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         Wait on the server to gather passive data from 
         the bot since the previous basic data is deleted once deactivation happens.
         """
-        await asyncio.sleep(10) 
+        await asyncio.sleep(5) 
         await websocket.send("passive_data")
         response = await websocket.recv()
         data_dict = json.loads(response)
         self.assertEqual(data_dict["server_name"],"test_name")
         self.assertEqual(len(data_dict["bots"]),bot_num)
-        
+
     async def send_bot_control(self,websocket,action):
         await websocket.send("bot_control")
         await websocket.send(action)

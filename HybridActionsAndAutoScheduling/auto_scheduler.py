@@ -31,7 +31,7 @@ class AutoScheduler:
     async def execute_tasks(self):
         while True:
             try:
-                await self.try_to_execute_one_task(self)
+                await self.try_to_execute_one_task()
             except Exception as e:
                 print(e)
 
