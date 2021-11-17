@@ -22,10 +22,11 @@ class CaptureDictCreator:
         }
     
     @staticmethod
-    def create_contact_dict(name,number):
+    def create_contact_dict(name,number,add_or_remove):
         return{
             "name":name,
-            "number":number
+            "number":number,
+            "type": add_or_remove
         }
     
     @staticmethod 

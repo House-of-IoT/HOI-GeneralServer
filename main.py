@@ -13,6 +13,7 @@ from Config.config import ConfigHandler
 from DataCapture.capture_and_serve_manager import CaptureAndServeManager
 from DataObjects.type_handler import TypeHandler
 from DataObjects.routing_types import RoutingTypes
+from DataCapture.capture_object_creator import CaptureDictCreator
 import queue
 import traceback
 import os
@@ -119,8 +120,12 @@ class Main:
                 return True
             else:
                 self.add_to_failed_attempts(websocket)
+                ip = websocket.remote_address[0]
                 #re-check failed attempts after incrementing
-                if self.is_banned(websocket.remote_address[0]):
+                if self.is_banned(ip):
+                    banned_capture_data = CaptureDictCreator.create_banned_dict(ip)
+                    basic_capture_dict = CaptureDictCreator.create_basic_dict("banned",banned_capture_data)
+                    await self.capture_and_serve_manager.try_to_route_and_capture(basic_capture_dict)
                     raise AddressBannedException("Address is banned!!")
                 return False
 
@@ -154,6 +159,11 @@ class Main:
     """
     async def next_steps(self,client_type, name,websocket):
         self.console_logger.log_new_connection(name,client_type)
+        #try to capture the connection in memory or using the db
+        connection_capture_data = CaptureDictCreator.create_connection_dict(name,client_type)
+        basic_capture_dict = CaptureDictCreator.create_basic_dict("connection",connection_capture_data)
+        await self.capture_and_serve_manager.try_to_route_and_capture(basic_capture_dict)
+        #route to the main loop
         if client_type == "non-bot":
             await self.handle_client(websocket,name)
         else:

@@ -91,7 +91,8 @@ class ClientHandler:
                 await self.handle_super_auth_request(
                     target,
                     "editing",
-                    lambda x,y: self.add_or_remove_task(x,y))
+                    lambda x,y: self.add_or_remove_task(x,y),
+                    is_async=False)
             elif target == "add-contact" or target == "remove-contact":
                 await self.handle_super_auth_request(
                     target, 
@@ -101,7 +102,8 @@ class ClientHandler:
                 await self.handle_super_auth_request(
                     target,
                     "editing", 
-                    lambda x,y: self.modify_matching_config_boolean(x,y))
+                    lambda x,y: self.modify_matching_config_boolean(x,y),
+                    is_async=False)
         
 #PRIVATE
     """
@@ -109,24 +111,20 @@ class ClientHandler:
     """
     async def handle_action(self,bot_name,action):
         await self.check_and_wait_if_gathering_passive_data(bot_name)
-
         if action == "activate" or action == "deactivate" or action == "disconnect":
             await self.activate_deactivate_or_disconnect_bot(bot_name,action)
         else:
             if bot_name in self.parent.deactivated_bots:
                 await asyncio.wait_for(self.websocket.send("issue"),10)
                 return
-            elif self.bot_type_has_capability(bot_name,action) and action in RoutingTypes.BASIC_ACTIONS:
-                await self.execute_basic_action_protocol(bot_name,action)
-            elif self.bot_type_has_capability(bot_name,action):
-                await asyncio.wait_for(self.websocket.send("success"),10)
-                await self.begin_capability(bot_name,action)
-            else:
-                await asyncio.wait_for(self.websocket.send("issue"),10)
-        
-            if bot_name in self.parent.available_status:
-                self.parent.available_status[bot_name] = True
-        
+            await self.check_bot_capabilities_and_finish_action(action,bot_name)
+            self.set_bot_back_to_available(bot_name)
+
+        #capture the action execution
+        action_capture_data = CaptureDictCreator.create_action_dict(
+            self.name,bot_name,action,self.parent.devices_type[bot_name])
+        basic_capture_dict = CaptureDictCreator.create_basic_dict("action_execution",action_capture_data)
+        await self.parent.capture_and_serve_manager.try_to_route_and_capture(basic_capture_dict)
 
     """
     Takes actions that are "basic"(needs a one time opcode to change a device's state)
@@ -138,7 +136,8 @@ class ClientHandler:
             bot_connection  = self.parent.devices[bot_name]
             await asyncio.wait_for(bot_connection.send(action),10)
             status = await asyncio.wait_for(bot_connection.recv(),10);
-            self.parent.console_logger.log_generic_row(f"bot({bot_name}) responded with {status} to {self.name}'s action request:{action}\n","green")
+            self.parent.console_logger.log_generic_row(
+                f"bot({bot_name}) responded with {status} to {self.name}'s action request:{action}\n","green")
             #send client the result
             await self.send_basic_response(status,action= action,bot_name=bot_name)
             return (status,True)
@@ -146,26 +145,23 @@ class ClientHandler:
             await self.send_basic_response("failure",action= action,bot_name=bot_name)
             return (None,False)
 
-    async def handle_super_auth_request(self,request,action,fun):
-        status = None
+    async def handle_super_auth_request(self,request,action,fun,is_async=True):
         try:
+            status = None
             value = await asyncio.wait_for(self.websocket.recv(),40)
             successfully_authed_with_super_pass = await self.send_need_admin_auth_and_check_response(self.parent.super_admin_password,"editing")
 
             if successfully_authed_with_super_pass:
-                fun(request,value)
+                if is_async:
+                    await fun(request,value)
+                else:
+                    fun(request,value)
                 status = "success"
             else:
                 status = "failure"
             await self.send_basic_response(status,action=action,target=request)
         except Exception as e:
-            traceback.print_exc()
-            if e is AddressBannedException:
-                raise e
-            else:   
-                traceback.print_exc()
-                self.parent.console_logger.log_generic_row(f"A request that {self.name} made has timed out!","red")
-                await self.send_basic_response("timeout",action= "editing", target=request)
+            await self.handle_super_auth_request_exception(e,request)
 
     async def send_generic_table_state(self,action,target,value):
         try:
@@ -192,6 +188,15 @@ class ClientHandler:
         except:
             pass
 
+    async def check_bot_capabilities_and_finish_action(self,action,bot_name):
+        if self.bot_type_has_capability(bot_name,action) and action in RoutingTypes.BASIC_ACTIONS:
+            await self.execute_basic_action_protocol(bot_name,action)
+        elif self.bot_type_has_capability(bot_name,action):
+            await asyncio.wait_for(self.websocket.send("success"),10)
+            await self.begin_capability(bot_name,action)
+        else:
+            await asyncio.wait_for(self.websocket.send("issue"),10) 
+
     async def begin_capability(self,bot_name,action):
         if action == "video_stream" or action == "audio_steam":
             self.parent.stream_mode_status[self.name] = True
@@ -206,10 +211,10 @@ class ClientHandler:
     def handle_activate_deactivate_or_disconnect_cleanup(self,bot_name,action):
         if action == "activate":
             self.parent.deactivated_bots.remove(bot_name)
-            self.parent.available_status[bot_name] = True
+            self.set_bot_back_to_available(bot_name)
         elif action == "deactivate":
             self.parent.deactivated_bots.add(bot_name)
-            self.parent.available_status[bot_name] = True
+            self.set_bot_back_to_available(bot_name)
             del self.parent.bot_passive_data[bot_name]
         else:
             del self.parent.devices[bot_name]
@@ -290,6 +295,7 @@ class ClientHandler:
         else:
             return self.parent.config.device_specific_actions_require_auth
 
+    #convert config to having db capture?
     def modify_matching_config_boolean(self,request,new_value):
         boolean = bool(int(new_value))
         if request == "change_config_viewing":
@@ -301,15 +307,15 @@ class ClientHandler:
         else:
             self.parent.config.disconnecting_requires_admin = boolean
 
-    def add_or_remove_contact(self,request,new_value):
+    async def add_or_remove_contact(self,request,new_value):
         name_and_number = json.loads(new_value)
         name = name_and_number["name"]
         number = name_and_number["number"]
-        if request == "add-contact":
-            self.parent.contacts[name] = number
-        else:
-            del self.parent.contacts[name]
-            self.parent.console_logger.log_generic_row(f"Successfully removed {name}({number}) from contacts!", "green")
+        contact_capture_data = CaptureDictCreator.create_contact_dict(name,number,request)
+        basic_capture_dict =  CaptureDictCreator.create_basic_dict("contact",contact_capture_data)
+        await self.parent.capture_and_serve_manager.try_to_route_and_capture(basic_capture_dict)
+
+        self.parent.console_logger.log_generic_row(f"Successfully attempted {request} on {name}({number})!", "green")
 
     def add_or_remove_task(self,request,value):
         data_dict = json.loads(value)
@@ -393,6 +399,19 @@ class ClientHandler:
                 "timeout",
                 action= "viewing",
                 target=target)
+
+    async def handle_super_auth_request_exception(self,e,request):
+        traceback.print_exc()
+        if e is AddressBannedException:
+            raise e
+        else:   
+            traceback.print_exc()
+            self.parent.console_logger.log_generic_row(f"A request that {self.name} made has timed out!","red")
+            await self.send_basic_response("timeout",action= "editing", target=request)
+
+    def set_bot_back_to_available(self,bot_name):
+        if bot_name in self.parent.available_status:
+            self.parent.available_status[bot_name] = True
 
     async def send_basic_response(
         self,status,action = None,
