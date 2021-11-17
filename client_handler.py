@@ -110,6 +110,7 @@ class ClientHandler:
     Takes action and routes it to the correct functionality
     """
     async def handle_action(self,bot_name,action):
+        bot_type = self.parent.devices_type[bot_name]
         await self.check_and_wait_if_gathering_passive_data(bot_name)
         if action == "activate" or action == "deactivate" or action == "disconnect":
             await self.activate_deactivate_or_disconnect_bot(bot_name,action)
@@ -122,7 +123,7 @@ class ClientHandler:
 
         #capture the action execution
         action_capture_data = CaptureDictCreator.create_action_dict(
-            self.name,bot_name,action,self.parent.devices_type[bot_name])
+            self.name,bot_name,action,bot_type)
         basic_capture_dict = CaptureDictCreator.create_basic_dict("action_execution",action_capture_data)
         await self.parent.capture_and_serve_manager.try_to_route_and_capture(basic_capture_dict)
 

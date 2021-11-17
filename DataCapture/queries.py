@@ -71,7 +71,7 @@ class PostgresQueries:
     @staticmethod 
     def insert_connection_query(name,type_data,Datetime_connected):
         insert_connection = f"""
-        INSERT INTO connections(Name,Type,Datetime_connected) VALUES ('{name}','{type_data}','{Datetime_connected}');
+        INSERT INTO connections (Name,Type,Datetime_connected) VALUES ('{name}','{type_data}','{Datetime_connected}');
         """
         return insert_connection
 

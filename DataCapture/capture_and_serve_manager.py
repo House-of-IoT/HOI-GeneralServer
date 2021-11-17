@@ -43,8 +43,10 @@ class CaptureAndServeManager:
 
     async def try_to_route_and_capture(self,data):
         try:
+            
             await self.route_and_capture(data)
         except Exception as e:
+            print(e)
             #notification of failure
             pass
 
@@ -53,6 +55,7 @@ class CaptureAndServeManager:
         if self.using_sql:
             await self.try_to_gather_connection_if_needed()
             cursor = await self.sql_handler.connection.cursor()
+            await self.sql_handler.create_tables_if_needed(cursor)
 
             if data["type"] == "contact":
                 await self.capture_contact_in_db(data,cursor)
@@ -65,14 +68,14 @@ class CaptureAndServeManager:
                     data["data"]["date"],cursor)
             elif data["type"] == "connection":
                 await self.sql_handler.create_connection_history(
-                    data["name"]
-                    ,data["type"],
-                    data["date"],cursor)
+                    data["data"]["name"]
+                    ,data["data"]["type"],
+                    data["data"]["date"],cursor)
         else:
             self.capture_in_memory(data)
 
     async def capture_contact_in_db(self,data,cursor):
-        if data["type"] == "add-contact":
+        if data["data"]["type"] == "add-contact":
             await self.sql_handler.create_contact(
                 data["data"]["name"],
                 data["data"]["number"],
@@ -207,10 +210,10 @@ class CaptureAndServeManager:
             return self.structure_banned_data(data)
 
     def structure_contact_data(self,data):
-        data = {}
+        data_holder = {}
         for contact in data:
-            data[contact[1]] = contact[2]
-        return data
+            data_holder[contact[1]] = contact[2]
+        return data_holder
         
     def structure_action_execution_data(self,data):
         data = []

@@ -83,6 +83,7 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         #checking if the contact is present by requesting a list from the server
         data_dict = await self.gather_one_send_request_response("contact_list",websocket)
         contacts = json.loads(data_dict["target_value"])
+        print(contacts)
         self.assertTrue("test" in contacts)
         self.assertTrue(contacts["test"] == "+17769392019")
 
