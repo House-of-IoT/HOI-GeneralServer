@@ -63,6 +63,11 @@ class CaptureAndServeManager:
                     data["data"]["executor"],data["data"]["action"],
                     data["data"]["bot_name"],data["data"]["type"],
                     data["data"]["date"],cursor)
+            elif data["type"] == "connection":
+                await self.sql_handler.create_connection_history(
+                    data["name"]
+                    ,data["type"],
+                    data["date"],cursor)
         else:
             self.capture_in_memory(data)
 

@@ -7,6 +7,7 @@ from DataObjects.BasicResponse import BasicResponse
 from HybridActionsAndAutoScheduling.auto_scheduler import Task
 from dateutil import parser
 from DataObjects.routing_types import RoutingTypes
+from DataCapture.capture_object_creator import CaptureDictCreator
 import traceback
 import datetime
 
@@ -125,6 +126,7 @@ class ClientHandler:
         
             if bot_name in self.parent.available_status:
                 self.parent.available_status[bot_name] = True
+        
 
     """
     Takes actions that are "basic"(needs a one time opcode to change a device's state)
