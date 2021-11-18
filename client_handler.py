@@ -81,7 +81,7 @@ class ClientHandler:
                 await self.send_generic_table_state(
                     "viewing",
                     target,
-                    json.dumps(self.parent.auto_scheduler.tasks))
+                    json.dumps(self.parent.auto_scheduler.tasks_to_json_str()))
         except Exception as e:
             print(e)
             await self.handle_send_table_state_exception(e,target)

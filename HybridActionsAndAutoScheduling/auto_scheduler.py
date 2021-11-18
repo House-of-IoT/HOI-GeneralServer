@@ -11,23 +11,6 @@ class AutoScheduler:
          self.parent = parent
          self.running = True
 
-    def add_task(self,task):
-        uid = str(task.time) + task.bot_name + task.action
-        self.tasks[uid] = task
-
-    def cancel_task(self,task):
-        uid = str(task.time) + task.bot_name + task.action
-        if uid in self.tasks:
-            del self.tasks[uid]
-        
-    def task_should_run(self,task):
-        #if the task's time has passed or the time is now
-        if task.time <= datetime.datetime.utcnow():
-            # if bot is connected and available
-            if task.bot_name in self.parent.devices and self.parent.available_status[task.bot_name] == True:
-                return True
-        return False
-    
     async def execute_tasks(self):
         while True:
             try:
@@ -52,6 +35,23 @@ class AutoScheduler:
                 #only try to execute one task at a time 
                 break
 
+    def add_task(self,task):
+        uid = str(task.time) + task.bot_name + task.action
+        self.tasks[uid] = task
+
+    def cancel_task(self,task):
+        uid = str(task.time) + task.bot_name + task.action
+        if uid in self.tasks:
+            del self.tasks[uid]
+        
+    def task_should_run(self,task):
+        #if the task's time has passed or the time is now
+        if task.time <= datetime.datetime.utcnow():
+            # if bot is connected and available
+            if task.bot_name in self.parent.devices and self.parent.available_status[task.bot_name] == True:
+                return True
+        return False
+
     async def send_action_to_bot(self,task):
         try:
             #send the request and gather response
@@ -61,6 +61,22 @@ class AutoScheduler:
             self.parent.most_recent_scheduled_tasks[task.bot_name] = response
         except Exception as e:
             self.parent.most_recent_scheduled_tasks[task.bot_name] = "failure"
+    
+    def tasks_to_json_str(self):
+        data_holder = {}
+        all_task_keys = self.tasks.keys()
+        
+        #convert Task objects to dict object
+        for key in all_task_keys:
+            task_dict_holder = {}
+            task = self.tasks[key]
+            task_dict_holder["time"] = str(task.time)
+            task_dict_holder["name"] = task.bot_name
+            task_dict_holder["action"] = task.action
+            data_holder[key] = task_dict_holder
+        return data_holder
+
+
 
 """
 Data representation of an auto scheduled task.

@@ -4,6 +4,7 @@ import asyncio
 import websockets
 import json
 import unittest
+import datetime
 
 '''
 This test assumes
@@ -43,6 +44,7 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         await self.add_and_view_contacts(websocket)
         await asyncio.sleep(5)
         await self.remove_and_view_contacts(websocket)
+        await self.adding_and_removing_auto_scheduling_task(websocket)
 
     async def connect(self,need_websocket = False):
         connection_string = 'ws://localhost:50223'
@@ -142,6 +144,27 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(data_dict["server_name"],"test_name")
         self.assertEqual(len(data_dict["bots"]),bot_num)
 
+    async def adding_and_removing_auto_scheduling_task(self,websocket):
+        print("testing adding/removing and viewing auto scheduler tasks...")
+        #make sure the datetime is far away so the autoscheduler doesn't execute it
+        datetime_str = str(datetime.datetime.utcnow() + datetime.timedelta(days=1))
+        data = {"name":"test","action":"test_trigger","time":datetime_str}
+        await self.send_super_auth_request_and_authenticate(websocket,"add-task",data)
+
+        data_dict_response = await self.gather_one_send_request_response("task_list",websocket)
+        data_dict_target_value = json.loads(data_dict_response["target_value"])
+        self.assertEqual(len(data_dict_target_value.keys()),1)
+
+        await self.send_super_auth_request_and_authenticate(websocket,"remove-task",data)
+
+        data_dict_response = await self.gather_one_send_request_response("task_list",websocket)
+        data_dict_target_value = json.loads(data_dict_response["target_value"])
+        self.assertEqual(len(data_dict_target_value.keys()),0)
+    
+    async def auto_scheduler_task_execution(self,websocket):
+        pass
+
+    #HELPERS
     async def send_super_auth_request_and_authenticate(self,websocket,op_code,data_dict):
         await websocket.send(op_code)
         await websocket.send(json.dumps(data_dict))
