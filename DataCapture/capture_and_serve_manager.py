@@ -42,8 +42,7 @@ class CaptureAndServeManager:
             raise IssueGatheringServeData(f"while trying to gather data for {target} an error occured")
 
     async def try_to_route_and_capture(self,data):
-        try:
-            
+        try:         
             await self.route_and_capture(data)
         except Exception as e:
             print(e)
@@ -75,6 +74,8 @@ class CaptureAndServeManager:
             self.capture_in_memory(data)
 
     async def capture_contact_in_db(self,data,cursor):
+        if self.contact_exist_in_db(data["data"]["name"]):
+            return
         if data["data"]["type"] == "add-contact":
             await self.sql_handler.create_contact(
                 data["data"]["name"],
@@ -82,6 +83,13 @@ class CaptureAndServeManager:
                 cursor)
         else:
             pass #delete
+
+    async def contact_exist_in_db(self,name,cursor):
+        contacts_in_db = await self.sql_handler.get_all_rows_single_parameter("contacts","name",name,cursor)
+        if len(contacts_in_db) == 0:
+            return False
+        else:
+            return True
 
     def capture_in_memory(self,data):
         if data["type"] == "contact":
@@ -94,7 +102,6 @@ class CaptureAndServeManager:
     def capture_contact_in_memory(self,data):
         name = data["data"]["name"]
         number = data["data"]["number"]
-
         if data["data"]["type"] == "add-contact":
             self.parent.contacts[name] = number
         else:

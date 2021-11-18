@@ -36,65 +36,34 @@ class SQLHandler:
             return False
 
     async def create_tables_if_needed(self,cursor):
-        try:
-            await cursor.execute(PostgresQueries.create_action_execution_history)
-            await cursor.execute(PostgresQueries.create_contacts_table)
-            await cursor.execute(PostgresQueries.create_banned_history)
-            await cursor.execute(PostgresQueries.create_connection_history)
-            return True
-        except Exception as e:
-            print(e)
-            return False
+        await cursor.execute(PostgresQueries.create_action_execution_history)
+        await cursor.execute(PostgresQueries.create_contacts_table)
+        await cursor.execute(PostgresQueries.create_banned_history)
+        await cursor.execute(PostgresQueries.create_connection_history)
 
     async def remove_expired_rows(self,date,table_name,date_column_name,cursor):
-        try:
-            await cursor.execute(PostgresQueries.remove_expired_history_query(
-                table_name,date_column_name,date))
-            return True
-        except:
-            return False
+        await cursor.execute(PostgresQueries.remove_expired_history_query(
+            table_name,date_column_name,date))
 
     async def create_action_execution(self,executor,action,bot_name,type_data,date,cursor):
-        try:
-            await cursor.execute(
-                PostgresQueries.insert_action_execution_query(executor,action,bot_name,type_data,date))
-            return True
-        except Exception as e:
-            print(e)
-            return False
+        await cursor.execute(PostgresQueries.insert_action_execution_query(executor,action,bot_name,type_data,date))
 
     async def create_connection_history(self,name,type_data,date,cursor):
-        try:
-            await cursor.execute(PostgresQueries.insert_connection_query(name,type_data,date))
-            return True
-        except Exception as e:
-            print(e)
-            return False
+        await cursor.execute(PostgresQueries.insert_connection_query(name,type_data,date))
 
     async def create_banned(self,ip,cursor):
-        try:
-            await cursor.execute(PostgresQueries.insert_banned_query(ip))
-            return True
-        except Exception as e:
-            print(e)
-            return False
-        
+        await cursor.execute(PostgresQueries.insert_banned_query(ip))
+
     async def create_contact(self,name,number,cursor):
-        try:
-            await cursor.execute(PostgresQueries.insert_contact_query(name,number))
-            return True
-        except Exception as e:
-            print(e)
-            return False
+        await cursor.execute(PostgresQueries.insert_contact_query(name,number))
 
     async def get_all_rows(self,table_name,cursor):
-        try:
-            await cursor.execute(PostgresQueries.select_query(table_name))
+        await cursor.execute(PostgresQueries.select_query(table_name))
+        return await self.all_rows(cursor)
 
-            return await self.all_rows(cursor)
-        except Exception as e:
-            print(e)
-            return False
+    async def get_all_rows_single_parameter(self,table_name,column,target,cursor):
+        await cursor.execute(PostgresQueries.single_parameter_where(table_name,column,target))
+        return await self.all_rows(cursor)
         
     async def all_rows(self,cursor):
         results = []

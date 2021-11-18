@@ -84,13 +84,18 @@ class PostgresQueries:
         return banned_query
 
     @staticmethod
-    def single_parameter_delete_query(table_name,parameter):
-        Query = f""" DELETE FROM {table_name} WHERE {parameter} = ? """
+    def single_parameter_delete_query(table_name,column,target):
+        Query = f""" DELETE FROM {table_name} WHERE {column} = '{target}' """
         return Query
 
     @staticmethod
     def select_query(table_name):
         Query = f"""SELECT * FROM {table_name}"""
+        return Query
+
+    @staticmethod
+    def single_parameter_where(table_name,column,target):
+        Query = f""" SELECT * FROM {table_name} WHERE {column} = '{target}' """
         return Query
 
     @staticmethod 
