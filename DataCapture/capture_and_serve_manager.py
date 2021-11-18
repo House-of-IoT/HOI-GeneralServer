@@ -82,7 +82,7 @@ class CaptureAndServeManager:
                 data["data"]["number"],
                 cursor)
         else:
-            pass #delete
+            await self.sql_handler.remove_contact(data["data"]["name"],cursor)
 
     async def contact_exist_in_db(self,name,cursor):
         contacts_in_db = await self.sql_handler.get_all_rows_single_parameter("contacts","name",name,cursor)

@@ -65,6 +65,9 @@ class SQLHandler:
         await cursor.execute(PostgresQueries.single_parameter_where(table_name,column,target))
         return await self.all_rows(cursor)
         
+    async def remove_contact(self,name,cursor):
+        await cursor.execute(PostgresQueries.single_parameter_delete_query("contacts","name",name))
+
     async def all_rows(self,cursor):
         results = []
         print("getting all rows")
