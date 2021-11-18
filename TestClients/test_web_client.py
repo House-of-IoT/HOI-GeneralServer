@@ -87,6 +87,14 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue("test" in contacts)
         self.assertTrue(contacts["test"] == "+17769392019")
 
+    async def remove_and_view_contact(self,websocket):
+        #add_and_view_contacts should be executed right before this method.
+        #"test" should exist in contacts
+        #await websocket.send("remove-contact")
+        pass
+        
+
+
     #assumes that one bot named "test" is connected to the server
     async def view_state_deactivated_bots(self,websocket):
         print("testing deactivation without auth requirements....")

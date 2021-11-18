@@ -3,6 +3,7 @@ from .sql_handler import SQLHandler
 from Errors.errors import IssueConnectingToDB
 from Errors.errors import IssueGatheringServeData
 from .data_catch_up_manager import DataCatchUpManager
+import traceback
 import json
 import asyncio
 
@@ -38,14 +39,14 @@ class CaptureAndServeManager:
             type_of_data = self.map_target_to_type_of_data(target)
             return await self.serve_data(type_of_data)
         except Exception as e:
-            print(e)
+            traceback.print_exc()
             raise IssueGatheringServeData(f"while trying to gather data for {target} an error occured")
 
     async def try_to_route_and_capture(self,data):
         try:         
             await self.route_and_capture(data)
         except Exception as e:
-            print(e)
+            traceback.print_exc()
             #notification of failure
             pass
 
@@ -105,7 +106,8 @@ class CaptureAndServeManager:
             self.capture_in_dict(
                 self.parent.contacts,data["data"]["name"],
                 data["data"]["number"],
-                "add-contact")
+                "add-contact",
+                data)
         elif data["type"] == "connection":
             self.capture_generic_for_queue_in_memory(data,self.parent.most_recent_connections,20)
         elif data["type"] == "executed_action":
@@ -115,17 +117,18 @@ class CaptureAndServeManager:
                 self.parent.failed_auth_attempts,
                 data["data"]["ip"],
                 3, #three failed attempts means you are banned
-                "add")
+                "add",
+                data)
 
-    def capture_in_dict(self,dict_obj,key,value,add_op_code):
-        if dict_obj["data"]["type"] == add_op_code:
+    def capture_in_dict(self,dict_obj,key,value,add_op_code,data):
+        if data["data"]["type"] == add_op_code:
             dict_obj[key] = value
         else:
             if key in dict_obj:
                del dict_obj[key]
 
     def capture_generic_for_queue_in_memory(self,data,queue_obj,max_size):
-        if len(queue_obj.qsize()) > max_size:
+        if queue_obj.qsize() > max_size:
             self.queue_obj.get()
         queue_obj.put(data["data"])
     
