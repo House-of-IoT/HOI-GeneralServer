@@ -41,6 +41,8 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         await self.view_config(websocket)
         await asyncio.sleep(5)
         await self.add_and_view_contacts(websocket)
+        await asyncio.sleep(5)
+        await self.remove_and_view_contacts(websocket)
 
     async def connect(self,need_websocket = False):
         connection_string = 'ws://localhost:50223'
@@ -69,31 +71,31 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
 
     async def add_and_view_contacts(self,websocket):
         print("testing adding and viewing contacts...")
-        await websocket.send("add-contact")
-        await websocket.send(json.dumps({"name":"test","number":"+17769392019"}))
-        response = await websocket.recv()
-        data_dict_response = json.loads(response)
-        #sending super admin password to add the contact
-        self.assertEqual(data_dict_response["status"],"needs-admin-auth")
-        await websocket.send("")
-        response = await websocket.recv()
-        data_dict_response = json.loads(response)
-        self.assertEqual(data_dict_response["status"],"success")
+        await self.send_super_auth_request_and_authenticate(
+            websocket,
+            "add-contact",
+            {"name":"test","number":"+17769392019"})
 
-        #checking if the contact is present by requesting a list from the server
+        #making sure the contact is present
         data_dict = await self.gather_one_send_request_response("contact_list",websocket)
         contacts = json.loads(data_dict["target_value"])
         print(contacts)
         self.assertTrue("test" in contacts)
         self.assertTrue(contacts["test"] == "+17769392019")
 
-    async def remove_and_view_contact(self,websocket):
+    async def remove_and_view_contacts(self,websocket):
         #add_and_view_contacts should be executed right before this method.
         #"test" should exist in contacts
-        #await websocket.send("remove-contact")
-        pass
-        
+        print("testing removing and viewing contacts...")
+        await self.send_super_auth_request_and_authenticate(
+            websocket,
+            "remove-contact",
+            {"name":"test","number":"+17769392019"})
 
+        #making sure the contact isn't present
+        data_dict = await self.gather_one_send_request_response("contact_list",websocket)
+        contacts = json.loads(data_dict["target_value"])
+        self.assertEqual(len(contacts.keys()),0)
 
     #assumes that one bot named "test" is connected to the server
     async def view_state_deactivated_bots(self,websocket):
@@ -139,6 +141,19 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         data_dict = json.loads(response)
         self.assertEqual(data_dict["server_name"],"test_name")
         self.assertEqual(len(data_dict["bots"]),bot_num)
+
+    async def send_super_auth_request_and_authenticate(self,websocket,op_code,data_dict):
+        await websocket.send(op_code)
+        await websocket.send(json.dumps(data_dict))
+        response = await websocket.recv()
+        data_dict_response = json.loads(response)
+
+        #sending super admin password 
+        self.assertEqual(data_dict_response["status"],"needs-admin-auth")
+        await websocket.send("")
+        response = await websocket.recv()
+        data_dict_response = json.loads(response)
+        self.assertEqual(data_dict_response["status"],"success")
 
     async def send_bot_control(self,websocket,action):
         await websocket.send("bot_control")
