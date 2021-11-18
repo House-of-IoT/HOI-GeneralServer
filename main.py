@@ -27,7 +27,7 @@ class Main:
         self.console_logger = ConsoleLogger(self)
         self.twilio_handler = TwilioHandler(self)
         self.config = ConfigHandler()
-        self.auto_scheduler = AutoScheduler(5,self)
+        self.auto_scheduler = AutoScheduler(1,self)
         self.type_handler = TypeHandler()
         self.capture_and_serve_manager = CaptureAndServeManager(self.config.using_sql,self)
         
@@ -293,7 +293,7 @@ class Main:
         self.bot_passive_data = {}
         self.gathering_passive_data = {}
         self.contacts = {}
-        self.most_recent_scheduled_tasks = {}
+        self.most_recent_executed_tasks = queue.Queue()
         self.most_recent_executed_actions = queue.Queue()
         self.most_recent_connections = queue.Queue()
         self.devices = {}

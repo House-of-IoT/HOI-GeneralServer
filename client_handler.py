@@ -10,6 +10,7 @@ from DataObjects.routing_types import RoutingTypes
 from DataCapture.capture_object_creator import CaptureDictCreator
 import traceback
 import datetime
+import queue
 
 class ClientHandler:
     def __init__(self,parent,name,websocket):
@@ -66,22 +67,22 @@ class ClientHandler:
 
     #sending the server's live table state that don't have authentication requirements
     async def send_table_state_with_no_auth_requirements(self,target):
+        no_auth_types = RoutingTypes.GENERIC_STATE_WITH_NO_AUTH 
+        no_auth_types_with_capture_manager = RoutingTypes.GENERIC_STATE_WITH_NO_AUTH_CAPTURE_MANAGER
+
         try:
-            if target == "server_config":
+            #the requests that don't require auth or capture manager
+            if target in no_auth_types and  target not in no_auth_types_with_capture_manager:
                 await self.send_generic_table_state(
                     "viewing",
                     target,
-                    self.parent.config.string_version())
+                    self.route_no_auth_target_to_object(target))
+
             elif target in RoutingTypes.GENERIC_STATE_WITH_NO_AUTH_CAPTURE_MANAGER:
                 table_state = await self.parent.capture_and_serve_manager.try_to_gather_serve_target(target)
                 await self.send_generic_table_state(
                     "viewing",
                     target,json.dumps(table_state))
-            elif target == "task_list":
-                await self.send_generic_table_state(
-                    "viewing",
-                    target,
-                    json.dumps(self.parent.auto_scheduler.tasks_to_json_str()))
         except Exception as e:
             print(e)
             await self.handle_send_table_state_exception(e,target)
@@ -377,6 +378,20 @@ class ClientHandler:
             if seconds_passed > 12 and self.parent.gathering_passive_data[name]:
                 raise BotStuckInPassiveDataGather("Bot stuck in passive data gather.")
 
+    def route_no_auth_target_to_object(self,target):
+        if target == "server_config":
+            return self.parent.config.string_version()
+        elif target == "task_list":
+            return json.dumps(self.parent.auto_scheduler.tasks_to_dict())
+        elif target == "recent_executed_tasks":
+            #create copy of queue and covert the original queue into a list.
+            #overwrite the old queue variable
+            old_queue = self.parent.most_recent_executed_tasks
+            queue_and_list = self.convert_queue_to_list_and_create_queue_copy(old_queue)
+            self.parent.most_recent_executed_tasks = queue_and_list[0]
+            tasks = self.convert_all_tasks_to_dict(queue_and_list[1])
+            return json.dumps(tasks)
+
     async def handle_bot_control_exception(self,e):
         traceback.print_exc()
         if e is AddressBannedException:
@@ -387,6 +402,23 @@ class ClientHandler:
             await self.websocket.send("fatal_timeout")
         else:
             await self.websocket.send("timeout")
+
+    def convert_queue_to_list_and_create_queue_copy(self,old_queue):
+        new_queue = queue.Queue
+        new_list = []
+
+        while old_queue.qsize()>0:
+            queue_value = old_queue.get()
+            new_queue.put(queue_value)
+            new_list.append(queue_value)
+
+        return (new_queue,new_list)
+
+    def convert_all_tasks_to_dict(self,tasks):
+        new_tasks = []
+        for task in tasks:
+            new_tasks.append(task.task_to_dict)
+        return new_tasks
 
     async def handle_send_table_state_exception(self,e,target):
         traceback.print_exc()

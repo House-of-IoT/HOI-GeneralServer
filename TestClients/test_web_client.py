@@ -45,6 +45,7 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         await asyncio.sleep(5)
         await self.remove_and_view_contacts(websocket)
         await self.adding_and_removing_auto_scheduling_task(websocket)
+        await self.auto_scheduler_task_execution(websocket)
 
     async def connect(self,need_websocket = False):
         connection_string = 'ws://localhost:50223'
@@ -149,20 +150,42 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         #make sure the datetime is far away so the autoscheduler doesn't execute it
         datetime_str = str(datetime.datetime.utcnow() + datetime.timedelta(days=1))
         data = {"name":"test","action":"test_trigger","time":datetime_str}
-        await self.send_super_auth_request_and_authenticate(websocket,"add-task",data)
 
+        #test adding
+        await self.send_super_auth_request_and_authenticate(websocket,"add-task",data)
         data_dict_response = await self.gather_one_send_request_response("task_list",websocket)
         data_dict_target_value = json.loads(data_dict_response["target_value"])
         self.assertEqual(len(data_dict_target_value.keys()),1)
+        key = list(data_dict_target_value.keys())[0]
+        self.assertEqual(data_dict_target_value[key]["name"],data["name"])
+        self.assertEqual(data_dict_target_value[key]["action"],data["action"])
+        self.assertEqual(data_dict_target_value[key]["time"],data["time"])
 
+        #testing removing
         await self.send_super_auth_request_and_authenticate(websocket,"remove-task",data)
-
         data_dict_response = await self.gather_one_send_request_response("task_list",websocket)
         data_dict_target_value = json.loads(data_dict_response["target_value"])
         self.assertEqual(len(data_dict_target_value.keys()),0)
     
     async def auto_scheduler_task_execution(self,websocket):
-        pass
+        datetime_str = str(datetime.datetime.utcnow())
+        data = {"name":"test","action":"test_trigger","time":datetime_str}
+        await self.send_super_auth_request_and_authenticate(websocket,"add-task",data)
+
+        #give the server time to execute
+        await asyncio.sleep(15)
+        
+        data_dict_response = await self.gather_one_send_request_response("recent_executed_tasks",websocket)
+        data_dict_target_value = json.loads(data_dict_response["target_value"])
+
+        self.assertEqual(len(data_dict_target_value),1)
+        self.assertEqual(data_dict_target_value[0]["name"],data["name"])
+        self.assertEqual(data_dict_target_value[0]["action"],data["action"])
+        self.assertEqual(data_dict_target_value[0]["time"],data["time"])
+        self.assertEqual(data_dict_target_value[0]["response"],"success")
+
+
+
 
     #HELPERS
     async def send_super_auth_request_and_authenticate(self,websocket,op_code,data_dict):

@@ -4,7 +4,8 @@ class RoutingTypes:
         "recent_connections",
         "executed_actions",
         "task_list",
-        "server_config"}
+        "server_config",
+        "recent_executed_tasks"}
 
     GENERIC_STATE_WITH_NO_AUTH_CAPTURE_MANAGER = {
         "contact_list",
