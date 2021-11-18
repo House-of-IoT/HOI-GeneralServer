@@ -102,22 +102,30 @@ class CaptureAndServeManager:
 
     def capture_in_memory(self,data):
         if data["type"] == "contact":
-            self.capture_contact_in_memory(data)
+            self.capture_in_dict(
+                self.parent.contacts,data["data"]["name"],
+                data["data"]["number"],
+                "add-contact")
         elif data["type"] == "connection":
             self.capture_generic_for_queue_in_memory(data,self.parent.most_recent_connections,20)
         elif data["type"] == "executed_action":
             self.capture_generic_for_queue_in_memory(data,self.parent.most_recent_executed_actions,15)
-    
-    def capture_contact_in_memory(self,data):
-        name = data["data"]["name"]
-        number = data["data"]["number"]
-        if data["data"]["type"] == "add-contact":
-            self.parent.contacts[name] = number
-        else:
-            del self.parent.contacts[name]
+        elif data["type"] == "banned":
+            self.capture_in_dict(
+                self.parent.failed_auth_attempts,
+                data["data"]["ip"],
+                3, #three failed attempts means you are banned
+                "add")
 
-    def capture_generic_for_queue_in_memory(self,data,queue_obj,size):
-        if len(queue_obj.qsize()) > size:
+    def capture_in_dict(self,dict_obj,key,value,add_op_code):
+        if dict_obj["data"]["type"] == add_op_code:
+            dict_obj[key] = value
+        else:
+            if key in dict_obj:
+               del dict_obj[key]
+
+    def capture_generic_for_queue_in_memory(self,data,queue_obj,max_size):
+        if len(queue_obj.qsize()) > max_size:
             self.queue_obj.get()
         queue_obj.put(data["data"])
     

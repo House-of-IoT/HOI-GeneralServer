@@ -128,7 +128,6 @@ class Main:
                     await self.capture_and_serve_manager.try_to_route_and_capture(basic_capture_dict)
                     raise AddressBannedException("Address is banned!!")
                 return False
-
         except Exception as e:
             self.handle_is_authed_exception(e,websocket)
             return False
@@ -204,8 +203,8 @@ class Main:
         self.gathering_passive_data[name] = False
 
     def is_banned(self,ip):
-        if ip in self.failed_admin_attempts:
-            if self.failed_admin_attempts[ip] > 3:
+        if ip in self.failed_auth_attempts:
+            if self.failed_auth_attempts[ip] > 3:
                 print(f"the banned ip({ip}) is trying to auth")
                 return True
             else:
@@ -221,14 +220,14 @@ class Main:
 
     def add_to_failed_attempts(self,websocket):
         ip = str(websocket.remote_address[0])
-        if ip in self.failed_admin_attempts:
-            self.failed_admin_attempts[ip] +=1
+        if ip in self.failed_auth_attempts:
+            self.failed_auth_attempts[ip] +=1
         else:
-            self.failed_admin_attempts[ip] = 1
+            self.failed_auth_attempts[ip] = 1
 
     async def reset_attempts(self):
         await asyncio.sleep(86400)# one day
-        self.failed_admin_attempts = {}
+        self.failed_auth_attempts = {}
 
     def name_and_type(self, response):
         try:
@@ -250,10 +249,10 @@ class Main:
             traceback.print_exc()
 
     def banned_ips(self):
-        ips = self.failed_admin_attempts.keys()
+        ips = self.failed_auth_attempts.keys()
         banned_ips_holder = set()
         for ip in ips :
-            if self.failed_admin_attempts[ip] > 3:
+            if self.failed_auth_attempts[ip] > 3:
                 banned_ips_holder.add(ip)
         return banned_ips_holder
 
@@ -299,7 +298,7 @@ class Main:
         self.most_recent_connections = queue.Queue()
         self.devices = {}
         self.devices_type = {}
-        self.failed_admin_attempts = {}
+        self.failed_auth_attempts = {}
         self.available_status = {}
         self.deactivated_bots = set()
         self.last_alert_sent = {}
