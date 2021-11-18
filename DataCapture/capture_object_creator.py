@@ -30,9 +30,10 @@ class CaptureDictCreator:
         }
     
     @staticmethod 
-    def create_banned_dict(ip):
+    def create_banned_dict(ip,type_data):
         return{
-            "ip":ip
+            "ip":ip,
+            "type":type_data
         }
 
     @staticmethod

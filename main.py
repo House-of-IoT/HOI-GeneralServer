@@ -123,23 +123,14 @@ class Main:
                 ip = websocket.remote_address[0]
                 #re-check failed attempts after incrementing
                 if self.is_banned(ip):
-                    banned_capture_data = CaptureDictCreator.create_banned_dict(ip)
+                    banned_capture_data = CaptureDictCreator.create_banned_dict(ip,"add")
                     basic_capture_dict = CaptureDictCreator.create_basic_dict("banned",banned_capture_data)
                     await self.capture_and_serve_manager.try_to_route_and_capture(basic_capture_dict)
                     raise AddressBannedException("Address is banned!!")
                 return False
 
         except Exception as e:
-            print("failed authentication from:" + str(websocket.remote_address[0]))
-            #not timed out but banned 
-            if e is AddressBannedException:
-                raise e
-            #timed out and banned
-            if self.is_banned(websocket.remote_address[0]):
-                raise AddressBannedException("Address is banned!!")
-            #timed out and not banned
-            self.add_to_failed_attempts(websocket)
-            traceback.print_exc()
+            self.handle_is_authed_exception(e,websocket)
             return False
     """
     Makes sure this person isn't already connected and their type is acceptable
@@ -286,7 +277,19 @@ class Main:
         self.admin_password = os.environ.get("apw_hoi_gs")
         self.regular_password = os.environ.get("rpw_hoi_gs")
         self.super_admin_password = os.environ.get("sapw_hoi_gs")
-    
+
+    def handle_is_authed_exception(self,e,websocket):
+        print("failed authentication from:" + str(websocket.remote_address[0]))
+        #not timed out but banned 
+        if e is AddressBannedException:
+            raise e
+        #timed out and banned
+        if self.is_banned(websocket.remote_address[0]):
+            raise AddressBannedException("Address is banned!!")
+        #timed out and not banned
+        self.add_to_failed_attempts(websocket)
+        traceback.print_exc()
+
     def set_basic_empty_state(self):
         self.bot_passive_data = {}
         self.gathering_passive_data = {}

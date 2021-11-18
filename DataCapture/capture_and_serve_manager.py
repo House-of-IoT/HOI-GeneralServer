@@ -59,7 +59,7 @@ class CaptureAndServeManager:
             if data["type"] == "contact":
                 await self.capture_contact_in_db(data,cursor)
             elif data["type"] == "banned":
-                await self.sql_handler.create_banned(data["data"]["ip"],cursor)
+                await self.capture_banned_in_db(data,cursor)
             elif data["type"] == "executed_action":
                 await self.sql_handler.create_action_execution(
                     data["data"]["executor"],data["data"]["action"],
@@ -74,7 +74,7 @@ class CaptureAndServeManager:
             self.capture_in_memory(data)
 
     async def capture_contact_in_db(self,data,cursor):
-        if self.contact_exist_in_db(data["data"]["name"]):
+        if await self.row_exist_in_db(data["data"]["name"],cursor,"contacts","name") and data["data"]["type"] == "add-contact":
             return
         if data["data"]["type"] == "add-contact":
             await self.sql_handler.create_contact(
@@ -82,14 +82,23 @@ class CaptureAndServeManager:
                 data["data"]["number"],
                 cursor)
         else:
-            await self.sql_handler.remove_contact(data["data"]["name"],cursor)
+            await self.sql_handler.execute_single_parameter_delete_query(
+                "contacts",
+                "name",
+                data["data"]["name"],
+                cursor)
 
-    async def contact_exist_in_db(self,name,cursor):
-        contacts_in_db = await self.sql_handler.get_all_rows_single_parameter("contacts","name",name,cursor)
-        if len(contacts_in_db) == 0:
-            return False
+    async def capture_banned_in_db(self,data,cursor):
+        if await self.row_exist_in_db(data["data"]["ip"],cursor,"banned","Ip") and data["data"]["type"] == "add":
+            return 
+        if data["data"]["type"] == "add":
+            await self.sql_handler.create_banned(data["data"]["ip"],cursor)
         else:
-            return True
+            await self.sql_handler.execute_single_parameter_delete_query(
+                "banned",
+                "Ip",
+                data["data"]["ip"],
+                cursor)
 
     def capture_in_memory(self,data):
         if data["type"] == "contact":
@@ -127,7 +136,7 @@ class CaptureAndServeManager:
         if type_of_data == "contacts":
             return self.parent.contacts
         elif type_of_data == "banned":
-            return self.banned_in_memory()
+            return self.parent.banned_ips()
         elif type_of_data == "action_execution":
             return self.convert_queue_to_list(self.parent.most_recent_executed_actions)
         elif type_of_data == "connections":
@@ -206,6 +215,17 @@ class CaptureAndServeManager:
             if self.currently_trying_to_connect == False:
                 await self.attemp_reconnect_and_mode_switch()
 
+    async def row_exist_in_db(self,parameter,cursor,table_name,col_name):
+        rows_in_db = await self.sql_handler.get_all_rows_single_parameter(
+            table_name,
+            col_name,
+            parameter,
+            cursor)
+        if len(rows_in_db) == 0:
+            return False
+        else:
+            return True
+
     def convert_data_to_expected_type(self,data,type_of_data):
         if type_of_data == "contacts":
             return self.structure_contact_data(data)
@@ -265,12 +285,3 @@ class CaptureAndServeManager:
             return "action_execution"
         else:
             return "contacts"
-
-    #fix DRY VIOLATION
-    def banned_in_memory(self):
-        ips = self.parent.failed_admin_attempts.keys()
-        banned_ips_holder = set()
-        for ip in ips :
-            if self.parent.failed_admin_attempts[ip] > 3:
-                banned_ips_holder.add(ip)
-        return banned_ips_holder
