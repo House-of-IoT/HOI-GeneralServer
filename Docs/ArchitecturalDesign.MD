@@ -8,7 +8,7 @@
 
 `"passive data"` - all "bots" usually send passive data to the "non-bots" which is displayed on the client interfaces(if they are "available").
 
-`"available"` - This is either true of false for a "Non-bot".
+`"available"` - This is either true of false for all "bots" determines if a devices is already under control.
 
 `"special action"` - streaming or other actions that require back and forth communication.
 
