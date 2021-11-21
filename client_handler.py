@@ -4,7 +4,7 @@ from Errors.errors import AddressBannedException
 from Errors.errors import BotStuckInPassiveDataGather
 from Errors.errors import IssueGatheringServeData
 from DataObjects.BasicResponse import BasicResponse
-from HybridActionsAndAutoScheduling.auto_scheduler import Task
+from AutoScheduling.auto_scheduler import Task
 from dateutil import parser
 from DataObjects.routing_types import RoutingTypes
 from DataCapture.capture_object_creator import CaptureDictCreator
@@ -186,7 +186,7 @@ class ClientHandler:
             await self.execute_basic_action_protocol(bot_name,action)
         elif self.bot_type_has_capability(bot_name,action):
             await asyncio.wait_for(self.websocket.send("success"),10)
-            await self.begin_capability(bot_name,action)
+            
         else:
             await asyncio.wait_for(self.websocket.send("issue"),10) 
 
