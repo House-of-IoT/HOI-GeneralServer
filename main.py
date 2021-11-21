@@ -123,6 +123,7 @@ class Main:
                 ip = websocket.remote_address[0]
                 #re-check failed attempts after incrementing
                 if self.is_banned(ip):
+                    print(ip)
                     banned_capture_data = CaptureDictCreator.create_banned_dict(ip,"add")
                     basic_capture_dict = CaptureDictCreator.create_basic_dict("banned",banned_capture_data)
                     await self.capture_and_serve_manager.try_to_route_and_capture(basic_capture_dict)
@@ -279,6 +280,7 @@ class Main:
 
     def handle_is_authed_exception(self,e,websocket):
         print("failed authentication from:" + str(websocket.remote_address[0]))
+        print(e)
         #not timed out but banned 
         if e is AddressBannedException:
             raise e

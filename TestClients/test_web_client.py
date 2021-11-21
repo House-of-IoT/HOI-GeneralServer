@@ -42,6 +42,7 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         await self.remove_and_view_contacts(websocket)
         await self.connection_list(websocket)
         await self.recent_executed_actions(websocket)
+        await self.adding_and_removing_banned_ips(websocket)
 
     async def connect(self,need_websocket = False):
         connection_string = 'ws://localhost:50223'
@@ -208,12 +209,30 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         self.assert_action_execution_data(
             data_dict_target_value[5],"disconnect","test1","test_bot","test")        
     
-    async def adding_and_removing_banned_ips(self,websocket)
+    async def adding_and_removing_banned_ips(self,websocket):
+        print("testing adding/removing banned ips")
+        #add
+        await self.send_super_auth_request_and_authenticate(websocket,"add-banned-ip",'198.0.3.2',is_dict=False)
+        data_dict_response = await self.send_and_handle_viewing(websocket,"servers_banned_ips")
+        #check
+        data_dict_target_value = data_dict_response["target_value"]
+        self.assertEqual(len(data_dict_target_value),1)
+        self.assertEqual(data_dict_target_value[0],'198.0.3.2')
+        #remove
+        await self.send_super_auth_request_and_authenticate(websocket,"remove-banned-ip","198.0.3.2",is_dict=False)
+        data_dict_response = await self.send_and_handle_viewing(websocket,"servers_banned_ips")
+        #check
+        data_dict_target_value = data_dict_response["target_value"]
+        self.assertEqual(len(data_dict_target_value),0)
 
     #HELPERS
-    async def send_super_auth_request_and_authenticate(self,websocket,op_code,data_dict):
+    async def send_super_auth_request_and_authenticate(self,websocket,op_code,data,is_dict = True):
         await websocket.send(op_code)
-        await websocket.send(json.dumps(data_dict))
+        if is_dict:
+            await websocket.send(json.dumps(data))
+        else:
+            await websocket.send(data)
+
         response = await websocket.recv()
         data_dict_response = json.loads(response)
         #sending super admin password 

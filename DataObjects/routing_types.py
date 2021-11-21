@@ -16,7 +16,9 @@ class RoutingTypes:
         "add-task",
         "remove-task",
         "add-contact",
-        "remove-contact"
+        "remove-contact",
+        "add-banned-ip",
+        "remove-banned-ip"
     }
 
     BASIC_ACTIONS = {

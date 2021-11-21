@@ -25,7 +25,6 @@ class ClientHandler:
 
 #PUBLIC
 
-    #gather user requested action for bot control
     async def gather_request_for_bot(self):
         name_holder_for_error = None
         try:
@@ -49,7 +48,6 @@ class ClientHandler:
                 self.parent.available_status[name_holder_for_error] = True
             await self.handle_bot_control_exception(e)
                 
-    #sending the server's live table state that could have authentication requirements
     async def send_table_state(self,table_or_set,target,keys_or_values_or_both):
         if(await self.client_has_credentials("viewing")):
             try:
@@ -70,7 +68,6 @@ class ClientHandler:
         else:
             await self.send_basic_response("failed-auth",action= "viewing",target=target)
 
-    #sending the server's live table state that don't have authentication requirements
     async def send_table_state_with_no_auth_requirements(self,target):
         no_auth_types = RoutingTypes.GENERIC_STATE_WITH_NO_AUTH 
         no_auth_types_with_capture_manager = RoutingTypes.GENERIC_STATE_WITH_NO_AUTH_CAPTURE_MANAGER
