@@ -14,7 +14,6 @@ class AutoScheduler:
     async def execute_tasks(self):
         while True:
             await asyncio.sleep(self.check_interval)
-            print("running")
             try:
                 await self.try_to_execute_one_task()
             except Exception as e:
@@ -25,7 +24,7 @@ class AutoScheduler:
         for task_uid in tasks:
             task = self.tasks[task_uid]
             #if the scheduled time has passed or it is the scheduled time
-            print(self.task_should_run(task))
+
             if self.task_should_run(task):
                 self.parent.available_status[task.bot_name] = False
                 await self.send_action_to_bot(task)
@@ -53,8 +52,10 @@ class AutoScheduler:
             del self.tasks[uid]
         
     def task_should_run(self,task):
+        now = datetime.datetime.utcnow()
+    
         #if the task's time has passed or the time is now
-        if datetime.datetime.utcnow() >= task.time:
+        if now >= task.time:
             # if bot is connected and available
             if task.bot_name in self.parent.devices and self.parent.available_status[task.bot_name] == True:
                 return True
@@ -66,12 +67,12 @@ class AutoScheduler:
             bot_websocket = self.parent.devices[task.bot_name]
             await asyncio.wait_for(bot_websocket.send(task.action),5)
             response = await asyncio.wait_for(bot_websocket.recv(),8)
-            task.complete(response)
+            task.complete_task(response)
             self.remove_old_records_if_too_full()
             self.parent.most_recent_executed_tasks.put(task)
             
         except Exception as e:
-            task.complete("issue_with_response")
+            task.complete_task("issue_with_response")
             self.remove_old_records_if_too_full()
             self.parent.most_recent_executed_tasks.put(task)
 

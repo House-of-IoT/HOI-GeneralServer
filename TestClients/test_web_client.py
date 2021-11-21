@@ -36,6 +36,8 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         await self.activate_and_deactivate_and_basic_data(websocket)
         await asyncio.sleep(5)
         await self.viewing_connected_devices(websocket)
+        await self.adding_and_removing_auto_scheduling_task(websocket)
+        await self.auto_scheduler_task_execution(websocket)
         await asyncio.sleep(5)
         await self.disconnect_bot(websocket) 
         await asyncio.sleep(5)
@@ -44,8 +46,7 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         await self.add_and_view_contacts(websocket)
         await asyncio.sleep(5)
         await self.remove_and_view_contacts(websocket)
-        await self.adding_and_removing_auto_scheduling_task(websocket)
-        await self.auto_scheduler_task_execution(websocket)
+        await self.connection_list(websocket)
 
     async def connect(self,need_websocket = False):
         connection_string = 'ws://localhost:50223'
@@ -82,7 +83,6 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         #making sure the contact is present
         data_dict = await self.gather_one_send_request_response("contact_list",websocket)
         contacts = json.loads(data_dict["target_value"])
-        print(contacts)
         self.assertTrue("test" in contacts)
         self.assertTrue(contacts["test"] == "+17769392019")
 
@@ -168,6 +168,7 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(data_dict_target_value.keys()),0)
     
     async def auto_scheduler_task_execution(self,websocket):
+        print("testing auto scheduler task execution...")
         datetime_str = str(datetime.datetime.utcnow())
         data = {"name":"test","action":"test_trigger","time":datetime_str}
         await self.send_super_auth_request_and_authenticate(websocket,"add-task",data)
@@ -184,8 +185,21 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(data_dict_target_value[0]["time"],data["time"])
         self.assertEqual(data_dict_target_value[0]["response"],"success")
 
+    async def connection_list(self,websocket):
+        print("testing recent connections...")
+        data_dict_response = await self.gather_one_send_request_response("recent_connections",websocket)
+        data_dict_target_value = json.loads(data_dict_response["target_value"])
+        print(data_dict_target_value)
+        #test_bot_client
+        self.assertEqual(len(data_dict_target_value),2)
+        self.assertEqual(data_dict_target_value[0]["name"],"test")
+        self.assertEqual(data_dict_target_value[0]["type"],"test_bot")
+        #this client
+        self.assertEqual(data_dict_target_value[1]["name"],"test1")
+        self.assertEqual(data_dict_target_value[1]["type"],"non-bot")
 
-
+    async def recent_executed_actions(self,websocket):
+        print("testing recent executed actions...")
 
     #HELPERS
     async def send_super_auth_request_and_authenticate(self,websocket,op_code,data_dict):

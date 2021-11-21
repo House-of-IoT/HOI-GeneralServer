@@ -32,7 +32,6 @@ class SQLHandler:
             return True
         except Exception as e:
             print(e)
-            print("here")
             return False
 
     async def create_tables_if_needed(self,cursor):
@@ -70,8 +69,6 @@ class SQLHandler:
 
     async def all_rows(self,cursor):
         results = []
-        print("getting all rows")
         async for row in cursor:
-            print(row)
             results.append(row)
         return results

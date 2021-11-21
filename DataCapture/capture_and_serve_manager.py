@@ -4,6 +4,7 @@ from Errors.errors import IssueConnectingToDB
 from Errors.errors import IssueGatheringServeData
 from .data_catch_up_manager import DataCatchUpManager
 import traceback
+import queue
 import json
 import asyncio
 
@@ -64,7 +65,7 @@ class CaptureAndServeManager:
             elif data["type"] == "executed_action":
                 await self.sql_handler.create_action_execution(
                     data["data"]["executor"],data["data"]["action"],
-                    data["data"]["bot_name"],data["data"]["type"],
+                    data["data"]["bot_name"],data["data"]["bot_type"],
                     data["data"]["date"],cursor)
             elif data["type"] == "connection":
                 await self.sql_handler.create_connection_history(
@@ -138,26 +139,36 @@ class CaptureAndServeManager:
             cursor = await self.sql_handler.connection.cursor()
             data = await self.sql_handler.get_all_rows(type_of_data,cursor)
             cursor.close()
+            print(data)
             correctly_formatted_data = self.convert_data_to_expected_type(data,type_of_data)
+            print(correctly_formatted_data)
             return correctly_formatted_data
         else:
             return self.serve_data_from_memory(type_of_data)
     
+    """
+    creating deep copies of certain object due to
+    the date stringification that happens after data gather.
+    This avoids overwriting the original copy in memory.
+    """
     def serve_data_from_memory(self,type_of_data):
         if type_of_data == "contacts":
             return self.parent.contacts
         elif type_of_data == "banned":
             return self.parent.banned_ips()
         elif type_of_data == "action_execution":
-            return self.convert_queue_to_list(self.parent.most_recent_executed_actions)
+            queue_copy_and_list_copy = self.convert_queue_to_list_and_create_queue_copy(self.parent.most_recent_executed_actions)
+            self.parent.most_recent_executed_actions = queue_copy_and_list_copy[0]
+            return queue_copy_and_list_copy[1].deepcopy()
         elif type_of_data == "connections":
-            return self.convert_queue_to_list(self.parent.most_recent_connections)
+            queue_copy_and_list_copy = self.convert_queue_to_list_and_create_queue_copy(self.parent.most_recent_connections)
+            self.parent.most_recent_connections = queue_copy_and_list_copy[0]
+            return queue_copy_and_list_copy[1].deepcopy()
 
     async def try_to_gather_connection_if_needed(self):
         #if we never initally connected or the was connection closed 
         if self.sql_handler.connection_status == False or self.sql_handler.connection.closed == True:
                 connection_gathered = await self.sql_handler.gather_connection()
-                
                 #handle next steps after connection attempt
                 if connection_gathered:
                     return True
@@ -182,7 +193,7 @@ class CaptureAndServeManager:
                     self.parent.console_logger.log_generic_row("Issue Caching Contacts!", "red")
 
     def convert_contacts_to_dict(self,contacts):
-        if len(contacts) == 0 :
+        if len(contacts) == 0:
             return {}
         else:
             data_dict = {}
@@ -241,7 +252,7 @@ class CaptureAndServeManager:
         if type_of_data == "contacts":
             return self.structure_contact_data(data)
         elif type_of_data == "connections":
-            return self.structure_connection_data
+            return self.structure_connection_data(data)
         elif type_of_data == "action_execution":
             return self.structure_action_execution_data(data)
         elif type_of_data == "banned":
@@ -261,19 +272,19 @@ class CaptureAndServeManager:
                 "action":action_execution[2], 
                 "bot_name": action_execution[3], 
                 "bot_type":action_execution[4],
-                "datetime":action_execution[5]}
+                "date":action_execution[5]}
             data.append(data_dict)
         return data
 
     def structure_connection_data(self,data):
-        data = []
+        data_holder = []
         for connection in data:
             data_dict = {
                 "name":connection[1], 
                 "type":connection[2], 
-                "datetime":connection[3]}
-        data.append(data_dict)
-        return data
+                "date":connection[3]}
+            data_holder.append(data_dict)
+        return data_holder
 
     def structure_banned_data(self,data):
         data = set()
@@ -286,6 +297,16 @@ class CaptureAndServeManager:
         while target_queue.qsize() > 0:
             result.append(target_queue.get())
         return result
+
+    def convert_queue_to_list_and_create_queue_copy(self,old_queue):
+        new_queue = queue.Queue()
+        new_list = []
+
+        while old_queue.qsize()>0:
+            queue_value = old_queue.get()
+            new_queue.put(queue_value)
+            new_list.append(queue_value)
+        return (new_queue,new_list)
 
     def map_target_to_type_of_data(self,target):
         if target == "servers_banned_ips":

@@ -73,16 +73,20 @@ class ClientHandler:
         try:
             #the requests that don't require auth or capture manager
             if target in no_auth_types and  target not in no_auth_types_with_capture_manager:
+                table_state = self.route_no_auth_target_to_object(target)
+                self.try_to_convert_dates(table_state)
                 await self.send_generic_table_state(
                     "viewing",
                     target,
-                    self.route_no_auth_target_to_object(target))
+                    table_state)
 
             elif target in RoutingTypes.GENERIC_STATE_WITH_NO_AUTH_CAPTURE_MANAGER:
                 table_state = await self.parent.capture_and_serve_manager.try_to_gather_serve_target(target)
+                self.try_to_convert_dates(table_state)
                 await self.send_generic_table_state(
                     "viewing",
                     target,json.dumps(table_state))
+                
         except Exception as e:
             print(e)
             await self.handle_send_table_state_exception(e,target)
@@ -217,12 +221,14 @@ class ClientHandler:
         elif action == "deactivate":
             self.parent.deactivated_bots.add(bot_name)
             self.set_bot_back_to_available(bot_name)
-            del self.parent.bot_passive_data[bot_name]
+            if bot_name in self.parent.bot_passive_data:
+                del self.parent.bot_passive_data[bot_name]
         else:
             del self.parent.devices[bot_name]
             del self.parent.outside_names[bot_name]
             del self.parent.devices_type[bot_name]
-            del self.parent.bot_passive_data[bot_name]
+            if bot_name in self.parent.bot_passive_data:
+                del self.parent.bot_passive_data[bot_name]
             if bot_name in self.parent.deactivated_bots:
                 self.parent.deactivated_bots.remove(bot_name)
             if bot_name in self.parent.stream_mode_status:
@@ -382,7 +388,9 @@ class ClientHandler:
         if target == "server_config":
             return self.parent.config.string_version()
         elif target == "task_list":
-            return json.dumps(self.parent.auto_scheduler.tasks_to_dict())
+            target_copy = self.parent.auto_scheduler.tasks_to_dict().copy()
+            self.try_to_convert_dates(target_copy)
+            return json.dumps(target_copy)
         elif target == "recent_executed_tasks":
             #create copy of queue and covert the original queue into a list.
             #overwrite the old queue variable
@@ -404,7 +412,7 @@ class ClientHandler:
             await self.websocket.send("timeout")
 
     def convert_queue_to_list_and_create_queue_copy(self,old_queue):
-        new_queue = queue.Queue
+        new_queue = queue.Queue()
         new_list = []
 
         while old_queue.qsize()>0:
@@ -417,7 +425,7 @@ class ClientHandler:
     def convert_all_tasks_to_dict(self,tasks):
         new_tasks = []
         for task in tasks:
-            new_tasks.append(task.task_to_dict)
+            new_tasks.append(task.task_to_dict())
         return new_tasks
 
     async def handle_send_table_state_exception(self,e,target):
@@ -456,3 +464,25 @@ class ClientHandler:
         basic_response.target = target
         basic_response.target_value = target_value
         await asyncio.wait_for(self.websocket.send(basic_response.string_version()),40)
+
+    def convert_dates_to_str_list(self,data):
+        try:
+            for dict_obj in data:
+                if "date" in dict_obj:
+                    dict_obj["date"] = str(dict_obj["date"])
+        except:
+            pass
+
+    def convert_dates_to_str_dict(self,data):
+        try:
+            if "date" in data:
+                data["date"] = str(data["date"])
+        except:
+            pass
+    """
+    Converts dates to str since the datetime object can't be serialized(json)
+    correctly with the json lib.
+    """
+    def try_to_convert_dates(self,data):
+        self.convert_dates_to_str_list(data)
+        self.convert_dates_to_str_dict(data)
