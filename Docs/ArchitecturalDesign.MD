@@ -8,7 +8,7 @@
 
 `"passive data"` - all "bots" usually send passive data to the "non-bots" which is displayed on the client interfaces(if they are "available").
 
-`"available"` - This is either true of false for a "Non-bot".
+`"available"` - This is either true of false for all "bots" determines if a devices is already under control.
 
 `"special action"` - streaming or other actions that require back and forth communication.
 
@@ -27,7 +27,7 @@ So first you would like to turn off the sprinkler.
 
 1. First you would use a client that follows the GeneralServer's Communication protocol like the HOI-GeneralServer.
 2. You would connect to the GeneralServer.
-3. You would see the AutomatedSprinkler connected and you would use the sprinkler's name to request a bot action from the server, something like "turn-off" by using the BasicResponse.py format(JSON).
+3. You would see the AutomatedSprinkler connected and you would use the sprinkler's name to request a bot action from the server, something like "turn-off" by using after sending the initial op-code "bot-control".
 4. The server would check to see if the device is connected and if the device is available(see above for the meaning).
 5. If the device is connected and available the server will forward the "turn-off" code to the bot(which it understand from its device software implementation).
 6. The server will get the response back from the bot and forward the response to the non-bot that made the request. If the response is "success", the sprinklers should have been turned off!
