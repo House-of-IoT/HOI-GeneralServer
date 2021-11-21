@@ -94,7 +94,7 @@ class CaptureAndServeManager:
     async def capture_banned_in_db(self,data,cursor):
         if await self.row_exist_in_db(data["data"]["ip"],cursor,"banned","Ip") and data["data"]["type"] == "add":
             return 
-        if data["data"]["type"] == "add":
+        if data["data"]["type"] == "add-banned-ip":
             await self.sql_handler.create_banned(data["data"]["ip"],cursor)
         else:
             await self.sql_handler.execute_single_parameter_delete_query(

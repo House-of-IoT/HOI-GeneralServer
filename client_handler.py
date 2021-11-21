@@ -13,6 +13,9 @@ import traceback
 import datetime
 import queue
 
+"""
+Handles all bot requests and triggers actions
+"""
 class ClientHandler:
     def __init__(self,parent,name,websocket):
         self.parent = parent
@@ -111,6 +114,11 @@ class ClientHandler:
                     "editing", 
                     lambda x,y: self.modify_matching_config_boolean(x,y),
                     is_async=False)
+            elif target == "add-banned-ip" or target == "remove-banned-ip":
+                await self.handle_super_auth_request(
+                    target,
+                    "editing",
+                    lambda x,y:self.add_or_remove_banned_ip(x,y))
         
 #PRIVATE
     """
@@ -306,6 +314,12 @@ class ClientHandler:
             self.parent.auto_scheduler.add_task(task)
         else:
             self.parent.auto_scheduler.cancel_task(task)
+    
+    async def add_or_remove_banned_ip(self,request,value):
+        ip = value
+        capture_banned_data = CaptureDictCreator.create_banned_dict(ip,request)
+        basic_capture_dict = CaptureDictCreator.create_basic_dict("banned",capture_banned_data)
+        await self.parent.capture_and_serve_manager.try_to_route_and_capture(basic_capture_dict)
 
     async def send_need_admin_auth_and_check_response(self,password,action):
         await self.send_basic_response("needs-admin-auth",action = action)
@@ -348,7 +362,6 @@ class ClientHandler:
             await asyncio.sleep(0.5)
             if self.parent.gathering_passive_data[name] == False:
                 break
-
             current_time = datetime.datetime.utcnow()
             seconds_passed = (current_time-start_time).total_seconds()
             if seconds_passed > 12 and self.parent.gathering_passive_data[name]:
