@@ -7,6 +7,7 @@ import traceback
 import queue
 import json
 import asyncio
+import copy
 
 """
 Handles all data captures.
@@ -118,9 +119,10 @@ class CaptureAndServeManager:
             self.capture_in_dict(
                 self.parent.failed_auth_attempts,
                 data["data"]["ip"],
-                3, #three failed attempts means you are banned
-                "add",
+                4, # more than three failed attempts means you are banned
+                "add-banned-ip",
                 data)
+            print(self.parent.failed_auth_attempts)
 
     def capture_in_dict(self,dict_obj,key,value,add_op_code,data):
         if data["data"]["type"] == add_op_code:
@@ -158,11 +160,11 @@ class CaptureAndServeManager:
         elif type_of_data == "actions":
             queue_copy_and_list_copy = self.convert_queue_to_list_and_create_queue_copy(self.parent.most_recent_executed_actions)
             self.parent.most_recent_executed_actions = queue_copy_and_list_copy[0]
-            return queue_copy_and_list_copy[1].deepcopy()
+            return copy.deepcopy(queue_copy_and_list_copy[1])
         elif type_of_data == "connections":
             queue_copy_and_list_copy = self.convert_queue_to_list_and_create_queue_copy(self.parent.most_recent_connections)
             self.parent.most_recent_connections = queue_copy_and_list_copy[0]
-            return queue_copy_and_list_copy[1].deepcopy()
+            return copy.deepcopy(queue_copy_and_list_copy[1])
 
     async def try_to_gather_connection_if_needed(self):
         #if we never initally connected or the was connection closed 
