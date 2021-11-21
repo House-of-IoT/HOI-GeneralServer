@@ -32,7 +32,6 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
     async def test(self):
         websocket = await self.connect(need_websocket=True)
         await self.view_state_deactivated_bots(websocket)
-        #wait on activate to happen
         await self.activate_and_deactivate_and_basic_data(websocket)
         await self.viewing_connected_devices(websocket)
         await self.adding_and_removing_auto_scheduling_task(websocket)
