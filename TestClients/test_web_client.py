@@ -207,6 +207,8 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
             data_dict_target_value[4],"test_trigger","AutoScheduler","test_bot","test")
         self.assert_action_execution_data(
             data_dict_target_value[5],"disconnect","test1","test_bot","test")        
+    
+    async def adding_and_removing_banned_ips(self,websocket)
 
     #HELPERS
     async def send_super_auth_request_and_authenticate(self,websocket,op_code,data_dict):

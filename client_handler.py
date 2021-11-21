@@ -181,19 +181,6 @@ class ClientHandler:
             self.parent.console_logger.log_generic_row(f"A request that {self.name} made has timed out!","red")
             await self.send_basic_response("timeout", action= action,target=target)
 
-    async def check_for_stop(self,bot_name):
-        try:
-            message = asyncio.wait_for(self.websocket.recv() , 0.1)
-            if message == "finished_streaming":
-                self.stream_mode_status[self.name] = False
-                self.available_status[bot_name] = True
-                await self.devices[bot_name].send("stop_streaming")
-                return True
-            else:
-                return False
-        except:
-            pass
-
     async def check_bot_capabilities_and_finish_action(self,action,bot_name):
         if self.bot_type_has_capability(bot_name,action) and action in RoutingTypes.BASIC_ACTIONS:
             await self.execute_basic_action_protocol(bot_name,action)
@@ -202,11 +189,6 @@ class ClientHandler:
             await self.begin_capability(bot_name,action)
         else:
             await asyncio.wait_for(self.websocket.send("issue"),10) 
-
-    async def begin_capability(self,bot_name,action):
-        if action == "video_stream" or action == "audio_steam":
-            self.parent.stream_mode_status[self.name] = True
-            await self.stream(bot_name,action)
 
     async def activate_deactivate_or_disconnect_bot(self,bot_name,action):
         credential_status_and_bot_return_status = await self.execute_basic_action_protocol(bot_name,action)
