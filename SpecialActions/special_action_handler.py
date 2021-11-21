@@ -8,3 +8,6 @@ The class that handles all special action protocols that aren't "basic".
 class SpecialActionHandler:
     def __init__(self):
         pass
+    
+    async def execute_special_action(self,action,bot_websocket,client_websocket):
+        pass

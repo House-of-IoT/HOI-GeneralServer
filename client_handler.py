@@ -5,6 +5,7 @@ from Errors.errors import BotStuckInPassiveDataGather
 from Errors.errors import IssueGatheringServeData
 from DataObjects.BasicResponse import BasicResponse
 from AutoScheduling.auto_scheduler import Task
+from SpecialActions.special_action_handler import SpecialActionHandler
 from dateutil import parser
 from DataObjects.routing_types import RoutingTypes
 from DataCapture.capture_object_creator import CaptureDictCreator
@@ -17,6 +18,7 @@ class ClientHandler:
         self.parent = parent
         self.name = name
         self.websocket = websocket
+        self.special_action_handler = SpecialActionHandler()
 
 #PUBLIC
 
@@ -186,7 +188,10 @@ class ClientHandler:
             await self.execute_basic_action_protocol(bot_name,action)
         elif self.bot_type_has_capability(bot_name,action):
             await asyncio.wait_for(self.websocket.send("success"),10)
-            
+            await self.special_action_handler.execute_special_action(
+                action,
+                self.parent.devices[bot_name],
+                self.websocket)
         else:
             await asyncio.wait_for(self.websocket.send("issue"),10) 
 
@@ -216,23 +221,6 @@ class ClientHandler:
             if bot_name in self.parent.stream_mode_status:
                 del self.parent.stream_mode_status[bot_name]
             self.parent.console_logger.log_disconnect(bot_name)
-                    
-    async def stream (self,bot_name,action):
-        if await self.bot_was_notified(bot_name,action):
-            while  self.parent.stream_mode_status[self.name] == True:
-                try:
-                    if await self.check_for_stop() == True:
-                        break    
-                    await self.gather_data_from_bot_and_forward(bot_name)
-
-                except:
-                    traceback.print_exc()
-                    self.stream_mode_status[self.name] = False
-                    self.available_status[bot_name] = True
-                await asyncio.sleep(0.1)
-        
-        self.stream_mode_status[self.name] = False
-        self.available_status[bot_name] = True
 
     async def gather_data_from_bot_and_forward(self,bot_name):
         bot_websocket = self.parent.devices[bot_name]
