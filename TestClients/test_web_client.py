@@ -32,19 +32,14 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
     async def test(self):
         websocket = await self.connect(need_websocket=True)
         await self.view_state_deactivated_bots(websocket)
-        await asyncio.sleep(5)
+        #wait on activate to happen
         await self.activate_and_deactivate_and_basic_data(websocket)
-        await asyncio.sleep(5)
         await self.viewing_connected_devices(websocket)
         await self.adding_and_removing_auto_scheduling_task(websocket)
         await self.auto_scheduler_task_execution(websocket)
-        await asyncio.sleep(5)
         await self.disconnect_bot(websocket) 
-        await asyncio.sleep(5)
         await self.view_config(websocket)
-        await asyncio.sleep(5)
         await self.add_and_view_contacts(websocket)
-        await asyncio.sleep(5)
         await self.remove_and_view_contacts(websocket)
         await self.connection_list(websocket)
         await self.recent_executed_actions(websocket)
@@ -220,7 +215,6 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         await websocket.send(json.dumps(data_dict))
         response = await websocket.recv()
         data_dict_response = json.loads(response)
-
         #sending super admin password 
         self.assertEqual(data_dict_response["status"],"needs-admin-auth")
         await websocket.send("")
