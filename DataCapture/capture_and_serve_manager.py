@@ -48,6 +48,7 @@ class CaptureAndServeManager:
             await self.route_and_capture(data)
         except Exception as e:
             traceback.print_exc()
+            print(e)
             #notification of failure
             pass
 
@@ -139,9 +140,7 @@ class CaptureAndServeManager:
             cursor = await self.sql_handler.connection.cursor()
             data = await self.sql_handler.get_all_rows(type_of_data,cursor)
             cursor.close()
-            print(data)
             correctly_formatted_data = self.convert_data_to_expected_type(data,type_of_data)
-            print(correctly_formatted_data)
             return correctly_formatted_data
         else:
             return self.serve_data_from_memory(type_of_data)
@@ -156,7 +155,7 @@ class CaptureAndServeManager:
             return self.parent.contacts
         elif type_of_data == "banned":
             return self.parent.banned_ips()
-        elif type_of_data == "action_execution":
+        elif type_of_data == "actions":
             queue_copy_and_list_copy = self.convert_queue_to_list_and_create_queue_copy(self.parent.most_recent_executed_actions)
             self.parent.most_recent_executed_actions = queue_copy_and_list_copy[0]
             return queue_copy_and_list_copy[1].deepcopy()
@@ -253,7 +252,7 @@ class CaptureAndServeManager:
             return self.structure_contact_data(data)
         elif type_of_data == "connections":
             return self.structure_connection_data(data)
-        elif type_of_data == "action_execution":
+        elif type_of_data == "actions":
             return self.structure_action_execution_data(data)
         elif type_of_data == "banned":
             return self.structure_banned_data(data)
@@ -265,7 +264,7 @@ class CaptureAndServeManager:
         return data_holder
         
     def structure_action_execution_data(self,data):
-        data = []
+        data_holder = []
         for action_execution in data:
             data_dict = {
                 "executor":action_execution[1], 
@@ -273,8 +272,8 @@ class CaptureAndServeManager:
                 "bot_name": action_execution[3], 
                 "bot_type":action_execution[4],
                 "date":action_execution[5]}
-            data.append(data_dict)
-        return data
+            data_holder.append(data_dict)
+        return data_holder
 
     def structure_connection_data(self,data):
         data_holder = []
@@ -287,10 +286,10 @@ class CaptureAndServeManager:
         return data_holder
 
     def structure_banned_data(self,data):
-        data = set()
+        data_holder = set()
         for banned in data:
-            data.add(banned[1])
-        return data
+            data_holder.add(banned[1])
+        return data_holder
 
     def convert_queue_to_list(self,target_queue):
         result = []
@@ -307,13 +306,14 @@ class CaptureAndServeManager:
             new_queue.put(queue_value)
             new_list.append(queue_value)
         return (new_queue,new_list)
-
+    
+    """ Converts opcode that comes from client to the table name in the db"""
     def map_target_to_type_of_data(self,target):
         if target == "servers_banned_ips":
             return "banned"
         elif target == "recent_connections":
             return "connections"
         elif target == "executed_actions":
-            return "action_execution"
+            return "actions"
         else:
             return "contacts"

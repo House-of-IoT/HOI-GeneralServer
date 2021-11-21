@@ -47,6 +47,7 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         await asyncio.sleep(5)
         await self.remove_and_view_contacts(websocket)
         await self.connection_list(websocket)
+        await self.recent_executed_actions(websocket)
 
     async def connect(self,need_websocket = False):
         connection_string = 'ws://localhost:50223'
@@ -189,7 +190,6 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         print("testing recent connections...")
         data_dict_response = await self.gather_one_send_request_response("recent_connections",websocket)
         data_dict_target_value = json.loads(data_dict_response["target_value"])
-        print(data_dict_target_value)
         #test_bot_client
         self.assertEqual(len(data_dict_target_value),2)
         self.assertEqual(data_dict_target_value[0]["name"],"test")
@@ -200,6 +200,19 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
 
     async def recent_executed_actions(self,websocket):
         print("testing recent executed actions...")
+        data_dict_response = await self.gather_one_send_request_response("executed_actions",websocket)
+        data_dict_target_value = json.loads(data_dict_response["target_value"])
+        #after all of the tests above this one finish, there should be 6 actions executed
+        self.assertEqual(len(data_dict_target_value),6)
+        #assert the first two and last two
+        self.assert_action_execution_data(
+            data_dict_target_value[0],"deactivate","test1","test_bot","test")
+        self.assert_action_execution_data(
+            data_dict_target_value[1],"activate","test1","test_bot","test")
+        self.assert_action_execution_data(
+            data_dict_target_value[4],"test_trigger","AutoScheduler","test_bot","test")
+        self.assert_action_execution_data(
+            data_dict_target_value[5],"disconnect","test1","test_bot","test")        
 
     #HELPERS
     async def send_super_auth_request_and_authenticate(self,websocket,op_code,data_dict):
@@ -265,6 +278,17 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(data_dict["action"],action)
         self.assertEqual(data_dict["status"],expected_status)
         self.assertEqual(data_dict["bot_name"],expected_bot_name)
+
+    def assert_action_execution_data(
+        self,data,
+        expected_action,expected_executor,
+        expected_bot_type,expected_bot_name):
+        self.assertEqual(data["action"],expected_action)
+        self.assertEqual(data["executor"],expected_executor)
+        self.assertEqual(data["bot_type"],expected_bot_type)
+        self.assertEqual(data["bot_name"],expected_bot_name)
+
+        
 
 if __name__ == "__main__":
     unittest.main()

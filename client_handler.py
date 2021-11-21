@@ -129,7 +129,7 @@ class ClientHandler:
         #capture the action execution
         action_capture_data = CaptureDictCreator.create_action_dict(
             self.name,bot_name,action,bot_type)
-        basic_capture_dict = CaptureDictCreator.create_basic_dict("action_execution",action_capture_data)
+        basic_capture_dict = CaptureDictCreator.create_basic_dict("executed_action",action_capture_data)
         await self.parent.capture_and_serve_manager.try_to_route_and_capture(basic_capture_dict)
 
     """
