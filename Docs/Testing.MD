@@ -40,10 +40,12 @@ Most of the tests reside in  `TestClients/test_web_client.py`.
 It is important that there is a fresh instance of each for every test.
 The database can't have any data associated with it, for this it is best to use a docker image without persisting data.
 
-1.[Optional] Start the Postgres instance if you are testing the server in sql capture mode.
+
+1. [Optional] Start the Postgres instance if you are testing the server in sql capture mode.
 2. Start the GeneralServer with `main.py`.
 3. Start the test bot client with `python3 TestClients/test_bot_client.py`
 4. Start the test web client with `python3 TestClients/test_web_clients.py`
+
 
 You should keep an eye on the test_web_client as the main source of testing.
 All of these tests should pass.
