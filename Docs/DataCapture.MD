@@ -49,3 +49,15 @@ can always still access recent history without paying the cost
 for a hosted database.
 
 In memory mode takes one less step for setup.
+
+
+
+# Data flow diagram(In Memory)
+
+In memory all data is stored in the "Main" Object aka Parent. 
+
+<img src = "https://github.com/House-of-IoT/HOI-GeneralServer/blob/master/Docs/memorydiagram.png"/>
+
+# Data flow diagram(In DB)
+
+<img src="https://github.com/House-of-IoT/HOI-GeneralServer/blob/master/Docs/indatabase.png"/>
