@@ -9,21 +9,19 @@ even though this class is intended to be apart of the
 ClientHandler composition
 """
 class ActionHandler:
-    def __init__(self,parent,websocket,response_manager,name,client_has_credentials_fun):
+    def __init__(self,parent,websocket,response_manager,name,credential_checker):
         self.parent = parent
         self.websocket = websocket
         self.response_manager = response_manager
         self.name = name
-
-        #function checking if the client
-        self.client_has_credentials = client_has_credentials_fun
+        self.credential_checker = credential_checker
 
     """
     Takes actions that are "basic"(needs a one time opcode to change a device's state)
     and executes.
     """
     async def execute_basic_action_protocol(self,bot_name,action):
-        if await self.client_has_credentials(action):
+        if await self.credential_checker.client_has_credentials(action):
             #send bot the basic request
             bot_connection  = self.parent.devices[bot_name]
             await asyncio.wait_for(bot_connection.send(action),10)

@@ -11,6 +11,7 @@ from DataObjects.routing_types import RoutingTypes
 from DataCapture.capture_object_creator import CaptureDictCreator
 from Response.response_manager import ResponseManager
 from Actions.action_handler import ActionHandler
+from Credentials.credential_checker import CredentialChecker
 import traceback
 import datetime
 import queue
@@ -25,11 +26,17 @@ class ClientHandler:
         self.websocket = websocket
         self.special_action_handler = SpecialActionHandler()
         self.response_manager = ResponseManager(websocket,parent,name)
+        self.credential_checker = CredentialChecker(
+            self.response_manager,
+            parent,
+            self.websocket)
         self.action_handler = ActionHandler(
             parent,
             websocket,
             self.response_manager,
-            name,self.client_has_credentials)
+            name,
+            self.credential_checker)
+        
 
 #PUBLIC
     async def gather_request_for_bot(self):
@@ -56,7 +63,7 @@ class ClientHandler:
             await self.handle_bot_control_exception(e)
                 
     async def send_table_state(self,table_or_set,target,keys_or_values_or_both):
-        if(await self.client_has_credentials("viewing")):
+        if(await self.credential_checker.client_has_credentials("viewing")):
             try:
                 #if we get a null object we need to use the capture manager.
                 if table_or_set == None:
@@ -142,7 +149,8 @@ class ClientHandler:
         try:
             status = None
             value = await asyncio.wait_for(self.websocket.recv(),40)
-            successfully_authed_with_super_pass = await self.send_need_admin_auth_and_check_response(self.parent.super_admin_password,"editing")
+            successfully_authed_with_super_pass = await self.credential_checker.send_need_admin_auth_and_check_response(
+                self.parent.super_admin_password,"editing")
 
             if successfully_authed_with_super_pass:
                 if is_async:
@@ -198,27 +206,6 @@ class ClientHandler:
         bots = list(self.parent.deactivated_bots)
         return json.dumps(bots)
 
-    #Checks if an action requires admin auth and prompts for auth if needed.
-    async def client_has_credentials(self,action):
-        config_bool = self.route_action_to_config_bool(action)
-        if config_bool:
-            return await self.send_need_admin_auth_and_check_response(self.parent.admin_password,action)
-        else:
-            return True
-    
-    #returns the truth status for an action needing admin auth.
-    def route_action_to_config_bool(self, action):
-        if action == "activate":
-            return self.parent.config.activating_requires_admin
-        elif action == "deactivate":
-            return self.parent.config.deactivating_requires_admin
-        elif action == "disconnect":
-            return self.parent.config.disconnecting_requires_admin
-        elif action == "viewing":
-            return self.parent.config.viewing_all_devices_requires_auth
-        else:
-            return self.parent.config.device_specific_actions_require_auth
-
     #convert config to having db capture?
     def modify_matching_config_boolean(self,request,new_value):
         boolean = bool(int(new_value))
@@ -259,12 +246,6 @@ class ClientHandler:
         basic_capture_dict = CaptureDictCreator.create_basic_dict("banned",capture_banned_data)
         await self.parent.capture_and_serve_manager.try_to_route_and_capture(basic_capture_dict)
 
-    async def send_need_admin_auth_and_check_response(self,password,action):
-        await self.response_manager.send_basic_response("needs-admin-auth",action = action)
-        if await self.parent.is_authed(self.websocket,password):
-            return True
-        else:
-            return False
     """
     Takes an object and gets the requested attributes from it 
     and sends them in basic response format.
