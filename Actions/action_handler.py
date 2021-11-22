@@ -9,10 +9,14 @@ even though this class is intended to be apart of the
 ClientHandler composition
 """
 class ActionHandler:
-    def __init__(self,parent,websocket,response_manager):
+    def __init__(self,parent,websocket,response_manager,name,client_has_credentials_fun):
         self.parent = parent
         self.websocket = websocket
         self.response_manager = response_manager
+        self.name = name
+
+        #function checking if the client
+        self.client_has_credentials = client_has_credentials_fun
 
     """
     Takes actions that are "basic"(needs a one time opcode to change a device's state)

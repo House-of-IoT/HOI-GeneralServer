@@ -25,10 +25,13 @@ class ClientHandler:
         self.websocket = websocket
         self.special_action_handler = SpecialActionHandler()
         self.response_manager = ResponseManager(websocket,parent,name)
-        self.action_handler = ActionHandler(parent,websocket,self.response_manager)
+        self.action_handler = ActionHandler(
+            parent,
+            websocket,
+            self.response_manager,
+            name,self.client_has_credentials)
 
 #PUBLIC
-
     async def gather_request_for_bot(self):
         name_holder_for_error = None
         try:
@@ -45,7 +48,7 @@ class ClientHandler:
                 self.parent.console_logger.log_generic_row(
                     f"'{self.name}' has requested an action from a non existing bot ","red")
 
-                await self.response_handler.send_basic_response("failure")
+                await self.response_manager.send_basic_response("failure")
 
         except Exception as e:
             if name_holder_for_error in self.parent.available_status:
@@ -70,7 +73,7 @@ class ClientHandler:
             except Exception as e:
                 await self.handle_send_table_state_exception(e,target)
         else:
-            await self.response_handler.send_basic_response("failed-auth",action= "viewing",target=target)
+            await self.response_manager.send_basic_response("failed-auth",action= "viewing",target=target)
 
     async def send_table_state_with_no_auth_requirements(self,target):
         no_auth_types = RoutingTypes.GENERIC_STATE_WITH_NO_AUTH 
@@ -98,29 +101,15 @@ class ClientHandler:
             await self.handle_send_table_state_exception(e,target)
 
     async def handle_state_or_record_modification(self,target):
-            if target == "add-task" or target == "remove-task":
-                await self.handle_super_auth_request(
-                    target,
-                    "editing",
-                    lambda x,y: self.add_or_remove_task(x,y),
-                    is_async=False)
-            elif target == "add-contact" or target == "remove-contact":
-                await self.handle_super_auth_request(
-                    target, 
-                    "editing", 
-                    lambda x,y: self.add_or_remove_contact(x,y))
-            elif "change_config_" in target:
-                await self.handle_super_auth_request(
-                    target,
-                    "editing", 
-                    lambda x,y: self.modify_matching_config_boolean(x,y),
-                    is_async=False)
-            elif target == "add-banned-ip" or target == "remove-banned-ip":
-                await self.handle_super_auth_request(
-                    target,
-                    "editing",
-                    lambda x,y:self.add_or_remove_banned_ip(x,y))
-        
+        #gather the correct function and whether or not is is a coroutine
+        lambda_and_async_status = self.route_modification_target_to_lambda(target)
+
+        #pass the correct function and handle it as a super auth request
+        await self.handle_super_auth_request(
+            target,
+            "editing",
+            lambda_and_async_status[0],
+            is_async=lambda_and_async_status[1])
 #PRIVATE
     """
     Takes action and routes it to the correct functionality
@@ -143,6 +132,12 @@ class ClientHandler:
         basic_capture_dict = CaptureDictCreator.create_basic_dict("executed_action",action_capture_data)
         await self.parent.capture_and_serve_manager.try_to_route_and_capture(basic_capture_dict)
 
+    """
+    1. Gather value for the request from client
+    2. Gather authentication credentials from client
+    3. Execute passed in function(correct function for the request) if client is 
+       successfully authenticated.
+    """
     async def handle_super_auth_request(self,request,action,fun,is_async=True):
         try:
             status = None
@@ -157,13 +152,13 @@ class ClientHandler:
                 status = "success"
             else:
                 status = "failure"
-            await self.response_handler.send_basic_response(status,action=action,target=request)
+            await self.response_manager.send_basic_response(status,action=action,target=request)
         except Exception as e:
             await self.handle_super_auth_request_exception(e,request)
 
     async def send_generic_table_state(self,action,target,value):
         try:
-            await self.response_handler.send_basic_response(
+            await self.response_manager.send_basic_response(
                 "success",
                 action= action,
                 target=target ,
@@ -171,7 +166,7 @@ class ClientHandler:
         except Exception as e:
             print(e)
             self.parent.console_logger.log_generic_row(f"A request that {self.name} made has timed out!","red")
-            await self.response_handler.send_basic_response("timeout", action= action,target=target)
+            await self.response_manager.send_basic_response("timeout", action= action,target=target)
 
     async def check_bot_capabilities_and_finish_action(self,action,bot_name):
         if self.bot_type_has_capability(bot_name,action) and action in RoutingTypes.BASIC_ACTIONS:
@@ -265,7 +260,7 @@ class ClientHandler:
         await self.parent.capture_and_serve_manager.try_to_route_and_capture(basic_capture_dict)
 
     async def send_need_admin_auth_and_check_response(self,password,action):
-        await self.response_handler.send_basic_response("needs-admin-auth",action = action)
+        await self.response_manager.send_basic_response("needs-admin-auth",action = action)
         if await self.parent.is_authed(self.websocket,password):
             return True
         else:
@@ -289,7 +284,7 @@ class ClientHandler:
             target_value = list(table_or_set)
         else:
             target_value = json.dumps(table_or_set)
-        await self.response_handler.send_basic_response(
+        await self.response_manager.send_basic_response(
             "success",
             action = "viewing", 
             target = target, 
@@ -357,12 +352,12 @@ class ClientHandler:
     async def handle_send_table_state_exception(self,e,target):
         traceback.print_exc()
         if e is IssueGatheringServeData:
-            await self.response_handler.send_basic_response(
+            await self.response_manager.send_basic_response(
                 "fatal_gathering",
                 action= "viewing",
                 target=target)
         else:
-            await self.response_handler.send_basic_response(
+            await self.response_manager.send_basic_response(
                 "timeout",
                 action= "viewing",
                 target=target)
@@ -374,7 +369,21 @@ class ClientHandler:
         else:   
             traceback.print_exc()
             self.parent.console_logger.log_generic_row(f"A request that {self.name} made has timed out!","red")
-            await self.response_handler.send_basic_response("timeout",action= "editing", target=request)
+            await self.response_manager.send_basic_response("timeout",action= "editing", target=request)
+
+    """
+    returns the correct lambda for a target modification
+    and whether or not the lambda is a coroutine.
+    """
+    def route_modification_target_to_lambda(self,target):
+        if target == "add-banned-ip" or target == "remove-banned-ip":
+            return (lambda x,y:self.add_or_remove_banned_ip(x,y),True)
+        elif target == "add-task" or target == "remove-task":
+            return (lambda x,y: self.add_or_remove_task(x,y),False)
+        elif "change_config_" in target:
+            return (lambda x,y: self.modify_matching_config_boolean(x,y),False)
+        else:
+            return (lambda x,y: self.add_or_remove_contact(x,y),True)
 
     def convert_dates_to_str_list(self,data):
         try:
