@@ -36,7 +36,6 @@ class ClientHandler:
             self.response_manager,
             name,
             self.credential_checker)
-        
 
 #PUBLIC
     async def gather_request_for_bot(self):
@@ -188,23 +187,14 @@ class ClientHandler:
         else:
             await asyncio.wait_for(self.websocket.send("issue"),10) 
 
-    async def gather_data_from_bot_and_forward(self,bot_name):
-        bot_websocket = self.parent.devices[bot_name]
-        data = await asyncio.wait_for(bot_websocket.recv(),10)
-        await asyncio.wait_for(self.websocket.send(data),10)
-
     def bot_type_has_capability(self,bot_name,action):
         try:
             device_type = self.parent.devices_type[bot_name]
-            capabilties = self.accepted_types[device_type]
+            capabilties = self.parent.type_handler.accepted_types[device_type]
             return capabilties.functionality[action]
         except:
             traceback.print_exc()
             return False
-
-    async def gather_deactivated_bots(self):
-        bots = list(self.parent.deactivated_bots)
-        return json.dumps(bots)
 
     #convert config to having db capture?
     def modify_matching_config_boolean(self,request,new_value):
