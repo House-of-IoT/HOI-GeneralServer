@@ -61,11 +61,10 @@ class Main:
             await asyncio.sleep(1)
             try:
                 await self.route_client_request(websocket,handler)
-            except Exception as e:      
+            except:      
                 del self.devices[name]
                 del self.devices_type[name]
                 self.console_logger.log_disconnect(name)
-                traceback.print_exc()
                 break      
     
     """
