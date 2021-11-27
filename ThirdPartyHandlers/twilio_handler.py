@@ -10,11 +10,14 @@ class TwilioHandler:
         self.parent = parent
 
     def send_notification(self,body,to):
-        self.client.messages.create(
-                     body=body,
-                     from_=self.phone_number,
-                     to= to)
-        self.parent.console_logger.log_generic_row(f"Sending Notification to {to}!","green")
+        try:
+            self.client.messages.create(
+                        body=body,
+                        from_=self.phone_number,
+                        to= to)
+            self.parent.console_logger.log_generic_row(f"Sending Notification to {to}!","green")
+        except:
+            pass
     
     def send_notifications_to_all(self,message):
         contacts = self.parent.contacts.keys()
