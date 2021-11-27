@@ -133,7 +133,7 @@ class CaptureAndServeManager:
 
     def capture_generic_for_queue_in_memory(self,data,queue_obj,max_size):
         if queue_obj.qsize() > max_size:
-            self.queue_obj.get()
+            queue_obj.get()
         queue_obj.put(data["data"])
     
     async def serve_data(self,type_of_data):
