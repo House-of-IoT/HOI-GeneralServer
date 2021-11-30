@@ -47,13 +47,20 @@ class AutoScheduler:
         self.tasks[uid] = task
 
     def cancel_task(self,task):
-        uid = str(task.time) + task.bot_name + task.action
+        uid = str(task.time) + task.bot_name + task.action 
         if uid in self.tasks:
             del self.tasks[uid]
         
     def task_should_run(self,task):
         now = datetime.datetime.utcnow()
-    
+        """
+        Ignore year month and day, make them the same in both datetime objects,
+        we only want to compare the time of day.
+        """
+        if task.reoccuring:
+            task.time.year = now.year
+            task.time.day = now.day
+            task.time.month = now.month
         #if the task's time has passed or the time is now
         if now >= task.time:
             # if bot is connected and available
@@ -94,12 +101,13 @@ class AutoScheduler:
 Data representation of an auto scheduled task.
 """
 class Task:
-    def __init__(self,time,name,action):
+    def __init__(self,time,name,action,reoccuring):
         self.time = time
         self.bot_name = name
         self.action = action
         self.time_completed = False
         self.response = None
+        self.reoccuring = reoccuring
 
     def task_to_dict(self):
         data_holder={
@@ -107,7 +115,8 @@ class Task:
             "time":str(self.time),
             "action":self.action,
             "completed":str(self.time_completed),
-            "response":self.response
+            "response":self.response,
+            "reoccuring":self.reoccuring
         }
         return data_holder
 
