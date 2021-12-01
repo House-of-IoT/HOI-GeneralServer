@@ -29,7 +29,8 @@ class AutoScheduler:
                 self.parent.available_status[task.bot_name] = False
                 await self.send_action_to_bot(task)
                 #cancel since we just executed it
-                self.cancel_task(task)
+                if task.reocurring == False:
+                    self.cancel_task(task)
                 #release control of the bot
                 self.parent.available_status[task.bot_name] = True
                 #capture action
