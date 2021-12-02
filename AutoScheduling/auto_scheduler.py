@@ -46,11 +46,15 @@ class AutoScheduler:
     def add_task(self,task):
         uid = str(task.time) + task.bot_name + task.action
         self.tasks[uid] = task
+        self.parent.notification_handler.create_notification(
+            f"New task created for bot({task.bot_name}) with the action of {task.action}!",False)
 
     def cancel_task(self,task):
         uid = str(task.time) + task.bot_name + task.action 
         if uid in self.tasks:
             del self.tasks[uid]
+        self.parent.notification_handler.create_notification(
+            f"Task removed for bot({task.bot_name}) with the action of {task.action}!",False)
         
     def task_should_run(self,task):
         now = datetime.datetime.utcnow()

@@ -209,13 +209,13 @@ class ClientHandler:
             self.parent.config.disconnecting_requires_admin = boolean
 
     async def add_or_remove_contact(self,request,new_value):
+
         name_and_number = json.loads(new_value)
         name = name_and_number["name"]
         number = name_and_number["number"]
         contact_capture_data = CaptureDictCreator.create_contact_dict(name,number,request)
         basic_capture_dict =  CaptureDictCreator.create_basic_dict("contact",contact_capture_data)
         await self.parent.capture_and_serve_manager.try_to_route_and_capture(basic_capture_dict)
-
         self.parent.console_logger.log_generic_row(f"Successfully attempted {request} on {name}({number})!", "green")
 
     def add_or_remove_task(self,request,value):

@@ -49,9 +49,9 @@ class CaptureAndServeManager:
             await self.route_and_capture(data)
         except Exception as e:
             traceback.print_exc()
-            print(e)
             #notification of failure
-            pass
+            self.parent.notification_handler.create_notification(
+            f"Error attempting capture!",True)
 
 #PRIVATE
     async def route_and_capture(self,data):
@@ -81,10 +81,14 @@ class CaptureAndServeManager:
         if await self.row_exist_in_db(data["data"]["name"],cursor,"contacts","name") and data["data"]["type"] == "add-contact":
             return
         if data["data"]["type"] == "add-contact":
-            await self.sql_handler.create_contact(
-                data["data"]["name"],
-                data["data"]["number"],
+            name = data["data"]["name"]
+            number = data["data"]["number"]
+            await self.sql_handler.create_contact(          
+                name,
+                number,
                 cursor)
+            self.parent.notification_handler.create_notification(
+            f"New contact added to server {name}({number})!",False)
         else:
             await self.sql_handler.execute_single_parameter_delete_query(
                 "contacts",
