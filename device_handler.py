@@ -12,7 +12,11 @@ class DeviceHandler:
     #PUBLIC
     async def get_and_send_passive_data(self,client_name):
         device_names = self.parent.bot_passive_data.keys()
-        data_holder = {"server_name":self.parent.outside_names[client_name],"bots":[]}
+        notifications = self.parent.notification_handler.serve_notifications(client_name)
+        data_holder = {
+            "server_name":self.parent.outside_names[client_name],
+            "bots":[], 
+            "notifications":notifications}
 
         for name in device_names:
             if self.parent.available_status[name] == True:
