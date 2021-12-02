@@ -14,6 +14,7 @@ from DataCapture.capture_and_serve_manager import CaptureAndServeManager
 from DataObjects.type_handler import TypeHandler
 from DataObjects.routing_types import RoutingTypes
 from DataCapture.capture_object_creator import CaptureDictCreator
+from Notifications.notification_handler import NotificationHandler
 import queue
 import traceback
 import os
@@ -30,6 +31,7 @@ class Main:
         self.auto_scheduler = AutoScheduler(1,self)
         self.type_handler = TypeHandler()
         self.capture_and_serve_manager = CaptureAndServeManager(self.config.using_sql,self)
+        self.notification_handler = NotificationHandler(self)
         
     """
     Starting point for all new connections

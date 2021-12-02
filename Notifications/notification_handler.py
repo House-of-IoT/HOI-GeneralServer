@@ -25,7 +25,7 @@ class NotificationHandler:
         for notification in notifications:
             notification["time"] = str(notification["time"])
 
-    async def remove_old_notifications(self):
+    async def cleanup_notifications(self):
         while True:
             await asyncio.sleep(120)
             for key in self.current_notifications.keys():
