@@ -2,7 +2,7 @@ class Capabilities:
     def __init__(self,has_pir = False,
         has_video_streaming = False,has_audio_streaming = False,
         has_ground_movement=False, has_test_trigger = False,
-        accepted_basic_actions = set()):
+        accepted_basic_actions = set(), original = True):
 
         #non basic functionality the server can handle
         self.functionality = {
@@ -14,3 +14,5 @@ class Capabilities:
 
         #for custom types only 
         self.accepted_basic_actions = accepted_basic_actions
+
+        self.original = original
