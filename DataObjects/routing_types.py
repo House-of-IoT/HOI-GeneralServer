@@ -20,7 +20,3 @@ class RoutingTypes:
         "add-banned-ip",
         "remove-banned-ip"
     }
-
-    BASIC_ACTIONS = {
-        "test_trigger"
-    }

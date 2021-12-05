@@ -176,7 +176,7 @@ class ClientHandler:
             await self.response_manager.send_basic_response("timeout", action= action,target=target)
 
     async def check_bot_capabilities_and_finish_action(self,action,bot_name):
-        if self.bot_type_has_capability(bot_name,action) and action in RoutingTypes.BASIC_ACTIONS:
+        if self.bot_type_has_capability(bot_name,action,checking_for_basic=True):
             await self.action_handler.execute_basic_action_protocol(bot_name,action)
         elif self.bot_type_has_capability(bot_name,action):
             await asyncio.wait_for(self.websocket.send("success"),10)
@@ -187,11 +187,21 @@ class ClientHandler:
         else:
             await asyncio.wait_for(self.websocket.send("issue"),10) 
 
-    def bot_type_has_capability(self,bot_name,action):
+    def bot_type_has_capability(self,bot_name,action,checking_for_basic = False):
         try:
             device_type = self.parent.devices_type[bot_name]
             capabilties = self.parent.type_handler.accepted_types[device_type]
-            return capabilties.functionality[action]
+            #checking basic actions
+            if checking_for_basic:
+                if action in capabilties.accepted_basic_actions:
+                    return True
+                else:
+                    return False
+            #checking advanced functionality
+            if action in capabilties.functionality:
+                return capabilties.functionality[action]
+            else:
+                return False
         except:
             traceback.print_exc()
             return False
