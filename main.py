@@ -314,7 +314,7 @@ class Main:
         loop = asyncio.get_event_loop()
         loop.run_until_complete(asyncio.gather(
             websockets.serve(self.check_declaration,self.config.host,self.config.port,ping_interval=None),
-            self.notification_handler.cleanup_notifications(),
+            self.notification_handler.cleanup_all_notifications_forever(),
             self.auto_scheduler.execute_tasks()
         ))
         loop.run_forever()
