@@ -1,6 +1,12 @@
 from datetime import datetime
 """
 TBD: Futher Capture expansion
+
+This class contains all of the dict creations that we need to pass to the capture manager to complete
+a successful capture. a basic dict(created by create_basic_dict())
+wraps a capture dict with its type capture type opcode and it is sent to the capture manager to be 
+parsed and captured.
+
 """
 class CaptureDictCreator:
 

@@ -1,5 +1,3 @@
-from datetime import datetime
-from genericpath import exists
 import aiopg
 from .queries import PostgresQueries
 import os
