@@ -225,6 +225,15 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         data_dict_target_value = data_dict_response["target_value"]
         self.assertEqual(len(data_dict_target_value),0)
 
+    async def gathering_notifications(self):
+        pass
+
+    async def adding_and_removing_custom_types(self):
+        pass
+
+    async def recurring_tasks(self):
+        pass
+
     #HELPERS
     async def send_super_auth_request_and_authenticate(self,websocket,op_code,data,is_dict = True):
         await websocket.send(op_code)

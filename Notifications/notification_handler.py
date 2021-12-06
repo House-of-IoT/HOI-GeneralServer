@@ -27,7 +27,6 @@ class NotificationHandler:
 
     async def cleanup_notifications(self):
         while True:
-            print("execution")
             try:
                 for key in self.current_notifications.keys():
                     if key not in self.parent.devices or "ExternalMonitor" in key:

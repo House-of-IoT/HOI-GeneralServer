@@ -312,10 +312,11 @@ class Main:
     def start_server(self):
         self.console_logger.start_message()
         loop = asyncio.get_event_loop()
-        loop.run_until_complete(
-            websockets.serve(self.check_declaration,self.config.host,self.config.port,ping_interval=None))
-        loop.run_until_complete(
-            self.auto_scheduler.execute_tasks())
+        loop.run_until_complete(asyncio.gather(
+            websockets.serve(self.check_declaration,self.config.host,self.config.port,ping_interval=None),
+            self.notification_handler.cleanup_notifications(),
+            self.auto_scheduler.execute_tasks()
+        ))
         loop.run_forever()
 
 if __name__ == "__main__":

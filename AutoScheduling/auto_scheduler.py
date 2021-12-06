@@ -13,7 +13,6 @@ class AutoScheduler:
 
     async def execute_tasks(self):
         while True:
-            print("executing1")
             await asyncio.sleep(self.check_interval)
             try:
                 await self.try_to_execute_one_task()
