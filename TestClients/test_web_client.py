@@ -145,7 +145,7 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
         print("testing adding/removing and viewing auto scheduler tasks...")
         #make sure the datetime is far away so the autoscheduler doesn't execute it
         datetime_str = str(datetime.datetime.utcnow() + datetime.timedelta(days=1))
-        data = {"name":"test","action":"test_trigger","time":datetime_str}
+        data = {"name":"test","action":"test_trigger","time":datetime_str, "recurring":False}
 
         #test adding
         await self.send_super_auth_request_and_authenticate(websocket,"add-task",data)
@@ -166,7 +166,7 @@ class AsyncTests(unittest.IsolatedAsyncioTestCase):
     async def auto_scheduler_task_execution(self,websocket):
         print("testing auto scheduler task execution...")
         datetime_str = str(datetime.datetime.utcnow())
-        data = {"name":"test","action":"test_trigger","time":datetime_str, "reoccuring":False}
+        data = {"name":"test","action":"test_trigger","time":datetime_str, "recurring":False}
         await self.send_super_auth_request_and_authenticate(websocket,"add-task",data)
 
         #give the server time to execute

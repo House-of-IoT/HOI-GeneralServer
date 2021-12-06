@@ -13,6 +13,7 @@ class AutoScheduler:
 
     async def execute_tasks(self):
         while True:
+            print("executing1")
             await asyncio.sleep(self.check_interval)
             try:
                 await self.try_to_execute_one_task()
@@ -29,7 +30,7 @@ class AutoScheduler:
                 self.parent.available_status[task.bot_name] = False
                 await self.send_action_to_bot(task)
                 #cancel since we just executed it
-                if task.reocurring == False:
+                if task.recurring == False:
                     self.cancel_task(task)
                 #release control of the bot
                 self.parent.available_status[task.bot_name] = True
@@ -62,7 +63,7 @@ class AutoScheduler:
         Ignore year month and day, make them the same in both datetime objects,
         we only want to compare the time of day.
         """
-        if task.reoccuring:
+        if task.recurring:
             task.time.year = now.year
             task.time.day = now.day
             task.time.month = now.month
@@ -106,13 +107,13 @@ class AutoScheduler:
 Data representation of an auto scheduled task.
 """
 class Task:
-    def __init__(self,time,name,action,reoccuring):
+    def __init__(self,time,name,action,recurring):
         self.time = time
         self.bot_name = name
         self.action = action
         self.time_completed = False
         self.response = None
-        self.reoccuring = reoccuring
+        self.recurring = recurring
 
     def task_to_dict(self):
         data_holder={
@@ -121,10 +122,10 @@ class Task:
             "action":self.action,
             "completed":str(self.time_completed),
             "response":self.response,
-            "reoccuring":self.reoccuring
+            "recurring":self.recurring
         }
         return data_holder
-
+        
     def complete_task(self,response):
         self.time_completed = datetime.datetime.utcnow()
         self.response = response

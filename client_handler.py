@@ -234,9 +234,9 @@ class ClientHandler:
 
         name = data_dict["name"]
         action = data_dict["action"]
-        reoccuring = data_dict["reoccuring"]
+        recurring = data_dict["recurring"]
 
-        task = Task(str_to_datetime,name,action,reoccuring)
+        task = Task(str_to_datetime,name,action,recurring)
         if request == "add-task":
             self.parent.auto_scheduler.add_task(task)
         else:

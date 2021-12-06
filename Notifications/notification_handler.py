@@ -27,7 +27,11 @@ class NotificationHandler:
 
     async def cleanup_notifications(self):
         while True:
-            await asyncio.sleep(120)
-            for key in self.current_notifications.keys():
-                if key not in self.parent.devices or "ExternalMonitor" in key:
-                    del self.current_notifications[key]
+            print("execution")
+            try:
+                for key in self.current_notifications.keys():
+                    if key not in self.parent.devices or "ExternalMonitor" in key:
+                        del self.current_notifications[key]
+            except Exception as e:
+                print(e)
+            await asyncio.sleep(12)
