@@ -25,7 +25,7 @@ class ActionHandler:
             #send bot the basic request
             bot_connection  = self.parent.devices[bot_name]
             await asyncio.wait_for(bot_connection.send(action),10)
-            status = await asyncio.wait_for(bot_connection.recv(),10);
+            status = await asyncio.wait_for(bot_connection.recv(),10)
             self.parent.console_logger.log_generic_row(
                 f"bot({bot_name}) responded with {status} to {self.name}'s action request:{action}\n","green")
             #send client the result
