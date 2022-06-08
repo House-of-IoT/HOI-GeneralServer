@@ -16,7 +16,8 @@ class TypeHandler:
                 has_pir=True),
             "infared":Capabilities(has_pir=True),
             "non-bot":Capabilities(),
-            "test_bot":Capabilities(has_test_trigger=True)}
+            "test_bot":Capabilities(has_test_trigger=True),
+            "custom_bot":Capabilities()}
         self.get_custom_types()
 
     def get_custom_types(self):

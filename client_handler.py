@@ -191,6 +191,9 @@ class ClientHandler:
         try:
             device_type = self.parent.devices_type[bot_name]
             capabilties = self.parent.type_handler.accepted_types[device_type]
+            #every `custom device` type actually can accept any action
+            if device_type == "custom_bot":
+                return True
             #checking basic actions
             if checking_for_basic:
                 if action in capabilties.accepted_basic_actions:

@@ -14,14 +14,14 @@ class DeviceHandler:
         device_names = self.parent.bot_passive_data.keys()
         notifications = self.parent.notification_handler.serve_notifications(client_name)
         connected_clients_num = len(self.parent.outside_names.keys())
-        deactivated_bots_num = len(self.parent.deactivated_bots.keys())
+        deactivated_bots_num = len(self.parent.deactivated_bots)
         failed_num = len(self.parent.failed_auth_attempts.keys())
         device_amount = len(self.parent.devices_type.keys())
         passive_amount = len(self.parent.bot_passive_data.keys())
         data_holder = {
             "server_name":self.parent.outside_names[client_name],
             "bots":[], 
-            "notifications":notifications
+            "notifications":notifications,
             "server_state_lens":{
                 "clients":connected_clients_num,
                 "deactivated":deactivated_bots_num,

@@ -63,7 +63,8 @@ class Main:
             await asyncio.sleep(1)
             try:
                 await self.route_client_request(websocket,handler)
-            except:      
+            except Exception as e:      
+                print(e)
                 del self.devices[name]
                 del self.devices_type[name]
                 self.console_logger.log_disconnect(name)
@@ -308,6 +309,7 @@ class Main:
         self.stream_mode_status= {}
         self.outside_names = {}
         self.alerts_enabled = True
+        self.
 
     def start_server(self):
         self.console_logger.start_message()
