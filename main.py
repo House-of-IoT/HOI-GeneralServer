@@ -309,7 +309,6 @@ class Main:
         self.stream_mode_status= {}
         self.outside_names = {}
         self.alerts_enabled = True
-        self.
 
     def start_server(self):
         self.console_logger.start_message()

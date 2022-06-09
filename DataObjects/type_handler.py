@@ -78,3 +78,9 @@ class TypeHandler:
             return True
         else:
             return False
+        
+    def type_op_codes(self):
+        holder = {}
+        for type_key in self.accepted_types:
+            holder[type_key] = list(self.accepted_types[type_key].accepted_basic_actions)
+        return holder

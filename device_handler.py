@@ -22,6 +22,7 @@ class DeviceHandler:
             "server_name":self.parent.outside_names[client_name],
             "bots":[], 
             "notifications":notifications,
+            "type_op_codes":self.parent.type_handler.type_op_codes()
             "server_state_lens":{
                 "clients":connected_clients_num,
                 "deactivated":deactivated_bots_num,
