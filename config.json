@@ -1,1 +1,10 @@
-{"disconnecting": false, "activating": true, "deactivating": false, "viewing": true, "host": "localhost", "port": 50888, "using_sql" :false, "device_specific":true}
+{
+    "disconnecting": false, 
+    "activating": true,
+    "deactivating": false, 
+    "viewing": true, 
+    "host": "localhost", 
+    "port": 50888, 
+    "using_sql" :false, 
+    "device_specific":true,
+    "external_controller_location":"ws://localhost:50900"}
