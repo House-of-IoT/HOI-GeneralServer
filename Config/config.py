@@ -7,6 +7,7 @@ class ConfigHandler:
         self.deactivating_requires_admin = False
         self.viewing_all_devices_requires_auth = True
         self.device_specific_actions_require_auth = True
+        self.relations_editing_requires_admin_auth = True
         self.using_sql = False
         self.host = None
         self.port = None
@@ -27,6 +28,7 @@ class ConfigHandler:
                 self.using_sql = data_dict["using_sql"]
                 self.device_specific_actions_require_auth = data_dict["device_specific"]
                 self.external_controller_location = data_dict["external_controller_location"]
+                self.relations_editing_requires_admin_auth = data_dict["relations"]
             except Exception as e:
                 print(e)
                 print("There is an issue with the required config.json...")
@@ -40,7 +42,8 @@ class ConfigHandler:
             "deactivating" : self.deactivating_requires_admin,
             "viewing" : self.viewing_all_devices_requires_auth,
             "using_sql": self.using_sql,
-            "device_specific":self.device_specific_actions_require_auth
+            "device_specific":self.device_specific_actions_require_auth,
+            "relations":self.relations_editing_requires_admin_auth
         }
         return json.dumps(data_dict)
 
@@ -60,6 +63,7 @@ class ConfigMaker:
         using_sql = input("Using sql[Y,N]:")
         device_specific_actions = input("Device specific actions require authentication[Y,N]:")
         external_controller_location = input("External Controller location(include ws:// or wss://:")
+        relations = input("Relation modification of the external controller requires admin auth:[Y,N]:")
 
         data_dict = {}
         data_dict["disconnecting"] = self.route_bool(disconnecting)
@@ -71,6 +75,7 @@ class ConfigMaker:
         data_dict["using_sql"] = self.route_bool(using_sql)
         data_dict["device_specific"] = self.route_bool(device_specific_actions)
         data_dict["external_controller_location"] = external_controller_location
+        data_dict["relations"] = self.route_bool(relations)
         self.write_config(data_dict)
 
     def write_config(self,data_dict):
