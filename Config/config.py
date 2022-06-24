@@ -10,6 +10,7 @@ class ConfigHandler:
         self.using_sql = False
         self.host = None
         self.port = None
+        self.external_controller_location = None
         self.grab_current_config()
 
     def grab_current_config(self):
@@ -25,6 +26,7 @@ class ConfigHandler:
                 self.port = data_dict["port"]
                 self.using_sql = data_dict["using_sql"]
                 self.device_specific_actions_require_auth = data_dict["device_specific"]
+                self.external_controller_location = data_dict["external_controller_location"]
             except Exception as e:
                 print(e)
                 print("There is an issue with the required config.json...")
@@ -57,6 +59,7 @@ class ConfigMaker:
         port = int(input("Port:"))
         using_sql = input("Using sql[Y,N]:")
         device_specific_actions = input("Device specific actions require authentication[Y,N]:")
+        external_controller_location = input("External Controller location(include ws:// or wss://:")
 
         data_dict = {}
         data_dict["disconnecting"] = self.route_bool(disconnecting)
@@ -67,6 +70,7 @@ class ConfigMaker:
         data_dict["port"] = port
         data_dict["using_sql"] = self.route_bool(using_sql)
         data_dict["device_specific"] = self.route_bool(device_specific_actions)
+        data_dict["external_controller_location"] = external_controller_location
         self.write_config(data_dict)
 
     def write_config(self,data_dict):
