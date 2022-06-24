@@ -1,7 +1,7 @@
 import json
 import os
 
-def reconnect_forever(parent, location_of_external_controller):
+async def reconnect_to_external_controller_forever(parent, location_of_external_controller):
     while True:
         await asyncio.sleep(10)  
         print("Attempting to connect to external controller...")
