@@ -8,20 +8,28 @@ def reconnect_forever(parent, location_of_external_controller):
         await connect_to_server_and_begin(parent, location_of_external_controller)
 
 async def connect_to_server_and_begin(parent, location_of_external_controller):
-    async with websockets.connect(location_of_external_controller) as websocket:
-        password_for_controller =  os.environ.get("hoi_exc_s_pw")
-        conn_request = {
-            "name":"MainServer",
-            "password":password_for_controller}
-        await websocket.send(json.dumps(conn_request))
-        res = await websocket.recv()
-        print(f"Response to external controller connection:{}", res)
+    try:
+        async with websockets.connect(location_of_external_controller) as websocket:
+            password_for_controller =  os.environ.get("hoi_exc_s_pw")
+            conn_request = {
+                "name":"MainServer",
+                "password":password_for_controller}
+            await websocket.send(json.dumps(conn_request))
+            res = await websocket.recv()
+            print(f"Response to external controller connection:{}", res)
 
-        if res == "success":
-            while True:
-                await asyncio.sleep(5) 
-                await request_relation_snapshot(parent,websocket)
-                await check_and_execute_queue_request(parent,websocket,password_for_controller)
+            if res == "success":
+                while True:
+                    await asyncio.sleep(5) 
+                    #only request a snapshot update when the queue volume
+                    #is low, meaning if there are 5+ requests for relations
+                    #do not request.
+                    if parent.external_controller_requests.qsize() < 5:
+                        await request_relation_snapshot(parent,websocket)
+                    await check_and_execute_queue_request(parent,websocket,password_for_controller)
+    except Exception as e:
+        print(e)
+        break
 
 async def request_relation_snapshot(parent, websocket):             
     snapshot_request = {
