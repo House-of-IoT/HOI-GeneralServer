@@ -309,6 +309,8 @@ class Main:
         self.stream_mode_status= {}
         self.outside_names = {}
         self.alerts_enabled = True
+        self.external_controller_requests = queue.Queue()
+        self.external_controller_view_snapshot = None
 
     def start_server(self):
         self.console_logger.start_message()
@@ -316,7 +318,8 @@ class Main:
         loop.run_until_complete(asyncio.gather(
             websockets.serve(self.check_declaration,self.config.host,self.config.port,ping_interval=None),
             self.notification_handler.cleanup_all_notifications_forever(),
-            self.auto_scheduler.execute_tasks()
+            self.auto_scheduler.execute_tasks(),
+
         ))
         loop.run_forever()
 
