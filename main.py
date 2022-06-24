@@ -183,6 +183,8 @@ class Main:
             await handler.handle_state_or_record_modification(request)
         elif request in RoutingTypes.GENERIC_STATE_WITH_NO_AUTH:
             await handler.send_table_state_with_no_auth_requirements(request)
+        elif request == "external_controller_request":
+            await handler.handle_external_controller_request(request)
         else:
             pass
 

@@ -28,6 +28,8 @@ class CredentialChecker:
             return self.parent.config.disconnecting_requires_admin
         elif action == "viewing":
             return self.parent.config.viewing_all_devices_requires_auth
+        elif action == "editing_relations":
+            return self.parent.config.relations_editing_requires_admin_auth
         else:
             return self.parent.config.device_specific_actions_require_auth
 
