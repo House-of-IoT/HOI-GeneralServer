@@ -15,6 +15,7 @@ from DataObjects.type_handler import TypeHandler
 from DataObjects.routing_types import RoutingTypes
 from DataCapture.capture_object_creator import CaptureDictCreator
 from Notifications.notification_handler import NotificationHandler
+from ThirdPartyHandlers.external_controller import reconnect_to_external_controller_forever
 import queue
 import traceback
 import os
@@ -319,7 +320,7 @@ class Main:
             websockets.serve(self.check_declaration,self.config.host,self.config.port,ping_interval=None),
             self.notification_handler.cleanup_all_notifications_forever(),
             self.auto_scheduler.execute_tasks(),
-
+            reconnect_to_external_controller_forever(self,self.config.external_controller_location)
         ))
         loop.run_forever()
 
