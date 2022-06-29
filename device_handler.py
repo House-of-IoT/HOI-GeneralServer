@@ -29,7 +29,8 @@ class DeviceHandler:
                 "addresses_that_failed":failed_num,
                 "devices":device_amount,
                 "alerts_active":self.parent.alerts_enabled,
-                "in_memory_passive_data":passive_amount}}
+                "in_memory_passive_data":passive_amount},
+            "external_controller_snapshot":self.parent.external_controller_view_snapshot}
 
         for name in device_names:
             if self.parent.available_status[name] == True:
