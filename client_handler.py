@@ -118,12 +118,13 @@ class ClientHandler:
             is_async=lambda_and_async_status[1])
 
     #for client to authenticate and then push their request on the queue
-    async def handle_external_controller_request(self,data):
+    async def handle_external_controller_request(self):
+        data = await self.websocket.recv()
         if(await self.credential_checker.client_has_credentials("editing_relations")):
             self.parent.external_controller_requests.put(data)
         else:
             await self.response_manager.send_basic_response("failed-auth",action= "editing_relations")
-            
+
 #PRIVATE
     """
     Takes action and routes it to the correct functionality

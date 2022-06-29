@@ -184,7 +184,7 @@ class Main:
         elif request in RoutingTypes.GENERIC_STATE_WITH_NO_AUTH:
             await handler.send_table_state_with_no_auth_requirements(request)
         elif request == "external_controller_request":
-            await handler.handle_external_controller_request(request)
+            await handler.handle_external_controller_request()
         else:
             pass
 
