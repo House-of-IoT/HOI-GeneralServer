@@ -1,5 +1,6 @@
 import json
 import os
+import asyncio
 
 async def reconnect_to_external_controller_forever(parent, location_of_external_controller):
     while True:
@@ -16,7 +17,7 @@ async def connect_to_server_and_begin(parent, location_of_external_controller):
                 "password":password_for_controller}
             await websocket.send(json.dumps(conn_request))
             res = await websocket.recv()
-            print(f"Response to external controller connection:{}", res)
+            print(f"Response to external controller connection:{res}" )
 
             if res == "success":
                 while True:
@@ -29,7 +30,6 @@ async def connect_to_server_and_begin(parent, location_of_external_controller):
                     await check_and_execute_queue_request(parent,websocket,password_for_controller)
     except Exception as e:
         print(e)
-        break
 
 async def request_relation_snapshot(parent, websocket):             
     snapshot_request = {
@@ -39,7 +39,7 @@ async def request_relation_snapshot(parent, websocket):
     snapshot_res = await websocket.recv()
     res_obj = json.loads(response)
 
-    print(f"snapshot response from external controller:{}", snapshot_res)
+    print(f"snapshot response from external controller:{snapshot_res}" )
     if res_obj["status"] == "success":
         parent.external_controller_view_snapshot = snapshot_res
 
@@ -51,10 +51,10 @@ async def check_and_execute_queue_request(parent, websocket,password):
         request_data = request["data"]
         if request["category"] == "add_relation" or request["category"] == "remove_relation":
             res = add_or_remove_relation(websocket,relation,request["category"],password)
-            print(f"add or remove response for relation:{}", res)
+            print(f"add or remove response for relation:{res}" )
 
 async def add_or_remove_relation(websocket,relation,op_code,password):
-    request = {"request":op_code,"password":, "relation":relation}
+    request = {"request":op_code,"password":password,"relation":relation}
     await websocket.send(json.dumps(request))
     response = await websocket.recv()
     return response
