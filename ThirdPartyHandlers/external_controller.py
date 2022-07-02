@@ -1,6 +1,7 @@
 import json
 import os
 import asyncio
+import websockets
 
 async def reconnect_to_external_controller_forever(parent, location_of_external_controller):
     while True:
