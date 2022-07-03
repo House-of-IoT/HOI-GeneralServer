@@ -27,18 +27,18 @@ async def connect_to_server_and_begin(parent, location_of_external_controller):
                     #is low, meaning if there are 5+ requests for relations
                     #do not request.
                     if parent.external_controller_requests.qsize() < 5:
-                        await request_relation_snapshot(parent,websocket)
+                        await request_relation_snapshot(parent,websocket,password_for_controller)
                     await check_and_execute_queue_request(parent,websocket,password_for_controller)
     except Exception as e:
         print(e)
 
-async def request_relation_snapshot(parent, websocket):             
+async def request_relation_snapshot(parent, websocket,password_for_controller):             
     snapshot_request = {
         "request":"view_relations",
         "password":password_for_controller}
     await websocket.send(json.dumps(snapshot_request))
     snapshot_res = await websocket.recv()
-    res_obj = json.loads(response)
+    res_obj = json.loads(snapshot_res)
 
     print(f"snapshot response from external controller:{snapshot_res}" )
     if res_obj["status"] == "success":
