@@ -29,3 +29,6 @@ of "soil_monitor" and checks if the "soil_monitor" has a humidity of 2.
 
 
 If the *ALL* of the "conditions" are met then the "action" will be requested from the server.
+
+# Servers have a defined external controller
+Each server has its own linked controller in the config file and it will spawn a connection to it. This controller can be directly manipulated by making requests to the general server.
