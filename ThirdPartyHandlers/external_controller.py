@@ -40,7 +40,6 @@ async def request_relation_snapshot(parent, websocket,password_for_controller):
     snapshot_res = await websocket.recv()
     res_obj = json.loads(snapshot_res)
 
-    print(f"snapshot response from external controller:{snapshot_res}" )
     if res_obj["status"] == "success":
         parent.external_controller_view_snapshot = snapshot_res
 
@@ -49,9 +48,9 @@ async def check_and_execute_queue_request(parent, websocket,password):
     if parent.external_controller_requests.qsize() > 0:
         request = parent.external_controller_requests.get()
         request = json.loads(request)
-        request_data = request["data"]
+        request_data = json.loads(request["data"])
         if request["category"] == "add_relation" or request["category"] == "remove_relation":
-            res = add_or_remove_relation(websocket,relation,request["category"],password)
+            res = await add_or_remove_relation(websocket,request_data,request["category"],password)
             print(f"add or remove response for relation:{res}" )
 
 async def add_or_remove_relation(websocket,relation,op_code,password):
