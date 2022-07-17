@@ -7,6 +7,6 @@
     "port": 50888, 
     "using_sql" :false, 
     "device_specific":true,
-    "external_controller_location":"ws://localhost:50224",
+    "external_controller_location":"ws://localhost:50889",
     "relations":true,
     "add_custom_types":true}
