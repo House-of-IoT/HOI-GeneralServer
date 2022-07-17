@@ -313,7 +313,6 @@ class Main:
         self.last_alert_sent = {}
         self.stream_mode_status= {}
         self.outside_names = {}
-        self.alerts_enabled = True
         self.external_controller_requests = queue.Queue()
         self.external_controller_view_snapshot = None
 

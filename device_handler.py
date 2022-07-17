@@ -28,7 +28,7 @@ class DeviceHandler:
                 "deactivated":deactivated_bots_num,
                 "addresses_that_failed":failed_num,
                 "devices":device_amount,
-                "alerts_active":self.parent.alerts_enabled,
+                "alerts_active":True,
                 "in_memory_passive_data":passive_amount},
             "external_controller_snapshot":self.parent.external_controller_view_snapshot}
 

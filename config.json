@@ -8,4 +8,5 @@
     "using_sql" :false, 
     "device_specific":true,
     "external_controller_location":"ws://localhost:50224",
-    "relations":true}
+    "relations":true,
+    "add_custom_types":true}
