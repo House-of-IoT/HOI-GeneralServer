@@ -30,6 +30,8 @@ class CredentialChecker:
             return self.parent.config.viewing_all_devices_requires_auth
         elif action == "editing_relations":
             return self.parent.config.relations_editing_requires_admin_auth
+        elif action == "add_custom_type":
+            return self.parent.config.adding_custom_types_requires_admin_auth
         else:
             return self.parent.config.device_specific_actions_require_auth
 

@@ -185,6 +185,8 @@ class Main:
             await handler.send_table_state_with_no_auth_requirements(request)
         elif request == "external_controller_request":
             await handler.handle_external_controller_request()
+        elif request == "custom_type_add":
+            await handler.handle_custom_type_add()
         else:
             pass
 

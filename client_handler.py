@@ -122,8 +122,22 @@ class ClientHandler:
         data = await self.websocket.recv()
         if(await self.credential_checker.client_has_credentials("editing_relations")):
             self.parent.external_controller_requests.put(data)
+            await self.response_manager.send_basic_response(
+                "successful-external-controller-request",
+                action= "editing_relations")
         else:
-            await self.response_manager.send_basic_response("failed-auth",action= "editing_relations")
+            await self.response_manager.send_basic_response(
+                "failed-external-controller-request",
+                action= "editing_relations")
+
+    async def handle_custom_type_add(self):
+        data = await self.websocket.recv()
+        if(await self.credential_checker.client_has_credentials("add_custom_type")):
+            key_and_data = json.loads(data)
+            self.parent.type_handler.add_custom_type(key_and_data["data"], key_and_data["key"])
+            await self.response_manager.send_basic_response("successful-custom-add-request")
+        else:
+            await self.response_manager.send_basic_response("failed-custom-add-request",action= "add_custom_type")
 
 #PRIVATE
     """
@@ -227,6 +241,12 @@ class ClientHandler:
             self.parent.config.activating_requires_admin = boolean
         elif request == "change_config_deactivating":
             self.parent.config.deactivating_requires_admin = boolean
+        elif request == "change_config_device_specific":
+            self.parent.config.device_specific_actions_require_auth = boolean
+        elif request == "change_config_relations":
+            self.parent.config.relations_editing_requires_admin_auth = boolean
+        elif request == "change_config_custom_types":
+            self.parent.config.adding_custom_types_requires_admin_auth = boolean
         else:
             self.parent.config.disconnecting_requires_admin = boolean
 
